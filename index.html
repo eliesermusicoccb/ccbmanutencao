@@ -4204,3 +4204,147 @@ renderLoginState();
   setTimeout(function(){ setupChatUI(); renderCronogramaV21(); try{ window.renderChat(); }catch(e){} },250);
 })();
 </script>
+
+
+<!-- V22 - Cronograma com previsao de encerramento e linha do tempo estilo quadro -->
+<style>
+.crono-v22-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 16px 12px}
+.crono-v22-board{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);margin:0 16px 14px;overflow:hidden}
+.crono-v22-head{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--surface2)}
+.crono-v22-head strong{font-size:15px;color:var(--text)}
+.crono-v22-head span{font-size:12px;color:var(--text2)}
+.crono-v22-scroll{overflow-x:auto;scrollbar-width:thin}
+.crono-v22-grid{min-width:860px}
+.crono-v22-axis{display:grid;grid-template-columns:210px 1fr;border-bottom:1px solid var(--border);background:#f7f7f7}
+.crono-v22-axis-left{padding:8px 10px;font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;border-right:1px solid var(--border)}
+.crono-v22-ticks{position:relative;height:38px;background:linear-gradient(90deg,rgba(0,0,0,.055) 1px,transparent 1px);background-size:16.66% 100%}
+.crono-v22-tick{position:absolute;top:8px;transform:translateX(-50%);font-size:11px;font-weight:800;color:var(--text2);white-space:nowrap}
+.crono-v22-row{display:grid;grid-template-columns:210px 1fr;min-height:58px;border-bottom:1px solid var(--border)}
+.crono-v22-label{padding:10px;border-right:1px solid var(--border);background:#fff;position:sticky;left:0;z-index:1}
+.crono-v22-label strong{display:block;font-size:13px;color:var(--text);line-height:1.2}
+.crono-v22-label small{display:block;font-size:11px;color:var(--text2);margin-top:3px;line-height:1.25}
+.crono-v22-track{position:relative;background:linear-gradient(90deg,rgba(27,79,168,.08) 1px,transparent 1px);background-size:16.66% 100%}
+.crono-v22-bar{position:absolute;top:18px;height:14px;border-radius:99px;background:var(--ccb-blue);box-shadow:0 2px 7px rgba(27,79,168,.25);min-width:12px}
+.crono-v22-bar.realizado{background:var(--done)}
+.crono-v22-bar.cancelado{background:var(--danger)}
+.crono-v22-bar.pendente{background:var(--pending)}
+.crono-v22-bar-label{position:absolute;top:-18px;left:0;font-size:11px;font-weight:800;color:var(--text);white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.crono-v22-today{position:absolute;top:0;bottom:0;width:2px;background:#1473e6;box-shadow:0 0 0 2px rgba(20,115,230,.12)}
+.crono-v22-phone-note{display:none;margin:0 16px 10px;padding:8px 10px;border-radius:12px;background:var(--ccb-blue-light);color:var(--ccb-blue);font-size:12px;font-weight:700}
+.crono-v22-period{font-size:12px;font-weight:800;color:var(--text2);margin-top:6px}
+.crono-v22-empty{padding:24px 16px;text-align:center;color:var(--text2);font-size:14px}
+.crono-v21-card .crono-v22-period{margin-top:8px}
+.crono-v22-mini-timeline{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-top:10px;background:#fff}
+.crono-v22-mini-timeline .crono-v22-grid{min-width:650px}
+@media(max-width:640px){.crono-v22-phone-note{display:block}.crono-v22-board{margin-left:10px;margin-right:10px}.crono-v22-tools{margin-left:10px;margin-right:10px}.crono-v22-grid{min-width:780px}.crono-v22-axis,.crono-v22-row{grid-template-columns:180px 1fr}.crono-v22-label{padding:9px}.crono-v22-label strong{font-size:12px}}
+</style>
+<script>
+(function(){
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function getTasks(){ try { if(typeof tasks !== 'undefined' && Array.isArray(tasks)) return tasks; } catch(e){} try { return JSON.parse(localStorage.getItem('ccb_tasks') || '[]'); } catch(e){ return []; } }
+  function saveTasksSafe(list){ try { if(typeof tasks !== 'undefined') tasks = list; } catch(e){} try { localStorage.setItem('ccb_tasks', JSON.stringify(list || [])); } catch(e){} }
+  function getScheds(){ try { if(typeof scheds !== 'undefined' && Array.isArray(scheds)) return scheds; } catch(e){} try { return JSON.parse(localStorage.getItem('ccb_scheds') || '[]'); } catch(e){ return []; } }
+  function saveSchedsSafe(list){ try { if(typeof scheds !== 'undefined') scheds = list; } catch(e){} try { window.scheds = list; } catch(e){} try { localStorage.setItem('ccb_scheds', JSON.stringify(list || [])); } catch(e){} }
+  function getUsers(){ try { if(typeof users !== 'undefined' && Array.isArray(users)) return users; } catch(e){} try { return JSON.parse(localStorage.getItem('ccb_users') || '[]'); } catch(e){ return []; } }
+  function currentUser(){ try { if(typeof currentAdmin === 'function'){ var u = currentAdmin(); if(u && u.name) return u; } } catch(e){} try { var id = Number(localStorage.getItem('ccb_current_admin') || 0); return getUsers().find(function(u){ return Number(u.id) === id; }) || null; } catch(e){ return null; } }
+  function who(){ var u = currentUser(); return u && u.name ? u.name : 'Responsável'; }
+  function today(){ return new Date().toISOString().slice(0,10); }
+  function parseDate(d){ if(!d) return null; var x = new Date(String(d) + 'T00:00:00'); return isNaN(x.getTime()) ? null : x; }
+  function iso(d){ return d.toISOString().slice(0,10); }
+  function addDays(d,n){ var x = new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }
+  function diffDays(a,b){ return Math.round((b.getTime()-a.getTime())/86400000); }
+  function fmt(d){ if(!d) return '—'; try { return new Date(String(d)+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.',''); } catch(e){ return d; } }
+  function short(s,n){ s = String(s || ''); n = n || 80; return s.length > n ? s.slice(0,n-1) + '…' : s; }
+  function taskById(id){ return getTasks().find(function(t){ return String(t.id) === String(id); }); }
+  function statusClass(s){ s=String(s || 'Pendente'); if(s==='Realizado' || s==='Feito') return 'green'; if(s==='Cancelado') return 'red'; if(s==='Iniciado' || s==='Em andamento') return 'blue'; return 'orange'; }
+  function barClass(s){ s=String(s || 'Pendente').toLowerCase(); if(s.indexOf('real')>=0 || s.indexOf('feito')>=0) return 'realizado'; if(s.indexOf('cancel')>=0) return 'cancelado'; if(s.indexOf('pend')>=0) return 'pendente'; return ''; }
+  function peopleOptions(selected){ var html='<option value="">Escolher</option>'; getUsers().forEach(function(u){ var n=u&&u.name?String(u.name):''; if(n) html += '<option value="'+esc(n)+'" '+(selected===n?'selected':'')+'>'+esc(n)+'</option>'; }); return html; }
+  function taskOptions(selected){ var list = getTasks(); if(!list.length) return '<option value="">Nenhum item em Manutenção</option>'; var html='<option value="">Escolher item da manutenção</option>'; list.forEach(function(t){ var label=(t.local||'Local')+' - '+short(t.desc||t.title||'',70); html += '<option value="'+esc(t.id)+'" '+(String(selected||'')===String(t.id)?'selected':'')+'>'+esc(label)+'</option>'; }); return html; }
+  function timelineItem(text){ return { id: Date.now()+Math.floor(Math.random()*999), date: new Date().toISOString(), user: who(), text: text }; }
+  function ensureTimeline(s){ if(!Array.isArray(s.timeline)) s.timeline = []; return s.timeline; }
+  function normalizedScheds(){ return getScheds().map(function(s){ var start=parseDate(s.date); var end=parseDate(s.endDate || s.finishDate || s.previsaoFim || s.date); if(start && end && end < start) end=start; return {raw:s,start:start,end:end}; }).filter(function(x){ return x.start; }).sort(function(a,b){ return a.start-b.start; }); }
+  function rangeFor(list){ var now=parseDate(today()); if(!list.length) return {min:addDays(now,-3), max:addDays(now,21)}; var min=list[0].start, max=list[0].end || list[0].start; list.forEach(function(x){ if(x.start < min) min=x.start; var e=x.end||x.start; if(e > max) max=e; }); if(now < min) min=addDays(now,-1); if(now > max) max=addDays(now,1); min=addDays(min,-2); max=addDays(max,3); if(diffDays(min,max)<14) max=addDays(min,14); return {min:min,max:max}; }
+  function timelineBoardHtml(items, mini){ var range=rangeFor(items); var total=Math.max(1,diffDays(range.min,range.max)); var ticks=[]; for(var i=0;i<=6;i++){ var d=addDays(range.min, Math.round(total*i/6)); ticks.push({left:(i/6*100), label:fmt(iso(d))}); } var todayD=parseDate(today()); var todayLeft = todayD ? Math.max(0,Math.min(100,diffDays(range.min,todayD)/total*100)) : null; var rows=items.map(function(x){ var s=x.raw, t=s.taskId?taskById(s.taskId):null; var local=t?(t.local||'Local'):(s.title||'Serviço'); var desc=t?(t.desc||t.title||''):(s.desc||''); var left=Math.max(0,Math.min(100,diffDays(range.min,x.start)/total*100)); var width=Math.max(1.8,Math.min(100-left,(diffDays(x.start,x.end||x.start)+1)/total*100)); var resp=s.resp||'—'; return '<div class="crono-v22-row" onclick="openCronogramaProfileV21('+Number(s.id)+')">'
+    + '<div class="crono-v22-label"><strong>'+esc(short(local,32))+'</strong><small>'+esc(short(desc,50))+'</small><div class="crono-v22-period">'+fmt(s.date)+' até '+fmt(s.endDate||s.date)+'</div></div>'
+    + '<div class="crono-v22-track">'+(todayLeft!==null?'<div class="crono-v22-today" style="left:'+todayLeft.toFixed(2)+'%"></div>':'')+'<div class="crono-v22-bar '+barClass(s.status)+'" style="left:'+left.toFixed(2)+'%;width:'+width.toFixed(2)+'%"><span class="crono-v22-bar-label">'+esc(resp)+'</span></div></div></div>'; }).join('');
+    return '<div class="crono-v22-board '+(mini?'crono-v22-mini-timeline':'')+'"><div class="crono-v22-head"><strong>Linha do tempo</strong><span>'+fmt(iso(range.min))+' até '+fmt(iso(range.max))+'</span></div><div class="crono-v22-scroll"><div class="crono-v22-grid"><div class="crono-v22-axis"><div class="crono-v22-axis-left">Serviço</div><div class="crono-v22-ticks">'+ticks.map(function(t){return '<span class="crono-v22-tick" style="left:'+t.left.toFixed(2)+'%">'+esc(t.label)+'</span>';}).join('')+'</div></div>'+(rows || '<div class="crono-v22-empty">Nenhum item no cronograma.</div>')+'</div></div></div>'; }
+
+  window.renderProjects = function(){ window.renderCronogramaV21(); };
+  window.renderCronogramaV21 = function(){
+    var el = document.getElementById('project-list'); if(!el) return;
+    var list = normalizedScheds();
+    if(!list.length){ el.innerHTML = '<div class="crono-empty"><strong>Nenhum item no cronograma.</strong><br><span>Primeiro cadastre o item em Manutenção. Depois coloque aqui no Cronograma.</span></div>'; return; }
+    var cards = list.map(function(x){ var s=x.raw, t=s.taskId?taskById(s.taskId):null; var local=t?(t.local||'Local não informado'):(s.title||'Serviço'); var desc=t?(t.desc||t.title||''):(s.desc||''); var st=s.status||'Pendente'; return '<div class="crono-v21-card destaque" onclick="openCronogramaProfileV21('+Number(s.id)+')">'
+      + '<div class="crono-v21-top"><div class="crono-v21-title">'+esc(local)+'</div><div class="crono-v21-date">'+fmt(s.date)+'</div></div>'
+      + '<div class="crono-v21-desc">'+esc(short(desc,120))+'</div>'
+      + '<div class="crono-v21-meta"><span class="crono-v21-pill blue">Responsável: '+esc(s.resp||'—')+'</span><span class="crono-v21-pill '+statusClass(st)+'">'+esc(st)+'</span><span class="crono-v21-pill">Fim: '+fmt(s.endDate||s.date)+'</span></div>'
+      + '<div class="crono-v22-period">Período: '+fmt(s.date)+' até '+fmt(s.endDate||s.date)+'</div>'
+      + '<div class="crono-v21-actions"><button class="edit" onclick="event.stopPropagation(); openCronogramaFormV21('+Number(s.id)+')">Editar</button><button class="del" onclick="event.stopPropagation(); deleteCronogramaV21('+Number(s.id)+')">Excluir</button></div></div>'; }).join('');
+    el.innerHTML = '<div class="crono-v22-phone-note">No celular, vire o aparelho para ver melhor a linha do tempo.</div>' + timelineBoardHtml(list, false) + '<div class="project-list">' + cards + '</div>';
+  };
+
+  window.openCronogramaFormV21 = function(id){
+    var sched = id ? getScheds().find(function(x){ return String(x.id) === String(id); }) : null;
+    var hasTasks = getTasks().length > 0;
+    var title = sched ? 'Editar cronograma' : 'Colocar no cronograma';
+    var html = '<div class="modal-header"><span class="modal-title">'+title+'</span><button class="modal-close" onclick="closeModal(\'modal-detail\')">✕</button></div><div class="modal-body">'
+      + (!hasTasks ? '<div class="help-box">Antes de criar o cronograma, cadastre o item na aba Manutenção.</div>' : '')
+      + '<input type="hidden" id="v21-sched-id" value="'+(sched?Number(sched.id):'')+'">'
+      + '<div class="form-group"><label class="form-label">Item da manutenção *</label><select class="form-select" id="v21-task-id">'+taskOptions(sched?sched.taskId:'')+'</select></div>'
+      + '<div class="project-form-grid"><div class="form-group"><label class="form-label">Data de início *</label><input class="form-input" type="date" id="v21-date" value="'+esc(sched?sched.date:today())+'"></div>'
+      + '<div class="form-group"><label class="form-label">Previsão de encerramento</label><input class="form-input" type="date" id="v21-end-date" value="'+esc(sched?(sched.endDate||sched.date):today())+'"></div>'
+      + '<div class="form-group"><label class="form-label">Responsável</label><select class="form-select" id="v21-resp">'+peopleOptions(sched?sched.resp:'')+'</select></div>'
+      + '<div class="form-group"><label class="form-label">Situação</label><select class="form-select" id="v21-status"><option '+(sched&&sched.status==='Pendente'?'selected':'')+'>Pendente</option><option '+(sched&&sched.status==='Iniciado'?'selected':'')+'>Iniciado</option><option '+(sched&&sched.status==='Realizado'?'selected':'')+'>Realizado</option><option '+(sched&&sched.status==='Cancelado'?'selected':'')+'>Cancelado</option></select></div></div>'
+      + '<div class="form-group"><label class="form-label">Colaboradores</label><input class="form-input" id="v21-helpers" value="'+esc(sched?sched.helpers:'')+'" placeholder="Nomes separados por vírgula"></div>'
+      + '<div class="form-group"><label class="form-label">Itens que serão usados</label><textarea class="form-textarea" id="v21-items" placeholder="Ex: lâmpada LED - 4 unidades&#10;fita isolante - 1 rolo">'+esc(sched?sched.itemsText:'')+'</textarea></div>'
+      + '<div class="form-group"><label class="form-label">Observação</label><textarea class="form-textarea" id="v21-note" placeholder="O que precisa ser combinado?">'+esc(sched?sched.note:'')+'</textarea></div>'
+      + '<button class="btn-primary" onclick="saveCronogramaV21()" '+(!hasTasks?'disabled style="opacity:.55"':'')+'>Salvar cronograma</button>'
+      + (sched?'<button class="btn-danger" onclick="deleteCronogramaV21('+Number(sched.id)+')">Excluir cronograma</button>':'') + '</div>';
+    var c=document.getElementById('detail-content'); if(c){ c.innerHTML=html; openModal('modal-detail'); }
+  };
+
+  window.saveCronogramaV21 = function(){
+    var taskId=(document.getElementById('v21-task-id')||{}).value || '';
+    var date=(document.getElementById('v21-date')||{}).value || '';
+    var endDate=(document.getElementById('v21-end-date')||{}).value || date;
+    if(!taskId){ showToast('Escolha um item da manutenção'); return; }
+    if(!date){ showToast('Informe a data de início'); return; }
+    if(parseDate(endDate) && parseDate(date) && parseDate(endDate) < parseDate(date)) endDate = date;
+    var id=Number((document.getElementById('v21-sched-id')||{}).value || 0);
+    var list=getScheds().slice(); var s=id?list.find(function(x){ return Number(x.id)===id; }):null; var t=taskById(taskId);
+    if(!s){ s={id:Date.now(), timeline:[]}; list.push(s); ensureTimeline(s).push(timelineItem('Item colocado no cronograma')); }
+    else { ensureTimeline(s).push(timelineItem('Cronograma alterado')); }
+    s.taskId=taskId; s.title=t?(t.local||'Serviço'):'Serviço'; s.desc=t?(t.desc||t.title||''):''; s.date=date; s.endDate=endDate;
+    s.resp=(document.getElementById('v21-resp')||{}).value || ''; s.status=(document.getElementById('v21-status')||{}).value || 'Pendente';
+    s.helpers=((document.getElementById('v21-helpers')||{}).value || '').trim(); s.itemsText=((document.getElementById('v21-items')||{}).value || '').trim(); s.note=((document.getElementById('v21-note')||{}).value || '').trim();
+    saveSchedsSafe(list);
+    if(t){ var all=getTasks(); var found=all.find(function(x){ return String(x.id)===String(taskId); }); if(found){ found.prazo=endDate; found.previsao=endDate; found.proximaData=date; if(s.resp) found.resp=s.resp; if(found.status==='Pendente') found.status='Iniciado'; try { if(typeof addHistory==='function') addHistory(found, who(), id?'editou o cronograma':'colocou no cronograma', 'início '+fmt(date)+' / fim '+fmt(endDate)); } catch(e){} saveTasksSafe(all); } }
+    try{ closeModal('modal-detail'); }catch(e){} window.renderCronogramaV21(); try{ if(typeof render==='function') render(); }catch(e){} showToast(id?'Cronograma alterado':'Item colocado no cronograma');
+  };
+
+  window.openCronogramaProfileV21 = function(id){
+    var s=getScheds().find(function(x){ return Number(x.id)===Number(id); }); if(!s) return;
+    var t=s.taskId?taskById(s.taskId):null; var one=normalizedScheds().filter(function(x){ return Number(x.raw.id)===Number(id); });
+    var tl=(s.timeline||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+    var timelineHtml=tl.length?tl.map(function(x){ var d=x.date?new Date(x.date).toLocaleString('pt-BR'):''; return '<div class="project-time-item"><small>'+esc(d)+' · '+esc(x.user||'Responsável')+'</small><div>'+esc(x.text||'')+'</div></div>'; }).join(''):'<div class="project-time-item"><small>Sem registro</small><div>Nenhuma movimentação ainda.</div></div>';
+    var html='<div class="project-profile-head"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="project-profile-title">'+esc(t?(t.local||'Manutenção'):(s.title||'Cronograma'))+'</div><div class="project-profile-sub">Início: '+fmt(s.date)+' · Fim: '+fmt(s.endDate||s.date)+' · Responsável: '+esc(s.resp||'—')+'</div></div><button class="modal-close" onclick="closeModal(\'modal-detail\')" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:white">✕</button></div></div>'
+      + '<div class="modal-body"><div class="project-section"><div class="project-section-title">Manutenção ligada</div><div class="detail-text">'+esc(t?(t.desc||t.title||'Sem descrição.'):'Item não encontrado em manutenção.')+'</div></div>'
+      + '<div class="project-section"><div class="detail-grid"><div class="detail-item"><div class="di-label">Situação</div><div class="di-value">'+esc(s.status||'Pendente')+'</div></div><div class="detail-item"><div class="di-label">Início</div><div class="di-value">'+fmt(s.date)+'</div></div><div class="detail-item"><div class="di-label">Fim previsto</div><div class="di-value">'+fmt(s.endDate||s.date)+'</div></div><div class="detail-item"><div class="di-label">Responsável</div><div class="di-value">'+esc(s.resp||'—')+'</div></div></div></div>'
+      + '<div class="project-section"><div class="project-section-title">Linha do tempo</div><div class="crono-v22-phone-note" style="display:block;margin:0 0 8px">No celular, vire o aparelho para ver melhor.</div>'+timelineBoardHtml(one, true)+'</div>'
+      + '<div class="project-section"><div class="project-section-title">Itens que serão usados</div><div class="detail-text" style="white-space:pre-line">'+esc(s.itemsText||'Nenhum item informado.')+'</div></div>'
+      + '<div class="project-section"><div class="project-section-title">Evolução</div><div class="project-timeline">'+timelineHtml+'</div></div>'
+      + '<div class="action-btns"><button class="action-btn blue" onclick="openCronogramaFormV21('+Number(s.id)+')">Editar cronograma</button>'+(t?'<button class="action-btn" onclick="openDetail('+Number(t.id)+')">Abrir perfil da manutenção</button>':'')+'<button class="action-btn red" onclick="deleteCronogramaV21('+Number(s.id)+')">Excluir cronograma</button></div></div>';
+    var c=document.getElementById('detail-content'); if(c){ c.innerHTML=html; openModal('modal-detail'); }
+  };
+
+  window.openSchedDetail = window.openCronogramaProfileV21;
+  window.openEditSched = window.openCronogramaFormV21;
+  window.deleteCronogramaV21 = function(id){ if(!confirm('Excluir este cronograma?')) return; var list=getScheds().filter(function(s){ return Number(s.id)!==Number(id); }); saveSchedsSafe(list); try{ closeModal('modal-detail'); }catch(e){} window.renderCronogramaV21(); try{ if(typeof render==='function') render(); }catch(e){} showToast('Cronograma excluído'); };
+  window.deleteSched = window.deleteCronogramaV21;
+  window.exportCronogramaV21 = function(){ var blob=new Blob([JSON.stringify({cronograma:getScheds(), exportado:new Date().toLocaleString('pt-BR')}, null, 2)], {type:'application/json'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ccb-cronograma-'+today()+'.json'; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href)},1000); };
+
+  var oldShowTab = window.showTab;
+  if(typeof oldShowTab === 'function' && !window.__v22ShowTabPatched){ window.__v22ShowTabPatched=true; window.showTab=function(id,btn){ oldShowTab(id,btn); if(id==='projetos') setTimeout(window.renderCronogramaV21,0); }; }
+  setTimeout(function(){ try{ window.renderCronogramaV21(); }catch(e){} }, 300);
+})();
+</script>
