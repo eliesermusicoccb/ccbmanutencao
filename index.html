@@ -1085,7 +1085,7 @@
     <button class="tab-btn" data-top-tab="manutencao" onclick="showTab('manutencao', this)"><span class="tab-icon">🛠️</span>Manutenção<span class="tab-badge" id="badge-pend">0</span></button>
     <button class="tab-btn tab-add" data-top-tab="adicionar" onclick="openNewTask()" title="Adicionar"><span class="tab-icon">➕</span>Adicionar</button>
     <button class="tab-btn" data-top-tab="produtos" onclick="showTab('produtos', this)"><span class="tab-icon">📦</span>Produtos</button>
-    <button class="tab-btn" data-top-tab="projetos" onclick="showTab('projetos', this)"><span class="tab-icon">📁</span>Projetos</button>
+    <button class="tab-btn" data-top-tab="projetos" onclick="showTab('projetos', this)"><span class="tab-icon">📅</span>Cronograma</button>
     <button class="tab-btn" data-top-tab="orcamentos" onclick="showTab('orcamentos', this)"><span class="tab-icon">🧾</span>Orçamentos</button>
     <button class="tab-btn" data-top-tab="relatorio" onclick="showTab('relatorio', this)"><span class="tab-icon">📊</span>Relatório</button>
   </div>
@@ -1146,15 +1146,12 @@
     </div>
 
     <div class="maint-tools">
-      <div class="search-input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input class="search-input" type="search" placeholder="Buscar item..." oninput="filterTasks('all', this.value)" id="search-all">
-      </div>
-      <div class="maint-icon-row">
-        <button class="maint-icon-mini" onclick="openNewTask()"><span>➕</span>Adicionar</button>
-        <button class="maint-icon-mini" onclick="showTab('cronograma', document.querySelector('[data-top-tab=manutencao]'))"><span>📅</span>Cronograma</button>
-        <button class="maint-icon-mini" onclick="openExportChoice('manutencao')"><span>📤</span>Exportar</button>
-        <button class="maint-icon-mini" onclick="showOverdueOnly()"><span>⚠️</span>Atrasados</button>
+      <div class="maint-search-row">
+        <div class="search-input-wrap maint-search-grow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input class="search-input" type="search" placeholder="Buscar item..." oninput="filterTasks('all', this.value)" id="search-all">
+        </div>
+        <button class="mini-btn blue maint-export-btn" onclick="openExportChoice('manutencao')">Exportar</button>
       </div>
     </div>
 
@@ -1375,25 +1372,25 @@
       <div class="chat-form">
         <div class="form-group">
           <label class="form-label">Mensagem</label>
-          <textarea class="form-textarea" id="chat-text" placeholder="Escreva a mensagem para o grupo. Pode começar com @nome..."></textarea>
+          <textarea class="form-textarea" id="chat-text" placeholder="Mensagem"></textarea>
         </div>
-        <button class="btn-primary" onclick="sendChatMessage()">Enviar mensagem</button>
+        <button class="btn-primary" onclick="sendChatMessage()">Enviar</button>
       </div>
     </div>
   </div>
 
 
 
-  <!-- ══ PROJETOS ══ -->
+  <!-- ══ CRONOGRAMA ══ -->
   <div class="panel" id="tab-projetos">
     <div class="category-hero">
-      <div class="category-title">Projetos</div>
-      <div class="category-sub">Projetos são melhorias e obras fora da manutenção do dia a dia.</div>
+      <div class="category-title">Cronograma</div>
+      <div class="category-sub">Para colocar no cronograma, o item precisa estar cadastrado em Manutenção.</div>
     </div>
-    <div class="project-hint">Aqui ficam os projetos maiores, com atividades e linha do tempo.</div>
+    <div class="project-hint">Escolha um item da manutenção, informe a data e quem será o responsável.</div>
     <div class="project-tools">
-      <button class="mini-btn blue" onclick="openProjectForm()">+ Novo projeto</button>
-      <button class="mini-btn" onclick="exportProjects()">Exportar projetos</button>
+      <button class="mini-btn blue" onclick="openCronogramaFormV21()">+ Colocar item no cronograma</button>
+      <button class="mini-btn" onclick="exportCronogramaV21()">Exportar cronograma</button>
     </div>
     <div class="project-list" id="project-list"></div>
   </div>
@@ -3940,5 +3937,270 @@ renderLoginState();
 
   setInterval(cleanSimpleTexts, 800);
   setTimeout(function(){ ensureSchedFieldsV17(); if(typeof render === 'function') render(); }, 250);
+})();
+</script>
+
+
+<!-- V21 - Cronograma a partir da manutenção + chat estilo WhatsApp -->
+<style>
+/* Manutenção: busca + exportar */
+.maint-search-row{display:flex;gap:8px;align-items:center;width:100%}
+.maint-search-grow{flex:1;min-width:0}
+.maint-export-btn{height:42px;white-space:nowrap;padding:0 14px!important}
+.maint-icon-row{display:none!important}
+
+/* Cronograma */
+.crono-v21-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:14px;cursor:pointer;border-left:4px solid var(--ccb-blue)}
+.crono-v21-card.destaque{border-left-color:var(--ccb-gold);background:#fffdf5}
+.crono-v21-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:7px}
+.crono-v21-title{font-size:16px;font-weight:800;color:var(--text);line-height:1.25}
+.crono-v21-date{font-size:12px;font-weight:800;color:var(--ccb-blue);background:var(--ccb-blue-light);border-radius:999px;padding:5px 8px;white-space:nowrap}
+.crono-v21-desc{font-size:13px;color:var(--text2);line-height:1.4;margin:6px 0 10px}
+.crono-v21-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.crono-v21-pill{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.crono-v21-pill.blue{background:var(--ccb-blue-light);color:var(--ccb-blue);border-color:#c9dcfb}
+.crono-v21-pill.green{background:var(--done-bg);color:var(--done);border-color:#bfe8ca}
+.crono-v21-pill.orange{background:var(--pending-bg);color:var(--pending);border-color:#f8d9a2}
+.crono-v21-pill.red{background:var(--danger-bg);color:var(--danger);border-color:#f4b8b8}
+.crono-v21-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.crono-v21-actions button{border:1px solid var(--border);background:#fff;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:800;color:var(--text2);font-family:'DM Sans',sans-serif;cursor:pointer}
+.crono-v21-actions .edit{background:var(--ccb-blue-light);color:var(--ccb-blue);border-color:#c9dcfb}
+.crono-v21-actions .del{background:var(--danger-bg);color:var(--danger);border-color:#f4b8b8}
+.crono-empty{background:var(--surface);border:1px dashed var(--border);border-radius:16px;padding:28px 18px;text-align:center;color:var(--text2)}
+
+/* Chat estilo WhatsApp */
+#tab-chat .category-hero{display:none}
+.chat-wrap{padding:10px 10px 105px!important;background:#e7ddd2;min-height:calc(100vh - 150px)}
+.chat-login-note{margin:8px 6px!important}
+.chat-current-user{display:none!important}
+.chat-people-box{background:rgba(255,255,255,.92)!important;border:0!important;border-radius:18px!important;padding:8px 10px!important;margin:0 0 8px!important;box-shadow:0 1px 3px rgba(0,0,0,.08)!important}
+.chat-small-title{font-size:10px!important;margin-bottom:6px!important;color:#6b625b!important}
+.chat-person-chip{background:#fff!important;border:1px solid #dfd8d0!important;padding:6px 9px!important;font-size:12px!important}
+.chat-list{min-height:430px;max-height:calc(100vh - 310px);overflow-y:auto;padding:10px 6px!important;margin:0!important;display:flex;flex-direction:column;gap:7px;background:linear-gradient(180deg,#e7ddd2,#ded4c7);border-radius:16px}
+.chat-msg{max-width:84%;border:0!important;box-shadow:0 1px 2px rgba(0,0,0,.12)!important;border-radius:16px!important;padding:7px 9px!important;margin:0;background:#fff!important}
+.chat-msg.mine{align-self:flex-end;background:#d9fdd3!important;border-bottom-right-radius:4px!important}
+.chat-msg.other{align-self:flex-start;background:#fff!important;border-bottom-left-radius:4px!important}
+.chat-msg-head{margin-bottom:3px!important;display:block!important}
+.chat-msg-person{display:block!important}
+.chat-avatar{display:none!important}
+.chat-name{font-size:11px!important;color:var(--ccb-blue)!important;font-weight:900!important;margin-bottom:2px}
+.chat-time{font-size:10px!important;color:#847a72!important;text-align:right;margin-top:2px}
+.chat-text{font-size:15px!important;color:#222!important;line-height:1.42;white-space:pre-wrap;word-break:break-word}
+.chat-text .mention{background:transparent!important;color:#0b63ce!important;padding:0!important;font-weight:900!important}
+.chat-sticker-row{display:flex;gap:8px;overflow-x:auto;padding:8px 4px 6px;scrollbar-width:none}
+.chat-sticker-row::-webkit-scrollbar{display:none}
+.sticker-btn{min-width:42px;height:38px;border:0;border-radius:20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.12);font-size:22px;cursor:pointer}
+.chat-form{position:sticky!important;bottom:78px!important;background:transparent!important;border:0!important;border-radius:0!important;padding:6px 2px!important;box-shadow:none!important}
+.chat-compose{display:flex;align-items:flex-end;gap:6px;background:#fff;border-radius:28px;padding:6px;box-shadow:0 2px 8px rgba(0,0,0,.16)}
+#chat-text{border:0!important;box-shadow:none!important;min-height:48px!important;max-height:130px!important;padding:12px 6px!important;font-size:15px!important;resize:none;background:transparent!important;line-height:1.35}
+#chat-text:focus{outline:none!important;border:0!important;box-shadow:none!important}
+.chat-tool-btn,.chat-send-btn{width:42px;height:42px;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;cursor:pointer;flex-shrink:0;font-family:'DM Sans',sans-serif}
+.chat-tool-btn{background:#f2eee9;color:#5c5650}
+.chat-tool-btn.recording{background:var(--danger);color:#fff;animation:pulseMic 1s infinite}
+.chat-send-btn{background:var(--ccb-blue);color:#fff;font-size:18px}
+.voice-status{font-size:12px;color:#6b625b;padding:4px 12px;display:none}
+.voice-status.show{display:block}
+.chat-audio{width:210px;max-width:100%;height:34px}
+.chat-sticker-msg{font-size:34px;line-height:1.2;padding:2px 4px}
+@keyframes pulseMic{0%{transform:scale(1)}50%{transform:scale(1.08)}100%{transform:scale(1)}}
+@media(max-width:520px){.chat-wrap{min-height:calc(100vh - 130px);padding-bottom:125px!important}.chat-list{min-height:420px;max-height:calc(100vh - 295px)}.chat-form{bottom:76px!important}.chat-msg{max-width:88%}}
+</style>
+<script>
+(function(){
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function getTasks(){ try { return tasks || JSON.parse(localStorage.getItem('ccb_tasks')||'[]'); } catch(e){ return []; } }
+  function saveTasksSafe(list){ try { tasks = list; localStorage.setItem('ccb_tasks', JSON.stringify(list)); } catch(e){ localStorage.setItem('ccb_tasks', JSON.stringify(list)); } }
+  function getScheds(){ try { return scheds || JSON.parse(localStorage.getItem('ccb_scheds')||'[]'); } catch(e){ return []; } }
+  function saveSchedsSafe(list){ try { scheds = list; } catch(e){} try { window.scheds = list; } catch(e){} localStorage.setItem('ccb_scheds', JSON.stringify(list)); }
+  function getUsers(){ try { return users || JSON.parse(localStorage.getItem('ccb_users')||'[]'); } catch(e){ return []; } }
+  function currentUser(){
+    try { if(typeof currentAdmin === 'function'){ var u=currentAdmin(); if(u && u.name) return u; } } catch(e){}
+    try { var id = Number(localStorage.getItem('ccb_current_admin') || 0); var u2 = getUsers().find(function(u){return Number(u.id)===id;}); if(u2) return u2; } catch(e){}
+    return null;
+  }
+  function today(){ return new Date().toISOString().slice(0,10); }
+  function fmt(d){ if(!d) return '—'; try { return new Date(String(d)+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.',''); } catch(e){ return d; } }
+  function short(s,n){ s=String(s||''); n=n||80; return s.length>n ? s.slice(0,n-1)+'…' : s; }
+  function taskById(id){ return getTasks().find(function(t){ return String(t.id)===String(id); }); }
+  function who(){ var u=currentUser(); return u && u.name ? u.name : 'Responsável'; }
+  function statusClass(s){ if(s==='Realizado'||s==='Feito') return 'green'; if(s==='Cancelado') return 'red'; if(s==='Iniciado'||s==='Em andamento') return 'blue'; return 'orange'; }
+  function peopleOptions(selected){
+    var html='<option value="">Escolher</option>'; getUsers().forEach(function(u){ var n=u&&u.name?u.name:''; if(n) html+='<option value="'+esc(n)+'" '+(selected===n?'selected':'')+'>'+esc(n)+'</option>'; }); return html;
+  }
+  function taskOptions(selected){
+    var list=getTasks();
+    if(!list.length) return '<option value="">Nenhum item em Manutenção</option>';
+    var html='<option value="">Escolher item da manutenção</option>';
+    list.forEach(function(t){ var label=(t.local||'Local')+' - '+short(t.desc||t.title||'',70); html += '<option value="'+esc(t.id)+'" '+(String(selected||'')===String(t.id)?'selected':'')+'>'+esc(label)+'</option>'; });
+    return html;
+  }
+  function timelineItem(text){ return {id:Date.now()+Math.floor(Math.random()*999), date:new Date().toISOString(), user:who(), text:text}; }
+  function schedTimeline(s){ s.timeline = Array.isArray(s.timeline) ? s.timeline : []; return s.timeline; }
+
+  window.renderProjects = function(){ renderCronogramaV21(); };
+  window.renderCronogramaV21 = function(){
+    var el=document.getElementById('project-list'); if(!el) return;
+    var list=getScheds().slice().sort(function(a,b){ return String(a.date||'9999').localeCompare(String(b.date||'9999')); });
+    if(!list.length){ el.innerHTML='<div class="crono-empty"><strong>Nenhum item no cronograma.</strong><br><span>Cadastre primeiro em Manutenção e depois toque em “Colocar item no cronograma”.</span></div>'; return; }
+    el.innerHTML=list.map(function(s){
+      var t=s.taskId?taskById(s.taskId):null;
+      var local=t?(t.local||'Local não informado'):(s.title||'Serviço');
+      var desc=t?(t.desc||t.title||''):(s.desc||'');
+      var st=s.status||'Pendente';
+      return '<div class="crono-v21-card destaque" onclick="openCronogramaProfileV21('+Number(s.id)+')">'
+        + '<div class="crono-v21-top"><div class="crono-v21-title">'+esc(local)+'</div><div class="crono-v21-date">'+fmt(s.date)+'</div></div>'
+        + '<div class="crono-v21-desc">'+esc(short(desc,120))+'</div>'
+        + '<div class="crono-v21-meta"><span class="crono-v21-pill blue">Responsável: '+esc(s.resp||'—')+'</span><span class="crono-v21-pill '+statusClass(st)+'">'+esc(st)+'</span><span class="crono-v21-pill">Colaboradores: '+esc(s.helpers||'—')+'</span></div>'
+        + '<div class="crono-v21-actions"><button class="edit" onclick="event.stopPropagation(); openCronogramaFormV21('+Number(s.id)+')">Editar</button><button class="del" onclick="event.stopPropagation(); deleteCronogramaV21('+Number(s.id)+')">Excluir</button></div>'
+        + '</div>';
+    }).join('');
+  };
+
+  window.openCronogramaFormV21 = function(id){
+    var sched = id ? getScheds().find(function(x){ return String(x.id)===String(id); }) : null;
+    var hasTasks = getTasks().length > 0;
+    var title = sched ? 'Editar cronograma' : 'Colocar no cronograma';
+    var html='<div class="modal-header"><span class="modal-title">'+title+'</span><button class="modal-close" onclick="closeModal(\'modal-detail\')">✕</button></div>'
+      + '<div class="modal-body">'
+      + (!hasTasks ? '<div class="help-box">Antes de criar o cronograma, cadastre o item na aba Manutenção.</div>' : '')
+      + '<input type="hidden" id="v21-sched-id" value="'+(sched?Number(sched.id):'')+'">'
+      + '<div class="form-group"><label class="form-label">Item da manutenção *</label><select class="form-select" id="v21-task-id">'+taskOptions(sched?sched.taskId:'')+'</select></div>'
+      + '<div class="project-form-grid"><div class="form-group"><label class="form-label">Data *</label><input class="form-input" type="date" id="v21-date" value="'+esc(sched?sched.date:today())+'"></div>'
+      + '<div class="form-group"><label class="form-label">Responsável</label><select class="form-select" id="v21-resp">'+peopleOptions(sched?sched.resp:'')+'</select></div>'
+      + '<div class="form-group"><label class="form-label">Situação</label><select class="form-select" id="v21-status"><option '+(sched&&sched.status==='Pendente'?'selected':'')+'>Pendente</option><option '+(sched&&sched.status==='Iniciado'?'selected':'')+'>Iniciado</option><option '+(sched&&sched.status==='Realizado'?'selected':'')+'>Realizado</option><option '+(sched&&sched.status==='Cancelado'?'selected':'')+'>Cancelado</option></select></div>'
+      + '<div class="form-group"><label class="form-label">Colaboradores</label><input class="form-input" id="v21-helpers" value="'+esc(sched?sched.helpers:'')+'" placeholder="Nomes separados por vírgula"></div></div>'
+      + '<div class="form-group"><label class="form-label">Itens que serão usados</label><textarea class="form-textarea" id="v21-items" placeholder="Ex: lâmpada LED - 4 unidades&#10;fita isolante - 1 rolo">'+esc(sched?sched.itemsText:'')+'</textarea></div>'
+      + '<div class="form-group"><label class="form-label">Observação</label><textarea class="form-textarea" id="v21-note" placeholder="O que precisa ser combinado?">'+esc(sched?sched.note:'')+'</textarea></div>'
+      + '<button class="btn-primary" onclick="saveCronogramaV21()" '+(!hasTasks?'disabled style="opacity:.55"':'')+'>Salvar cronograma</button>'
+      + (sched?'<button class="btn-danger" onclick="deleteCronogramaV21('+Number(sched.id)+')">Excluir cronograma</button>':'')
+      + '</div>';
+    var c=document.getElementById('detail-content'); if(c){ c.innerHTML=html; openModal('modal-detail'); }
+  };
+
+  window.saveCronogramaV21 = function(){
+    var taskId=document.getElementById('v21-task-id')?.value || '';
+    var date=document.getElementById('v21-date')?.value || '';
+    if(!taskId){ showToast('Escolha um item da manutenção'); return; }
+    if(!date){ showToast('Informe a data'); return; }
+    var id=Number(document.getElementById('v21-sched-id')?.value || 0);
+    var list=getScheds().slice();
+    var s=id?list.find(function(x){ return Number(x.id)===id; }):null;
+    var t=taskById(taskId);
+    if(!s){ s={id:Date.now(), timeline:[]}; list.push(s); schedTimeline(s).push(timelineItem('Item colocado no cronograma')); }
+    else { schedTimeline(s).push(timelineItem('Cronograma alterado')); }
+    s.taskId=taskId; s.title=t?(t.local||'Serviço'):'Serviço'; s.desc=t?(t.desc||t.title||''):''; s.date=date;
+    s.resp=document.getElementById('v21-resp')?.value || ''; s.status=document.getElementById('v21-status')?.value || 'Pendente';
+    s.helpers=(document.getElementById('v21-helpers')?.value || '').trim(); s.itemsText=(document.getElementById('v21-items')?.value || '').trim(); s.note=(document.getElementById('v21-note')?.value || '').trim();
+    saveSchedsSafe(list);
+    if(t){
+      var all=getTasks(); var found=all.find(function(x){ return String(x.id)===String(taskId); });
+      if(found){ found.prazo=date; found.previsao=date; if(s.resp) found.resp=s.resp; if(found.status==='Pendente') found.status='Iniciado'; if(typeof addHistory==='function') addHistory(found, who(), id?'editou o cronograma':'colocou no cronograma', 'data '+fmt(date)); saveTasksSafe(all); }
+    }
+    closeModal('modal-detail'); renderCronogramaV21(); if(typeof render==='function') render(); showToast(id?'Cronograma alterado':'Item colocado no cronograma');
+  };
+
+  window.openCronogramaProfileV21 = function(id){
+    var s=getScheds().find(function(x){ return Number(x.id)===Number(id); }); if(!s) return;
+    var t=s.taskId?taskById(s.taskId):null;
+    var tl=(s.timeline||[]).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+    var timelineHtml=tl.length?tl.map(function(x){ var d=x.date?new Date(x.date).toLocaleString('pt-BR'):''; return '<div class="project-time-item"><small>'+esc(d)+' · '+esc(x.user||'Responsável')+'</small><div>'+esc(x.text||'')+'</div></div>'; }).join(''):'<div class="project-time-item"><small>Sem registro</small><div>Nenhuma movimentação ainda.</div></div>';
+    var html='<div class="project-profile-head"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="project-profile-title">'+esc(t?(t.local||'Manutenção'):(s.title||'Cronograma'))+'</div><div class="project-profile-sub">Data: '+fmt(s.date)+' · Responsável: '+esc(s.resp||'—')+'</div></div><button class="modal-close" onclick="closeModal(\'modal-detail\')" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:white">✕</button></div></div>'
+      + '<div class="modal-body"><div class="project-section"><div class="project-section-title">Manutenção ligada</div><div class="detail-text">'+esc(t?(t.desc||t.title||'Sem descrição.'):'Item não encontrado em manutenção.')+'</div></div>'
+      + '<div class="project-section"><div class="detail-grid"><div class="detail-item"><div class="di-label">Situação</div><div class="di-value">'+esc(s.status||'Pendente')+'</div></div><div class="detail-item"><div class="di-label">Data</div><div class="di-value">'+fmt(s.date)+'</div></div><div class="detail-item"><div class="di-label">Responsável</div><div class="di-value">'+esc(s.resp||'—')+'</div></div><div class="detail-item"><div class="di-label">Colaboradores</div><div class="di-value">'+esc(s.helpers||'—')+'</div></div></div></div>'
+      + '<div class="project-section"><div class="project-section-title">Itens que serão usados</div><div class="detail-text" style="white-space:pre-line">'+esc(s.itemsText||'Nenhum item informado.')+'</div></div>'
+      + '<div class="project-section"><div class="project-section-title">Linha do tempo</div><div class="project-timeline">'+timelineHtml+'</div></div>'
+      + '<div class="action-btns"><button class="action-btn blue" onclick="openCronogramaFormV21('+Number(s.id)+')">Editar cronograma</button>'+(t?'<button class="action-btn" onclick="openDetail('+Number(t.id)+')">Abrir perfil da manutenção</button>':'')+'<button class="action-btn red" onclick="deleteCronogramaV21('+Number(s.id)+')">Excluir cronograma</button></div></div>';
+    var c=document.getElementById('detail-content'); if(c){ c.innerHTML=html; openModal('modal-detail'); }
+  };
+  window.openSchedDetail = window.openCronogramaProfileV21;
+  window.openEditSched = window.openCronogramaFormV21;
+  window.deleteCronogramaV21 = function(id){
+    if(!confirm('Excluir este cronograma?')) return;
+    var list=getScheds().filter(function(s){ return Number(s.id)!==Number(id); }); saveSchedsSafe(list);
+    try{ closeModal('modal-detail'); }catch(e){}
+    renderCronogramaV21(); if(typeof render==='function') render(); showToast('Cronograma excluído');
+  };
+  window.deleteSched = window.deleteCronogramaV21;
+  window.exportCronogramaV21 = function(){
+    var blob=new Blob([JSON.stringify({cronograma:getScheds(), exportado:new Date().toLocaleString('pt-BR')}, null, 2)], {type:'application/json'});
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ccb-cronograma-'+today()+'.json'; a.click(); setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+  };
+
+  var oldShowTab=window.showTab;
+  if(typeof oldShowTab==='function'){
+    window.showTab=function(id,btn){ oldShowTab(id,btn); if(id==='projetos') setTimeout(renderCronogramaV21,0); };
+  }
+
+  // Chat WhatsApp-like
+  var CHAT_KEY='ccb_chat_messages';
+  var recorder=null, voiceChunks=[], recording=false;
+  function loadMsgs(){ try{return JSON.parse(localStorage.getItem(CHAT_KEY)||'[]')}catch(e){return[]} }
+  function saveMsgs(m){ localStorage.setItem(CHAT_KEY, JSON.stringify(m||[])); }
+  function setupChatUI(){
+    var form=document.querySelector('#tab-chat .chat-form');
+    if(form && !document.getElementById('chat-compose-v21')){
+      form.innerHTML='<div class="voice-status" id="voice-status">Gravando áudio...</div><div class="chat-compose" id="chat-compose-v21"><button class="chat-tool-btn" type="button" id="voice-btn" onclick="toggleVoiceRecordingV21()" title="Mensagem de voz">🎤</button><textarea id="chat-text" placeholder="Mensagem" rows="1"></textarea><button class="chat-send-btn" type="button" onclick="sendChatMessage()" title="Enviar">➤</button></div>';
+    }
+    var people=document.querySelector('#tab-chat .chat-people-box');
+    if(people && !document.getElementById('chat-sticker-row')){
+      var row=document.createElement('div'); row.id='chat-sticker-row'; row.className='chat-sticker-row';
+      ['🙏','🔧','✅','📦','🧾','⚠️','👍','🙌','🕊️','💡'].forEach(function(st){ var b=document.createElement('button'); b.className='sticker-btn'; b.textContent=st; b.onclick=function(){ sendStickerV21(st); }; row.appendChild(b); });
+      var list=document.getElementById('chat-list'); if(list && list.parentNode) list.parentNode.insertBefore(row, list.nextSibling);
+    }
+  }
+  function markMentions(text){ return esc(text).replace(/(^|\s)(@[A-Za-zÀ-ÿ0-9_ .-]+)/g, function(_,pre,men){ return pre+'<span class="mention">'+esc(men)+'</span>'; }); }
+  function avatar(u,cls){ cls=cls||'chat-mini-avatar'; var n=u&&u.name?u.name:'?'; if(u&&u.image) return '<span class="'+cls+'"><img src="'+esc(u.image)+'"></span>'; return '<span class="'+cls+'">'+esc(n.split(/\s+/).map(function(p){return p[0]||''}).join('').slice(0,2).toUpperCase())+'</span>'; }
+  window.renderChatPeople=function(){
+    var box=document.getElementById('chat-people-list'); if(!box) return;
+    box.innerHTML=getUsers().map(function(u){ var n=u.name||''; if(!n) return ''; return '<button type="button" class="chat-person-chip" onclick="insertChatMention(\''+esc(n).replace(/&#39;/g,"\\'")+'\')">'+avatar(u)+'<span>'+esc(n)+'</span></button>'; }).join('');
+  };
+  window.insertChatMention=function(name){ var input=document.getElementById('chat-text'); if(!input) return; var mention='@'+name+' '; var val=input.value||''; input.value=val.trim()?val+mention:mention; input.focus(); };
+  window.renderChat=function(){
+    setupChatUI(); window.renderChatPeople();
+    var note=document.getElementById('chat-login-note'); var u=currentUser(); if(note) note.style.display=u?'none':'block';
+    var list=document.getElementById('chat-list'); if(!list) return; var msgs=loadMsgs();
+    if(!msgs.length){ list.innerHTML='<div class="chat-empty">Nenhuma mensagem ainda.</div>'; return; }
+    list.innerHTML=msgs.map(function(m){
+      var mine=u && ((m.senderId && String(m.senderId)===String(u.id)) || (m.senderName && m.senderName===u.name));
+      var sender=getUsers().find(function(x){return String(x.id)===String(m.senderId)}) || {name:m.senderName||'Pessoa'};
+      var body='';
+      if(m.type==='voice') body='<audio class="chat-audio" controls src="'+esc(m.audio||'')+'"></audio>';
+      else if(m.type==='sticker') body='<div class="chat-sticker-msg">'+esc(m.text||'')+'</div>';
+      else body='<div class="chat-text">'+markMentions(m.text||'')+'</div>';
+      var hora=m.date?new Date(m.date).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';
+      return '<div class="chat-msg '+(mine?'mine':'other')+'"><div class="chat-msg-head"><div class="chat-msg-person"><div><div class="chat-name">'+esc(mine?'Você':sender.name)+'</div></div></div></div>'+body+'<div class="chat-time">'+esc(hora)+'</div></div>';
+    }).join('');
+    setTimeout(function(){ list.scrollTop=list.scrollHeight; },0);
+  };
+  window.sendChatMessage=function(){
+    var u=currentUser(); if(!u){ showToast('Entre com usuário e senha para conversar'); return; }
+    var input=document.getElementById('chat-text'); var txt=(input&&input.value||'').trim(); if(!txt) return;
+    var msgs=loadMsgs(); msgs.push({id:Date.now(), senderId:u.id, senderName:u.name, text:txt, type:'text', date:new Date().toISOString()}); saveMsgs(msgs); input.value=''; window.renderChat();
+  };
+  window.sendStickerV21=function(st){
+    var u=currentUser(); if(!u){ showToast('Entre com usuário e senha para conversar'); return; }
+    var msgs=loadMsgs(); msgs.push({id:Date.now(), senderId:u.id, senderName:u.name, text:st, type:'sticker', date:new Date().toISOString()}); saveMsgs(msgs); window.renderChat();
+  };
+  window.toggleVoiceRecordingV21=async function(){
+    var u=currentUser(); if(!u){ showToast('Entre com usuário e senha para conversar'); return; }
+    var btn=document.getElementById('voice-btn'); var status=document.getElementById('voice-status');
+    if(recording && recorder){ recorder.stop(); recording=false; if(btn) btn.classList.remove('recording'); if(status) status.classList.remove('show'); return; }
+    if(!navigator.mediaDevices || !window.MediaRecorder){ showToast('Este navegador não permite gravar áudio aqui'); return; }
+    try{
+      var stream=await navigator.mediaDevices.getUserMedia({audio:true}); voiceChunks=[]; recorder=new MediaRecorder(stream);
+      recorder.ondataavailable=function(e){ if(e.data && e.data.size) voiceChunks.push(e.data); };
+      recorder.onstop=function(){
+        stream.getTracks().forEach(function(t){t.stop()});
+        var blob=new Blob(voiceChunks,{type:'audio/webm'}); var reader=new FileReader();
+        reader.onload=function(){ var msgs=loadMsgs(); msgs.push({id:Date.now(), senderId:u.id, senderName:u.name, type:'voice', audio:reader.result, date:new Date().toISOString()}); saveMsgs(msgs); window.renderChat(); showToast('Áudio enviado'); };
+        reader.readAsDataURL(blob);
+      };
+      recorder.start(); recording=true; if(btn) btn.classList.add('recording'); if(status) status.classList.add('show'); showToast('Gravando. Toque no microfone para enviar.');
+    }catch(e){ showToast('Não foi possível gravar o áudio'); }
+  };
+  window.openChatApp=function(){ if(typeof showTab==='function') showTab('chat', null); setTimeout(window.renderChat,0); };
+
+  document.addEventListener('DOMContentLoaded', function(){ setupChatUI(); renderCronogramaV21(); try{ window.renderChat(); }catch(e){} });
+  setTimeout(function(){ setupChatUI(); renderCronogramaV21(); try{ window.renderChat(); }catch(e){} },250);
 })();
 </script>
