@@ -1351,6 +1351,10 @@
     }
   }
 
+
+  .profile-chip{cursor:pointer;user-select:none}
+  .profile-chip:focus{outline:3px solid rgba(255,255,255,.35);outline-offset:2px}
+
 </style>
 
 <style>
@@ -1446,7 +1450,7 @@
       </div>
     </div>
     <div class="header-actions">
-      <div class="profile-chip" id="profile-chip"></div>
+      <div class="profile-chip" id="profile-chip" onclick="openMyProfile()" title="Meu perfil" role="button" tabindex="0"></div>
       <button class="chat-top-btn" onclick="openChatApp()" title="Chat" aria-label="Chat"><svg class="chat-top-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path><path d="M8 9h8"></path><path d="M8 13h5"></path></svg><span class="chat-count" id="chat-count">0</span></button>
       <button class="bell-btn" onclick="showTab('alertas', document.querySelector('[data-top-tab=alertas]'))" title="Alertas">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
@@ -1508,13 +1512,6 @@
       <div id="proximos-inner"></div>
     </div>
 
-    <!-- Categorias -->
-    <div class="sec-head" style="margin-top:16px">
-      <span class="sec-title">Por categoria</span>
-    </div>
-    <div style="padding:0 16px 16px">
-      <div id="hist-cats"></div>
-    </div>
   </div>
 
   <!-- ══ CATEGORIA: MANUTENÇÃO ══ -->
@@ -2111,14 +2108,6 @@ function render() {
   const prox = [...scheds].sort((a,b) => a.date > b.date ? 1 : -1).slice(0,3);
   document.getElementById('proximos-inner').innerHTML = prox.map(s => schedMiniHtml(s)).join('') || '<div style="padding:8px 16px;font-size:13px;color:var(--text3)">Nenhum evento agendado.</div>';
 
-  // Histograma categorias
-  const cats = {};
-  tasks.filter(t => t.status !== 'Realizado').forEach(t => { cats[t.cat] = (cats[t.cat]||0) + 1; });
-  const total = Object.values(cats).reduce((a,b)=>a+b,0) || 1;
-  const catColors = { Elétrica:'#F59E0B', Hidráulica:'#3B82F6', Civil:'#8B5CF6', Segurança:'#EF4444', Limpeza:'#10B981', Outro:'#6B7280' };
-  document.getElementById('hist-cats').innerHTML = Object.entries(cats).map(([cat, n]) =>
-    `<div class="hist-bar"><div class="hist-label">${cat}</div><div class="hist-track"><div class="hist-fill" style="width:${(n/total*100).toFixed(0)}%;background:${catColors[cat]||'#888'}">${n}</div></div></div>`
-  ).join('') || '<div style="font-size:13px;color:var(--text3);padding:8px 0">Nenhuma atividade ativa.</div>';
 
   // Lista geral da manutenção
   renderTaskList('list-all', tasks, 'all');
@@ -3207,6 +3196,7 @@ function renderLoginState(){
   if(logged) logged.style.display = admin ? 'block' : 'none';
   if(info && admin) info.innerHTML = `<strong>${esc(admin.name)}</strong><br>${esc(admin.role || 'Responsável')}`;
   renderProfileChip();
+  fillMyProfile();
 }
 function renderProfileChip(){
   const chip = document.getElementById('profile-chip'); if(!chip) return;
@@ -3216,6 +3206,60 @@ function renderProfileChip(){
   const photo = admin.image ? `<img src="${admin.image}" alt="${esc(admin.name)}">` : `<span class="profile-avatar">${initials(admin.name)}</span>`;
   chip.innerHTML = `${photo}<span class="profile-text"><strong>${esc(admin.name)}</strong><small>${esc(admin.role || 'Responsável')}</small></span>`;
 }
+
+function openMyProfile(){
+  const admin = currentAdmin();
+  if(!admin){ openSettings(); showToast('Entre como responsável'); return; }
+  renderLoginState();
+  openModal('modal-settings');
+  setTimeout(() => {
+    const box = document.querySelector('#modal-settings .profile-edit-box');
+    if(box) box.scrollIntoView({behavior:'smooth', block:'start'});
+  }, 80);
+}
+function fillMyProfile(){
+  const admin = currentAdmin();
+  if(!admin) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
+  setVal('my-name', admin.name);
+  setVal('my-role', admin.role);
+  setVal('my-email', admin.email);
+  setVal('my-phone', admin.phone);
+  const pass = document.getElementById('my-password'); if(pass) pass.value = '';
+  const photo = document.getElementById('my-profile-photo');
+  if(photo){
+    photo.innerHTML = admin.image ? '<img src="'+admin.image+'" alt="'+esc(admin.name)+'">' : initials(admin.name);
+  }
+}
+function saveMyProfile(){
+  const admin = currentAdmin();
+  if(!admin){ openSettings(); showToast('Entre como responsável'); return; }
+  const fileInput = document.getElementById('my-image');
+  const applySave = (imgData) => {
+    admin.name = (document.getElementById('my-name')?.value || admin.name || '').trim();
+    admin.role = (document.getElementById('my-role')?.value || '').trim();
+    admin.email = (document.getElementById('my-email')?.value || '').trim();
+    admin.phone = (document.getElementById('my-phone')?.value || '').trim();
+    const newPass = (document.getElementById('my-password')?.value || '').trim();
+    if(newPass) admin.password = newPass;
+    if(imgData) admin.image = imgData;
+    users = users.map(u => Number(u.id) === Number(admin.id) ? admin : u);
+    saveUsers();
+    renderLoginState();
+    if (typeof renderPeopleList === 'function') renderPeopleList();
+    showToast('✅ Perfil salvo');
+    if(fileInput) fileInput.value = '';
+  };
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  if(file){
+    const reader = new FileReader();
+    reader.onload = e => applySave(e.target.result);
+    reader.readAsDataURL(file);
+  } else {
+    applySave('');
+  }
+}
+
 function adminLogin(){
   ensureUserLoginFields();
   const user = (document.getElementById('login-user')?.value || '').trim().toLowerCase();
