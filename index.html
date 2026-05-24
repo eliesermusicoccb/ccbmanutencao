@@ -961,6 +961,31 @@
 .task-status-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 @media(max-width:520px){.frontes-grid{grid-template-columns:1fr}.crono-item-top{flex-direction:column}.mat-row{grid-template-columns:1fr 60px 30px}}
 
+
+/* v16: perfil do usuário e chat */
+.chat-top-btn{width:40px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.15);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+.chat-top-btn .chat-count{position:absolute;top:-5px;right:-5px;background:var(--danger);color:#fff;border-radius:99px;min-width:17px;height:17px;padding:0 4px;font-size:10px;font-weight:800;display:none;align-items:center;justify-content:center}
+.profile-edit-box{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:12px;margin:12px 0}
+.profile-edit-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.profile-photo-big{width:56px;height:56px;border-radius:50%;background:var(--ccb-blue-light);color:var(--ccb-blue);display:flex;align-items:center;justify-content:center;font-weight:800;overflow:hidden;flex-shrink:0}
+.profile-photo-big img{width:100%;height:100%;object-fit:cover}
+.chat-wrap{padding:12px 16px 90px}
+.chat-help{background:var(--ccb-blue-light);border:1px solid var(--border);border-radius:14px;padding:10px 12px;font-size:13px;color:var(--text2);margin-bottom:12px}
+.chat-list{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.chat-msg{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 12px;box-shadow:var(--shadow)}
+.chat-msg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.chat-msg-person{display:flex;align-items:center;gap:8px;min-width:0}
+.chat-avatar{width:30px;height:30px;border-radius:50%;background:var(--ccb-blue-light);color:var(--ccb-blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;overflow:hidden;flex-shrink:0}
+.chat-avatar img{width:100%;height:100%;object-fit:cover}
+.chat-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-time{font-size:10px;color:var(--text3);white-space:nowrap}
+.chat-text{font-size:14px;color:var(--text2);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.chat-mention{display:inline-flex;background:var(--ccb-gold-light);color:#7A6020;border-radius:99px;padding:2px 7px;font-size:11px;font-weight:800;margin-bottom:6px}
+.chat-form{position:sticky;bottom:76px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:12px;box-shadow:var(--shadow-lg)}
+.chat-form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.chat-empty{text-align:center;color:var(--text3);font-size:14px;padding:26px 10px;background:var(--surface);border:1px dashed var(--border);border-radius:14px}
+@media(max-width:520px){.chat-form-row{grid-template-columns:1fr}.chat-form{bottom:82px}.chat-wrap{padding-bottom:130px}.chat-top-btn{width:36px}.profile-edit-head{align-items:flex-start}}
+
 </style>
 </head>
 <body>
@@ -980,6 +1005,7 @@
     </div>
     <div class="header-actions">
       <div class="profile-chip" id="profile-chip"></div>
+      <button class="chat-top-btn" onclick="showTab('chat', null); renderChat();" title="Chat">💬<span class="chat-count" id="chat-count">0</span></button>
       <button class="bell-btn" onclick="showTab('alertas', document.querySelector('[data-top-tab=alertas]'))" title="Alertas">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         <span class="bell-badge" id="bell-count">0</span>
@@ -1267,6 +1293,36 @@
     <div class="user-list" id="user-list"></div>
   </div>
 
+
+  <!-- ══ CHAT DO GRUPO ══ -->
+  <div class="panel" id="tab-chat">
+    <div class="category-hero">
+      <div class="category-title">Chat do grupo</div>
+      <div class="category-sub">Conversa simples para combinar serviços e citar uma pessoa.</div>
+    </div>
+    <div class="chat-wrap">
+      <div class="chat-help">Use o chat para combinar serviço, compra de material e avisar os responsáveis. Para chamar alguém, escolha o nome em <b>Citar pessoa</b>.</div>
+      <div class="chat-list" id="chat-list"></div>
+      <div class="chat-form">
+        <div class="chat-form-row">
+          <div class="form-group">
+            <label class="form-label">Quem está falando</label>
+            <input class="form-input" id="chat-name" list="users-datalist" placeholder="Seu nome">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Citar pessoa</label>
+            <select class="form-select" id="chat-mention"><option value="">Ninguém</option></select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mensagem</label>
+          <textarea class="form-textarea" id="chat-text" placeholder="Escreva a mensagem para o grupo..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="sendChatMessage()">Enviar mensagem</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ RELATÓRIO ══ -->
   <div class="panel" id="tab-relatorio">
     <div class="category-hero">
@@ -1439,6 +1495,29 @@
       </div>
       <div id="logged-area" class="login-box" style="display:none">
         <div id="logged-user-info" class="detail-text"></div>
+
+        <div class="profile-edit-box">
+          <div class="profile-edit-head">
+            <div class="profile-photo-big" id="my-profile-photo">EU</div>
+            <div>
+              <strong>Meu perfil</strong>
+              <div class="detail-text">Aqui o responsável pode colocar foto, cargo e contatos.</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nome</label><input class="form-input" id="my-name"></div>
+            <div class="form-group"><label class="form-label">Cargo</label><input class="form-input" id="my-role"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="my-email" type="email"></div>
+            <div class="form-group"><label class="form-label">Telefone</label><input class="form-input" id="my-phone"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Nova senha</label><input class="form-input" id="my-password" placeholder="Deixe vazio para não mudar"></div>
+            <div class="form-group"><label class="form-label">Foto</label><input class="form-input" id="my-image" type="file" accept="image/*"></div>
+          </div>
+          <button class="btn-primary" onclick="saveMyProfile()">Salvar meu perfil</button>
+        </div>
         <button class="btn-primary" onclick="openUsersFromSettings()">Adicionar ou alterar pessoas</button>
         <button class="btn-danger" onclick="adminLogout()">Sair</button>
       </div>
@@ -1522,7 +1601,7 @@ if (users.length === 0) {
     { id: 1, name: 'VAILSON DANIEL MACHADO', email: '', phone: '', role: 'Administração', image: '', isAdmin: true },
     { id: 2, name: 'JOSÉ NEVES', email: '', phone: '', role: 'Administração', image: '', isAdmin: true },
     { id: 3, name: 'ARIEL BUENO', email: '', phone: '', role: 'Administração', image: '', isAdmin: true },
-    { id: 4, name: 'ELIESER FERNANDES (EU)', email: '', phone: '', role: 'Responsável pelo app', image: '', isAdmin: true },
+    { id: 4, name: 'ELIESER FERNANDES', email: '', phone: '', role: 'Responsável pelo app', image: '', isAdmin: true },
     { id: 5, name: 'CARLOS ROBERTO GIRELI', email: '', phone: '', role: 'Administração', image: '', isAdmin: true },
     { id: 6, name: 'SAMUEL GONÇALVES DE ABREU', email: '', phone: '', role: 'Administração', image: '', isAdmin: true },
     { id: 7, name: 'ANTONIO FERNANDES', email: '', phone: '', role: 'Administração', image: '', isAdmin: true }
@@ -1535,7 +1614,11 @@ function saveScheds() { localStorage.setItem('ccb_scheds', JSON.stringify(scheds
 function saveGallery() { localStorage.setItem('ccb_gallery', JSON.stringify(gallery)); }
 function saveSuppliers() { localStorage.setItem('ccb_suppliers', JSON.stringify(suppliers)); }
 function saveUsers() { localStorage.setItem('ccb_users', JSON.stringify(users)); }
-users = users.map(u => ({...u, isAdmin: u.isAdmin || /responsável|administr/i.test(u.role||'')})); saveUsers();
+users = users.map(u => {
+  const nomeCorrigido = u.name === 'ELIESER FERNANDES (EU)' ? 'ELIESER FERNANDES' : u.name;
+  return {...u, name: nomeCorrigido, isAdmin: u.isAdmin || /responsável|administr/i.test(u.role||'')};
+});
+saveUsers();
 
 // ═══════════════════════════════════════════════════
 // NAVEGAÇÃO
