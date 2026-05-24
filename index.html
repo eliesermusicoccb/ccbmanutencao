@@ -986,6 +986,48 @@
 .chat-empty{text-align:center;color:var(--text3);font-size:14px;padding:26px 10px;background:var(--surface);border:1px dashed var(--border);border-radius:14px}
 @media(max-width:520px){.chat-form-row{grid-template-columns:1fr}.chat-form{bottom:82px}.chat-wrap{padding-bottom:130px}.chat-top-btn{width:36px}.profile-edit-head{align-items:flex-start}}
 
+
+
+/* V20 - Projetos */
+.project-tools{padding:14px 16px;display:flex;gap:8px;flex-wrap:wrap}
+.project-list{padding:0 16px 100px;display:flex;flex-direction:column;gap:10px}
+.project-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:14px;cursor:pointer}
+.project-card:active{transform:scale(.99)}
+.project-card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:8px}
+.project-title{font-size:16px;font-weight:700;color:var(--text);line-height:1.25}
+.project-desc{font-size:13px;color:var(--text2);line-height:1.4;margin:6px 0 10px;white-space:pre-line}
+.project-meta{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+.project-pill{font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.project-pill.blue{background:var(--ccb-blue-light);color:var(--ccb-blue);border-color:#c9dcfb}
+.project-pill.green{background:var(--done-bg);color:var(--done);border-color:#bfe8ca}
+.project-pill.orange{background:var(--pending-bg);color:var(--pending);border-color:#f8d9a2}
+.project-pill.red{background:var(--danger-bg);color:var(--danger);border-color:#f4b8b8}
+.project-progress{margin-top:10px}
+.project-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);font-weight:700;margin-bottom:4px}
+.project-empty{background:var(--surface);border:1px dashed var(--border);border-radius:16px;padding:28px 18px;text-align:center;color:var(--text2)}
+.project-profile-head{background:var(--ccb-blue);color:white;padding:18px 20px;border-radius:0}
+.project-profile-title{font-size:20px;font-weight:800;line-height:1.25;margin-bottom:6px}
+.project-profile-sub{font-size:13px;opacity:.85;line-height:1.4}
+.project-section{margin-bottom:18px}
+.project-section-title{font-size:12px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.project-activity{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px;margin-bottom:8px}
+.project-activity-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:5px}
+.project-activity strong{font-size:14px;color:var(--text)}
+.project-activity p{font-size:12px;color:var(--text2);margin:3px 0}
+.project-activity-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.project-small-btn{border:1px solid var(--border);background:var(--surface);border-radius:9px;padding:6px 9px;font-size:12px;font-weight:700;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif}
+.project-small-btn.blue{background:var(--ccb-blue-light);color:var(--ccb-blue);border-color:#c9dcfb}
+.project-small-btn.green{background:var(--done-bg);color:var(--done);border-color:#bfe8ca}
+.project-small-btn.red{background:var(--danger-bg);color:var(--danger);border-color:#f4b8b8}
+.project-timeline{position:relative;margin-left:7px;padding-left:16px;border-left:2px solid var(--border)}
+.project-time-item{position:relative;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:9px 10px;margin-bottom:9px}
+.project-time-item:before{content:'';position:absolute;left:-23px;top:13px;width:10px;height:10px;border-radius:50%;background:var(--ccb-blue);border:2px solid white;box-shadow:0 0 0 1px var(--ccb-blue)}
+.project-time-item small{display:block;color:var(--text3);font-size:11px;font-weight:700;margin-bottom:3px}
+.project-time-item div{font-size:13px;color:var(--text2)}
+.project-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.project-hint{margin:0 16px 12px;background:var(--ccb-blue-light);border:1px solid #c9dcfb;color:var(--ccb-blue);border-radius:14px;padding:10px 12px;font-size:13px;line-height:1.4}
+@media(max-width:520px){.project-form-grid{grid-template-columns:1fr}.project-card-top{display:block}.project-card-top .project-pill{display:inline-block;margin-top:8px}}
+
 </style>
 
 <style>
@@ -1043,6 +1085,7 @@
     <button class="tab-btn" data-top-tab="manutencao" onclick="showTab('manutencao', this)"><span class="tab-icon">🛠️</span>Manutenção<span class="tab-badge" id="badge-pend">0</span></button>
     <button class="tab-btn tab-add" data-top-tab="adicionar" onclick="openNewTask()" title="Adicionar"><span class="tab-icon">➕</span>Adicionar</button>
     <button class="tab-btn" data-top-tab="produtos" onclick="showTab('produtos', this)"><span class="tab-icon">📦</span>Produtos</button>
+    <button class="tab-btn" data-top-tab="projetos" onclick="showTab('projetos', this)"><span class="tab-icon">📁</span>Projetos</button>
     <button class="tab-btn" data-top-tab="orcamentos" onclick="showTab('orcamentos', this)"><span class="tab-icon">🧾</span>Orçamentos</button>
     <button class="tab-btn" data-top-tab="relatorio" onclick="showTab('relatorio', this)"><span class="tab-icon">📊</span>Relatório</button>
   </div>
@@ -1337,6 +1380,22 @@
         <button class="btn-primary" onclick="sendChatMessage()">Enviar mensagem</button>
       </div>
     </div>
+  </div>
+
+
+
+  <!-- ══ PROJETOS ══ -->
+  <div class="panel" id="tab-projetos">
+    <div class="category-hero">
+      <div class="category-title">Projetos</div>
+      <div class="category-sub">Projetos são melhorias e obras fora da manutenção do dia a dia.</div>
+    </div>
+    <div class="project-hint">Aqui ficam os projetos maiores, com atividades e linha do tempo.</div>
+    <div class="project-tools">
+      <button class="mini-btn blue" onclick="openProjectForm()">+ Novo projeto</button>
+      <button class="mini-btn" onclick="exportProjects()">Exportar projetos</button>
+    </div>
+    <div class="project-list" id="project-list"></div>
   </div>
 
   <!-- ══ RELATÓRIO ══ -->
@@ -3069,6 +3128,250 @@ renderLoginState();
     window.renderLoginState = function(){ oldRenderLogin(); try { window.renderChat(); } catch(e){} };
   }
   document.addEventListener('DOMContentLoaded', function(){ try { window.renderChat(); } catch(e){} });
+})();
+</script>
+
+
+
+<script>
+/* V20 - Projetos separados da manutenção */
+(function(){
+  var KEY = 'ccb_projects_v1';
+  function esc(txt){
+    return String(txt == null ? '' : txt).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function today(){ return new Date().toISOString().slice(0,10); }
+  function fmt(d){
+    if(!d) return '—';
+    try { return new Date(String(d) + 'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}).replace('.',''); }
+    catch(e){ return d; }
+  }
+  function getProjects(){
+    try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; }
+  }
+  function saveProjects(list){ localStorage.setItem(KEY, JSON.stringify(list || [])); }
+  function who(){
+    try { if(typeof currentAdmin === 'function'){ var u = currentAdmin(); if(u && u.name) return u.name; } } catch(e){}
+    return 'Responsável';
+  }
+  function statusClass(status){
+    if(status === 'Concluído') return 'green';
+    if(status === 'Parado') return 'red';
+    if(status === 'Em andamento') return 'blue';
+    return 'orange';
+  }
+  function calcProgress(p){
+    var acts = Array.isArray(p.activities) ? p.activities : [];
+    if(!acts.length) return 0;
+    var done = acts.filter(function(a){ return a.status === 'Feito'; }).length;
+    return Math.round((done / acts.length) * 100);
+  }
+  function peopleOptions(selected){
+    var list = [];
+    try { list = users || []; } catch(e){ list = []; }
+    var html = '<option value="">Escolher</option>';
+    list.forEach(function(u){
+      var name = u && u.name ? u.name : '';
+      if(!name) return;
+      html += '<option value="'+esc(name)+'" '+(selected===name?'selected':'')+'>'+esc(name)+'</option>';
+    });
+    return html;
+  }
+  function timelineItem(text){ return { id: Date.now()+Math.floor(Math.random()*999), date: new Date().toISOString(), user: who(), text: text }; }
+  window.renderProjects = function(){
+    var el = document.getElementById('project-list');
+    if(!el) return;
+    var list = getProjects();
+    if(!list.length){
+      el.innerHTML = '<div class="project-empty"><strong>Nenhum projeto cadastrado.</strong><br><span>Toque em “Novo projeto” para começar.</span></div>';
+      return;
+    }
+    el.innerHTML = list.map(function(p){
+      var pct = calcProgress(p);
+      var acts = Array.isArray(p.activities) ? p.activities : [];
+      var open = acts.filter(function(a){ return a.status !== 'Feito' && a.status !== 'Cancelado'; }).length;
+      return '<div class="project-card" onclick="openProjectProfile('+Number(p.id)+')">'
+        + '<div class="project-card-top"><div class="project-title">'+esc(p.name || 'Projeto')+'</div><span class="project-pill '+statusClass(p.status)+'">'+esc(p.status || 'Aberto')+'</span></div>'
+        + '<div class="project-desc">'+esc(p.desc || 'Sem descrição.')+'</div>'
+        + '<div class="project-meta">'
+        + '<span class="project-pill blue">Responsável: '+esc(p.resp || '—')+'</span>'
+        + '<span class="project-pill">Início: '+fmt(p.start)+'</span>'
+        + '<span class="project-pill">Prazo: '+fmt(p.end)+'</span>'
+        + '<span class="project-pill">Atividades abertas: '+open+'</span>'
+        + '</div>'
+        + '<div class="project-progress"><div class="project-progress-label"><span>Andamento</span><span>'+pct+'%</span></div><div class="progress-bar"><div class="progress-fill pf-ativ" style="width:'+pct+'%"></div></div></div>'
+        + '</div>';
+    }).join('');
+  };
+  window.openProjectForm = function(id){
+    var list = getProjects();
+    var p = id ? list.find(function(x){ return Number(x.id) === Number(id); }) : null;
+    var title = p ? 'Editar projeto' : 'Novo projeto';
+    var html = '<div class="modal-header"><span class="modal-title">'+title+'</span><button class="modal-close" onclick="closeModal(\'modal-detail\')">✕</button></div>'
+      + '<div class="modal-body">'
+      + '<input type="hidden" id="project-id" value="'+(p?Number(p.id):'')+'">'
+      + '<div class="form-group"><label class="form-label">Nome do projeto *</label><input class="form-input" id="project-name" value="'+esc(p?p.name:'')+'" placeholder="Ex: Pintura externa, reforma da sala"></div>'
+      + '<div class="form-group"><label class="form-label">Descrição simples</label><textarea class="form-textarea" id="project-desc" placeholder="Explique o que será feito">'+esc(p?p.desc:'')+'</textarea></div>'
+      + '<div class="project-form-grid">'
+      + '<div class="form-group"><label class="form-label">Responsável</label><select class="form-select" id="project-resp">'+peopleOptions(p?p.resp:'')+'</select></div>'
+      + '<div class="form-group"><label class="form-label">Situação</label><select class="form-select" id="project-status"><option '+(p&&p.status==='Aberto'?'selected':'')+'>Aberto</option><option '+(p&&p.status==='Em andamento'?'selected':'')+'>Em andamento</option><option '+(p&&p.status==='Concluído'?'selected':'')+'>Concluído</option><option '+(p&&p.status==='Parado'?'selected':'')+'>Parado</option></select></div>'
+      + '<div class="form-group"><label class="form-label">Data de início</label><input class="form-input" type="date" id="project-start" value="'+esc(p?p.start:today())+'"></div>'
+      + '<div class="form-group"><label class="form-label">Prazo</label><input class="form-input" type="date" id="project-end" value="'+esc(p?p.end:'')+'"></div>'
+      + '</div>'
+      + '<button class="btn-primary" onclick="saveProjectForm()">Salvar projeto</button>'
+      + (p ? '<button class="btn-danger" onclick="deleteProject('+Number(p.id)+')">Excluir projeto</button>' : '')
+      + '</div>';
+    var c = document.getElementById('detail-content');
+    if(c){ c.innerHTML = html; openModal('modal-detail'); }
+  };
+  window.saveProjectForm = function(){
+    var id = Number(document.getElementById('project-id')?.value || 0);
+    var name = (document.getElementById('project-name')?.value || '').trim();
+    if(!name){ showToast('Informe o nome do projeto'); return; }
+    var list = getProjects();
+    var p = id ? list.find(function(x){ return Number(x.id) === id; }) : null;
+    if(!p){
+      p = { id: Date.now(), activities: [], timeline: [] };
+      list.push(p);
+      p.timeline.push(timelineItem('Projeto criado'));
+    } else {
+      p.timeline = Array.isArray(p.timeline) ? p.timeline : [];
+      p.timeline.push(timelineItem('Projeto alterado'));
+    }
+    p.name = name;
+    p.desc = (document.getElementById('project-desc')?.value || '').trim();
+    p.resp = document.getElementById('project-resp')?.value || '';
+    p.status = document.getElementById('project-status')?.value || 'Aberto';
+    p.start = document.getElementById('project-start')?.value || today();
+    p.end = document.getElementById('project-end')?.value || '';
+    saveProjects(list);
+    closeModal('modal-detail');
+    renderProjects();
+    showToast('Projeto salvo');
+  };
+  window.openProjectProfile = function(id){
+    var list = getProjects();
+    var p = list.find(function(x){ return Number(x.id) === Number(id); });
+    if(!p) return;
+    p.activities = Array.isArray(p.activities) ? p.activities : [];
+    p.timeline = Array.isArray(p.timeline) ? p.timeline : [];
+    var pct = calcProgress(p);
+    var html = '<div class="project-profile-head"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="project-profile-title">'+esc(p.name || 'Projeto')+'</div><div class="project-profile-sub">Responsável: '+esc(p.resp || '—')+' · Prazo: '+fmt(p.end)+'</div></div><button class="modal-close" onclick="closeModal(\'modal-detail\')" style="background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:white">✕</button></div></div>'
+      + '<div class="modal-body">'
+      + '<div class="project-section"><div class="project-section-title">Resumo</div><div class="detail-text" style="white-space:pre-line">'+esc(p.desc || 'Sem descrição.')+'</div></div>'
+      + '<div class="project-section"><div class="detail-grid"><div class="detail-item"><div class="di-label">Situação</div><div class="di-value">'+esc(p.status || 'Aberto')+'</div></div><div class="detail-item"><div class="di-label">Andamento</div><div class="di-value">'+pct+'%</div></div><div class="detail-item"><div class="di-label">Início</div><div class="di-value">'+fmt(p.start)+'</div></div><div class="detail-item"><div class="di-label">Prazo</div><div class="di-value">'+fmt(p.end)+'</div></div></div></div>'
+      + '<div class="project-section"><div class="project-section-title">Atividades</div><div id="project-activity-list">'+activityListHtml(p)+'</div><button class="action-btn blue" onclick="openProjectActivityForm('+Number(p.id)+')">+ Adicionar atividade</button></div>'
+      + '<div class="project-section"><div class="project-section-title">Linha do tempo</div><div class="project-timeline">'+timelineHtml(p)+'</div></div>'
+      + '<div class="action-btns"><button class="action-btn blue" onclick="openProjectForm('+Number(p.id)+')">Editar projeto</button><button class="action-btn red" onclick="deleteProject('+Number(p.id)+')">Excluir projeto</button></div>'
+      + '</div>';
+    var c = document.getElementById('detail-content');
+    if(c){ c.innerHTML = html; openModal('modal-detail'); }
+  };
+  function activityListHtml(p){
+    var acts = p.activities || [];
+    if(!acts.length) return '<div class="history-item">Nenhuma atividade cadastrada.</div>';
+    return acts.map(function(a){
+      return '<div class="project-activity"><div class="project-activity-top"><strong>'+esc(a.title || 'Atividade')+'</strong><span class="project-pill '+(a.status==='Feito'?'green':a.status==='Cancelado'?'red':'blue')+'">'+esc(a.status || 'A fazer')+'</span></div>'
+        + '<p><b>Responsável:</b> '+esc(a.resp || '—')+' · <b>Prazo:</b> '+fmt(a.date)+'</p>'
+        + (a.note ? '<p>'+esc(a.note)+'</p>' : '')
+        + '<div class="project-activity-actions"><button class="project-small-btn blue" onclick="setProjectActivityStatus('+Number(p.id)+','+Number(a.id)+',\'Em andamento\')">Iniciar</button><button class="project-small-btn green" onclick="setProjectActivityStatus('+Number(p.id)+','+Number(a.id)+',\'Feito\')">Feito</button><button class="project-small-btn red" onclick="setProjectActivityStatus('+Number(p.id)+','+Number(a.id)+',\'Cancelado\')">Cancelar</button><button class="project-small-btn" onclick="deleteProjectActivity('+Number(p.id)+','+Number(a.id)+')">Excluir</button></div>'
+        + '</div>';
+    }).join('');
+  }
+  function timelineHtml(p){
+    var tl = (p.timeline || []).slice().sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
+    if(!tl.length) return '<div class="project-time-item"><small>Sem registro</small><div>Nenhuma movimentação ainda.</div></div>';
+    return tl.map(function(t){
+      var d = t.date ? new Date(t.date).toLocaleString('pt-BR') : new Date().toLocaleString('pt-BR');
+      return '<div class="project-time-item"><small>'+esc(d)+' · '+esc(t.user || 'Responsável')+'</small><div>'+esc(t.text || '')+'</div></div>';
+    }).join('');
+  }
+  window.openProjectActivityForm = function(projectId){
+    var list = getProjects();
+    var p = list.find(function(x){ return Number(x.id) === Number(projectId); });
+    if(!p) return;
+    var html = '<div class="modal-header"><span class="modal-title">Nova atividade</span><button class="modal-close" onclick="openProjectProfile('+Number(projectId)+')">✕</button></div>'
+      + '<div class="modal-body">'
+      + '<div class="form-group"><label class="form-label">Atividade *</label><input class="form-input" id="proj-act-title" placeholder="Ex: Comprar tinta, medir parede, chamar pedreiro"></div>'
+      + '<div class="project-form-grid"><div class="form-group"><label class="form-label">Responsável</label><select class="form-select" id="proj-act-resp">'+peopleOptions('')+'</select></div><div class="form-group"><label class="form-label">Prazo</label><input class="form-input" type="date" id="proj-act-date" value="'+today()+'"></div></div>'
+      + '<div class="form-group"><label class="form-label">Observação</label><textarea class="form-textarea" id="proj-act-note" placeholder="Detalhe simples da atividade"></textarea></div>'
+      + '<button class="btn-primary" onclick="saveProjectActivity('+Number(projectId)+')">Salvar atividade</button>'
+      + '</div>';
+    var c = document.getElementById('detail-content');
+    if(c){ c.innerHTML = html; openModal('modal-detail'); }
+  };
+  window.saveProjectActivity = function(projectId){
+    var title = (document.getElementById('proj-act-title')?.value || '').trim();
+    if(!title){ showToast('Informe a atividade'); return; }
+    var list = getProjects();
+    var p = list.find(function(x){ return Number(x.id) === Number(projectId); });
+    if(!p) return;
+    p.activities = Array.isArray(p.activities) ? p.activities : [];
+    p.timeline = Array.isArray(p.timeline) ? p.timeline : [];
+    var a = { id: Date.now(), title: title, resp: document.getElementById('proj-act-resp')?.value || '', date: document.getElementById('proj-act-date')?.value || '', note: (document.getElementById('proj-act-note')?.value || '').trim(), status: 'A fazer' };
+    p.activities.push(a);
+    p.timeline.push(timelineItem('Atividade adicionada: ' + title));
+    if(p.status === 'Aberto') p.status = 'Em andamento';
+    saveProjects(list);
+    openProjectProfile(projectId);
+    showToast('Atividade salva');
+  };
+  window.setProjectActivityStatus = function(projectId, actId, status){
+    var list = getProjects();
+    var p = list.find(function(x){ return Number(x.id) === Number(projectId); });
+    if(!p) return;
+    var a = (p.activities || []).find(function(x){ return Number(x.id) === Number(actId); });
+    if(!a) return;
+    a.status = status;
+    p.timeline = Array.isArray(p.timeline) ? p.timeline : [];
+    p.timeline.push(timelineItem('Atividade "' + (a.title || '') + '" mudou para: ' + status));
+    if(status === 'Feito' && calcProgress(p) === 100) p.status = 'Concluído';
+    saveProjects(list);
+    openProjectProfile(projectId);
+  };
+  window.deleteProjectActivity = function(projectId, actId){
+    if(!confirm('Excluir esta atividade?')) return;
+    var list = getProjects();
+    var p = list.find(function(x){ return Number(x.id) === Number(projectId); });
+    if(!p) return;
+    var old = (p.activities || []).find(function(x){ return Number(x.id) === Number(actId); });
+    p.activities = (p.activities || []).filter(function(x){ return Number(x.id) !== Number(actId); });
+    p.timeline = Array.isArray(p.timeline) ? p.timeline : [];
+    p.timeline.push(timelineItem('Atividade excluída: ' + (old ? old.title : '')));
+    saveProjects(list);
+    openProjectProfile(projectId);
+  };
+  window.deleteProject = function(id){
+    if(!confirm('Excluir este projeto?')) return;
+    var list = getProjects().filter(function(p){ return Number(p.id) !== Number(id); });
+    saveProjects(list);
+    closeModal('modal-detail');
+    renderProjects();
+    showToast('Projeto excluído');
+  };
+  window.exportProjects = function(){
+    var list = getProjects();
+    var blob = new Blob([JSON.stringify({ projetos:list, exportado:new Date().toLocaleString('pt-BR') }, null, 2)], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ccb-projetos-' + today() + '.json';
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+  };
+  var oldShowTab = window.showTab;
+  if(typeof oldShowTab === 'function'){
+    window.showTab = function(id, btn){
+      oldShowTab(id, btn);
+      if(id === 'projetos') window.renderProjects();
+    };
+  }
+  var oldRender = window.render;
+  if(typeof oldRender === 'function'){
+    window.render = function(){ oldRender(); try { window.renderProjects(); } catch(e){} };
+  }
+  document.addEventListener('DOMContentLoaded', function(){ try { window.renderProjects(); } catch(e){} });
 })();
 </script>
 
