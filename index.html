@@ -931,6 +931,36 @@
 .maint-icon-mini span{font-size:18px;line-height:1}
 .status-filter-title{padding:4px 16px 0;font-size:12px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
 
+
+
+/* ===== V12 - FRENTES DE SERVIÇO ===== */
+.frontes-box{margin:12px 16px 8px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:12px}
+.frontes-title{font-size:13px;font-weight:800;color:var(--ccb-blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.frontes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.frente-card{border:1px solid var(--border);background:var(--surface2);border-radius:12px;padding:10px;cursor:pointer}
+.frente-card strong{display:block;font-size:13px;color:var(--text);margin-bottom:3px}
+.frente-card span{font-size:12px;color:var(--text2)}
+.crono-destaque{margin:12px 16px;background:#fff7df;border:1px solid #ecd18a;border-radius:16px;padding:12px;box-shadow:var(--shadow)}
+.crono-destaque h3{font-size:14px;color:#7a5a00;margin:0 0 8px;font-weight:800}
+.crono-item{background:#fff;border:1px solid #ead9a5;border-radius:12px;padding:10px;margin-top:8px;cursor:pointer}
+.crono-item-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:5px}
+.crono-item strong{font-size:14px;color:var(--text)}
+.crono-item small{font-size:11px;color:var(--text3);white-space:nowrap}
+.crono-item p{font-size:13px;color:var(--text2);margin:2px 0 0;line-height:1.35}
+.mat-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.mat-row{display:grid;grid-template-columns:1fr 70px 30px;gap:8px;align-items:center}
+.mat-row input{min-width:0}
+.mat-remove{height:40px;border:none;border-radius:10px;background:var(--danger-bg);color:var(--danger);font-weight:800;cursor:pointer}
+.preparo-box{background:#eef6ff;border:1px solid #cfe3ff;color:#183b64;border-radius:12px;padding:10px;font-size:13px;line-height:1.4;margin-bottom:12px}
+.task-card.simple-list .task-card-top{border-left-width:3px;padding:10px 12px}
+.task-card.simple-list .task-title{font-size:14px}
+.task-line-main{display:grid;grid-template-columns:58px 1fr;gap:9px;align-items:start}
+.task-date-mini{font-size:12px;font-weight:800;color:var(--ccb-blue);background:var(--ccb-blue-light);border-radius:10px;padding:8px 4px;text-align:center;line-height:1.1}
+.task-local{font-size:13px;font-weight:800;color:var(--text);margin-bottom:2px}
+.task-short{font-size:13px;color:var(--text2);line-height:1.35}
+.task-status-line{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:520px){.frontes-grid{grid-template-columns:1fr}.crono-item-top{flex-direction:column}.mat-row{grid-template-columns:1fr 60px 30px}}
+
 </style>
 </head>
 <body>
@@ -2708,6 +2738,134 @@ document.addEventListener('DOMContentLoaded', function(){
   if(prodHero) prodHero.textContent = 'Produtos: estoque e orçamentos dos itens usados na manutenção.';
 });
 renderLoginState();
+
+
+// ===== V12 - FRENTES DE SERVIÇO, CRONOGRAMA EM DESTAQUE E ITENS DE COMPRA =====
+(function(){
+  function ensureV12Areas(){
+    const maint = document.getElementById('tab-manutencao');
+    if(maint && !document.getElementById('frontes-servico-box')){
+      const list = document.getElementById('list-all');
+      const box = document.createElement('div');
+      box.id = 'frontes-servico-box';
+      box.innerHTML = `
+        <div class="frontes-box">
+          <div class="frontes-title">Frentes de serviço</div>
+          <div class="frontes-grid" id="frontes-grid"></div>
+        </div>
+        <div class="crono-destaque">
+          <h3>Serviços no cronograma</h3>
+          <div class="preparo-box">Atenção: muitos serviços são feitos no sábado ou feriado. Veja os itens que serão usados e compre durante a semana.</div>
+          <div id="scheduled-highlight-list"></div>
+        </div>`;
+      if(list) maint.insertBefore(box, list);
+    }
+  }
+  window.v12Short = function(txt, n){ txt = String(txt||''); return txt.length > n ? txt.slice(0,n-1)+'…' : txt; };
+  window.taskCardHtml = function(t){
+    const sc = (t.status==='Pendente')?'pend':(t.status==='Iniciado')?'ativ':(t.status==='Realizado')?'conc':(t.prio==='Urgente'?'urge':'pend');
+    const venc = isVencida(t.date || t.prazo) && t.status !== 'Realizado' && t.status !== 'Cancelado';
+    const data = fmtDate(t.date || t.prazo || t.created);
+    const local = esc(t.local || t.cat || 'Local não informado');
+    const desc = esc(v12Short(t.desc || t.title || 'Sem descrição', 90));
+    return `<div class="task-card simple-list" onclick="openDetail(${t.id})">
+      <div class="task-card-top ${sc}">
+        <div class="task-line-main">
+          <div class="task-date-mini">${data}</div>
+          <div>
+            <div class="task-local">${local}${t.lado ? ' · ' + esc(t.lado) : ''}</div>
+            <div class="task-short">${desc}</div>
+            <div class="task-status-line">${statusPill(t.status || 'Pendente', t.prio)} ${venc ? '<span class="status-pill sp-urge">Atrasado</span>' : ''} ${t.resp?'<span class="status-pill sp-ativ">'+esc(t.resp)+'</span>':''}</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  };
+  window.renderServiceFronts = function(){
+    ensureV12Areas();
+    const grid = document.getElementById('frontes-grid');
+    const hi = document.getElementById('scheduled-highlight-list');
+    if(!grid || !hi) return;
+    const abertas = (tasks||[]).filter(t => t.status !== 'Realizado' && t.status !== 'Cancelado');
+    const frentes = ['Elétrica','Hidráulica','Civil','Limpeza','Compras','Geral'];
+    grid.innerHTML = frentes.map(f=>{
+      const n = abertas.filter(t => (t.frente||t.cat||'Geral') === f).length;
+      return `<div class="frente-card" onclick="filterFrente('${f}')"><strong>${f}</strong><span>${n} item(ns) aberto(s)</span></div>`;
+    }).join('');
+    const hoje = new Date();
+    const emCrono = abertas.filter(t => t.prazo || t.date || t.status === 'Iniciado').sort((a,b)=>String(a.prazo||a.date||'').localeCompare(String(b.prazo||b.date||''))).slice(0,8);
+    hi.innerHTML = emCrono.length ? emCrono.map(t=>`<div class="crono-item" onclick="openDetail(${t.id})">
+      <div class="crono-item-top"><strong>${esc(t.local || 'Local não informado')}</strong><small>${fmtDate(t.prazo || t.date)}</small></div>
+      <p>${esc(v12Short(t.desc || t.title || '', 95))}</p>
+      <p><b>Responsável:</b> ${esc(t.resp || 'Ainda não definido')}</p>
+    </div>`).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px">Nenhum serviço no cronograma.</div>';
+  };
+  window.filterFrente = function(frente){
+    const el = document.getElementById('list-all');
+    if(!el) return;
+    const items = (tasks||[]).filter(t => (t.frente||t.cat||'Geral') === frente);
+    el.innerHTML = items.length ? items.map(t=>taskCardHtml(t)).join('') : `<div class="empty-state"><p>Nenhum item nesta frente.</p></div>`;
+    showToast('Mostrando: ' + frente);
+  };
+  window.addMaterialRow = function(id, nome='', qtd=''){
+    const box = document.getElementById('materials-box-'+id);
+    if(!box) return;
+    const row = document.createElement('div');
+    row.className = 'mat-row';
+    row.innerHTML = `<input class="form-input mat-name" placeholder="Item" value="${esc(nome)}"><input class="form-input mat-qtd" placeholder="Qtd" value="${esc(qtd)}"><button type="button" class="mat-remove" onclick="this.parentNode.remove()">×</button>`;
+    box.appendChild(row);
+  };
+  const oldRenderV12 = window.render;
+  window.render = function(){ oldRenderV12(); renderServiceFronts(); };
+  const oldShowTabV12 = window.showTab;
+  window.showTab = function(id, btn){ oldShowTabV12(id, btn); if(id==='manutencao') renderServiceFronts(); };
+  const oldOpenDetailV12 = window.openDetail;
+  window.openDetail = function(id){
+    oldOpenDetailV12(id);
+    setTimeout(function(){
+      const t = tasks.find(x=>x.id===id); if(!t) return;
+      const adminBox = document.querySelector('#detail-content .admin-box');
+      if(adminBox && !document.getElementById('v12-extra-'+id)){
+        const mats = Array.isArray(t.materials) ? t.materials : [];
+        const extra = document.createElement('div');
+        extra.id = 'v12-extra-'+id;
+        extra.innerHTML = `
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Frente de serviço</label><select class="form-select" id="admin-frente-${id}"><option>Geral</option><option>Elétrica</option><option>Hidráulica</option><option>Civil</option><option>Limpeza</option><option>Compras</option></select></div>
+            <div class="form-group"><label class="form-label">Previsão de realização</label><input class="form-input" type="date" id="admin-previsao-${id}" value="${esc(t.previsao || t.prazo || t.date || '')}"></div>
+          </div>
+          <div class="form-group"><label class="form-label">Itens que serão utilizados</label><div class="preparo-box">Preencha antes do sábado/feriado para saber o que precisa comprar durante a semana.</div><div class="mat-list" id="materials-box-${id}"></div><button type="button" class="mini-btn blue" onclick="addMaterialRow(${id})">+ Adicionar item</button></div>
+          <div class="form-group"><label class="form-label">Evolução do cronograma</label><textarea class="form-textarea" id="admin-cronograma-${id}" placeholder="Ex: compra na quarta, execução no sábado, conferência no domingo">${esc(t.cronograma || '')}</textarea></div>`;
+        const firstBtn = adminBox.querySelector('.btn-primary');
+        adminBox.insertBefore(extra, firstBtn);
+        const sel = document.getElementById('admin-frente-'+id); if(sel) sel.value = t.frente || t.cat || 'Geral';
+        if(mats.length){ mats.forEach(m=>addMaterialRow(id, m.nome||m.name||'', m.qtd||m.qty||'')); } else { addMaterialRow(id); }
+      }
+      const problemSection = document.querySelector('#detail-content .detail-section');
+      if(problemSection && !document.getElementById('v12-view-'+id)){
+        const view = document.createElement('div');
+        view.id = 'v12-view-'+id;
+        const mats = (t.materials||[]).map(m=>`<li>${esc(m.nome||m.name||'Item')} - ${esc(m.qtd||m.qty||'')}</li>`).join('') || '<li>Nenhum item informado.</li>';
+        view.className = 'detail-section';
+        view.innerHTML = `<div class="detail-section-title">Preparo para o serviço</div><div class="preparo-box">Serviços de sábado/feriado precisam dos materiais comprados antes.</div><div class="detail-grid"><div class="detail-item"><div class="di-label">Frente</div><div class="di-value">${esc(t.frente||t.cat||'Geral')}</div></div><div class="detail-item"><div class="di-label">Previsão</div><div class="di-value">${fmtDate(t.previsao || t.prazo || t.date)}</div></div></div><div style="margin-top:10px;font-size:14px"><b>Itens que serão usados:</b><ul style="margin:6px 0 0 18px">${mats}</ul></div>${t.cronograma?`<div style="margin-top:10px;font-size:14px"><b>Evolução do cronograma:</b><br>${esc(t.cronograma)}</div>`:''}`;
+        problemSection.parentNode.insertBefore(view, problemSection.nextSibling);
+      }
+    },0);
+  };
+  const oldSaveAdminV12 = window.saveAdminTaskChanges;
+  window.saveAdminTaskChanges = function(id){
+    const t = tasks.find(x=>x.id===id); if(t){
+      const rows = Array.from(document.querySelectorAll('#materials-box-'+id+' .mat-row'));
+      t.materials = rows.map(r=>({nome:r.querySelector('.mat-name').value.trim(), qtd:r.querySelector('.mat-qtd').value.trim()})).filter(m=>m.nome || m.qtd);
+      const f = document.getElementById('admin-frente-'+id); if(f) t.frente = f.value;
+      const p = document.getElementById('admin-previsao-'+id); if(p) { t.previsao = p.value; if(p.value) t.prazo = p.value; }
+      const c = document.getElementById('admin-cronograma-'+id); if(c) t.cronograma = c.value.trim();
+    }
+    oldSaveAdminV12(id);
+  };
+  setTimeout(function(){ ensureV12Areas(); renderServiceFronts(); }, 200);
+})();
+
 </script>
 
 </body>
