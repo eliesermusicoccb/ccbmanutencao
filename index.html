@@ -836,6 +836,10 @@
   .quote-pendente{background:var(--pending-bg);color:var(--pending)}
   .quote-aprovado{background:var(--done-bg);color:var(--done)}
   .quote-recusado{background:var(--danger-bg);color:var(--danger)}
+  .quote-winner-row{background:#FDF6E3}
+  .quote-winner-row td{border-top:2px solid var(--ccb-gold);border-bottom:2px solid var(--ccb-gold)}
+  .quote-winner-badge{display:inline-flex;align-items:center;gap:4px;background:var(--done-bg);color:var(--done);font-size:10px;font-weight:800;border-radius:99px;padding:4px 8px;white-space:nowrap}
+  .quote-help{font-size:12px;color:var(--text2);background:var(--ccb-gold-light);border:1px solid rgba(200,168,75,.35);border-radius:10px;padding:10px 12px;margin:0 0 12px}
   .file-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:99px;background:var(--ccb-blue-light);color:var(--ccb-blue);font-size:11px;font-weight:700;cursor:pointer}
   .hidden-gallery-tab{display:none!important}
   @media(max-width:420px){.subcat-grid{grid-template-columns:1fr}.header-btn.export-small{display:none}.fab.add-text{min-width:116px}}
@@ -1361,24 +1365,26 @@
       <div class="category-sub">Cadastre orçamentos recebidos e importe a imagem ou PDF para consulta e aprovação.</div>
     </div>
     <div class="quote-form">
+      <div class="quote-help">Todo orçamento deve ficar ligado a uma manutenção. O menor valor da mesma manutenção será destacado como o orçamento que ganhou a cotação.</div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Descrição do orçamento</label><input class="form-input" id="quote-desc" placeholder="Ex: Pintura fachada, recarga extintores"></div>
+        <div class="form-group"><label class="form-label">Manutenção ligada *</label><select class="form-select" id="quote-task"><option value="">Escolha a manutenção</option></select></div>
+        <div class="form-group"><label class="form-label">Descrição do orçamento</label><input class="form-input" id="quote-desc" placeholder="Ex: Material para banheiro, recarga extintores"></div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label class="form-label">Fornecedor</label><input class="form-input" id="quote-supplier" placeholder="Nome do fornecedor"></div>
-      </div>
-      <div class="form-row">
         <div class="form-group"><label class="form-label">Valor R$</label><input class="form-input" type="number" id="quote-value" placeholder="0,00"></div>
-        <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="quote-status"><option>Pendente</option><option>Aprovado</option><option>Recusado</option></select></div>
       </div>
       <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label><select class="form-select" id="quote-status"><option>Pendente</option><option>Aprovado</option><option>Recusado</option></select></div>
         <div class="form-group"><label class="form-label">Data</label><input class="form-input" type="date" id="quote-date"></div>
-        <div class="form-group"><label class="form-label">Arquivo JPG/PDF</label><input class="form-input" type="file" id="quote-file" accept="image/*,.pdf,application/pdf"></div>
       </div>
+      <div class="form-group"><label class="form-label">Arquivo JPG/PDF</label><input class="form-input" type="file" id="quote-file" accept="image/*,.pdf,application/pdf"></div>
       <div class="form-group"><label class="form-label">Observações</label><textarea class="form-textarea" id="quote-notes" placeholder="Condições, prazo, garantia, observações da administração..."></textarea></div>
       <button class="btn-primary" onclick="addQuote()">Cadastrar orçamento</button>
     </div>
     <div class="quote-table-wrap">
       <table class="quote-table">
-        <thead><tr><th>Data</th><th>Descrição</th><th>Fornecedor</th><th>Valor</th><th>Status</th><th>Arquivo</th><th>Ações</th></tr></thead>
+        <thead><tr><th>Data</th><th>Manutenção</th><th>Descrição</th><th>Fornecedor</th><th>Valor</th><th>Resultado</th><th>Status</th><th>Arquivo</th><th>Ações</th></tr></thead>
         <tbody id="quote-table-body"></tbody>
       </table>
     </div>
@@ -2488,18 +2494,58 @@ let quotes = JSON.parse(localStorage.getItem('ccb_quotes') || '[]');
 function saveQuotes(){ localStorage.setItem('ccb_quotes', JSON.stringify(quotes)); }
 function moneyBR(v){ return (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function readFileAsData(file){ return new Promise((resolve)=>{ if(!file) return resolve(null); const r=new FileReader(); r.onload=e=>resolve({name:file.name,type:file.type||'arquivo',data:e.target.result}); r.readAsDataURL(file); }); }
+function quoteTaskTitle(taskId){
+  const t = (typeof tasks !== 'undefined' ? tasks : []).find(x => String(x.id) === String(taskId));
+  if(!t) return 'Manutenção não encontrada';
+  const local = t.local ? (t.lado ? `${t.local} - ${t.lado}` : t.local) : (t.title || 'Manutenção');
+  const desc = t.desc || t.title || '';
+  return `${local}${desc ? ' · ' + desc.slice(0, 45) : ''}`;
+}
+function renderQuoteTaskOptions(){
+  const sel = document.getElementById('quote-task');
+  if(!sel) return;
+  const current = sel.value;
+  const list = (typeof tasks !== 'undefined' ? tasks : []).filter(t => t.status !== 'Cancelado' && t.status !== 'Realizado');
+  sel.innerHTML = '<option value="">Escolha a manutenção</option>' + list.map(t => `<option value="${t.id}">${esc(quoteTaskTitle(t.id))}</option>`).join('');
+  if(current && list.some(t => String(t.id) === String(current))) sel.value = current;
+}
+function quoteWinnerMap(){
+  const winners = {};
+  quotes.forEach(q => {
+    const key = q.taskId || q.activityId;
+    const value = Number(q.value) || 0;
+    if(!key || value <= 0) return;
+    if(!winners[key] || value < winners[key]) winners[key] = value;
+  });
+  return winners;
+}
 async function addQuote(){
+  renderQuoteTaskOptions();
+  const taskId = document.getElementById('quote-task') ? document.getElementById('quote-task').value : '';
   const desc=document.getElementById('quote-desc').value.trim();
+  if(!taskId){ showToast('⚠️ Escolha a manutenção ligada'); return; }
   if(!desc){ showToast('⚠️ Informe a descrição do orçamento'); return; }
   const file=await readFileAsData(document.getElementById('quote-file').files[0]);
-  quotes.push({id:Date.now(),desc,supplier:document.getElementById('quote-supplier').value.trim(),value:Number(document.getElementById('quote-value').value)||0,status:document.getElementById('quote-status').value,date:document.getElementById('quote-date').value||new Date().toISOString().split('T')[0],notes:document.getElementById('quote-notes').value.trim(),file});
+  quotes.push({id:Date.now(),taskId,activityId:taskId,desc,supplier:document.getElementById('quote-supplier').value.trim(),value:Number(document.getElementById('quote-value').value)||0,status:document.getElementById('quote-status').value,date:document.getElementById('quote-date').value||new Date().toISOString().split('T')[0],notes:document.getElementById('quote-notes').value.trim(),file});
   ['quote-desc','quote-supplier','quote-value','quote-notes'].forEach(id=>document.getElementById(id).value='');
+  const qs=document.getElementById('quote-task'); if(qs) qs.value='';
   document.getElementById('quote-file').value=''; document.getElementById('quote-status').value='Pendente'; document.getElementById('quote-date').value=new Date().toISOString().split('T')[0];
   saveQuotes(); renderQuotes(); showToast('🧾 Orçamento cadastrado');
 }
 function deleteQuote(id){ if(!confirm('Excluir este orçamento?')) return; quotes=quotes.filter(q=>q.id!==id); saveQuotes(); renderQuotes(); }
 function openQuoteFile(id){ const q=quotes.find(x=>x.id===id); if(!q||!q.file){ showToast('Sem arquivo importado'); return; } const w=window.open(''); if(q.file.type.includes('pdf')){ w.document.write(`<iframe src="${q.file.data}" style="border:0;width:100%;height:100vh"></iframe>`); } else { w.document.write(`<body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${q.file.data}" style="max-width:100%;max-height:100vh"></body>`); } }
-function renderQuotes(){ const el=document.getElementById('quote-table-body'); if(!el) return; el.innerHTML = quotes.length ? quotes.map(q=>`<tr><td>${fmtDate(q.date)}</td><td><strong>${esc(q.desc)}</strong><br><small>${esc(q.notes||'')}</small></td><td>${esc(q.supplier||'—')}</td><td>${moneyBR(q.value)}</td><td><span class="quote-status quote-${(q.status||'Pendente').toLowerCase()}">${esc(q.status)}</span></td><td>${q.file?`<span class="file-pill" onclick="openQuoteFile(${q.id})">📎 ${esc(q.file.name)}</span>`:'—'}</td><td><button class="mini-btn red" onclick="deleteQuote(${q.id})">Excluir</button></td></tr>`).join('') : `<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:24px">Nenhum orçamento cadastrado.</td></tr>`; }
+function renderQuotes(){
+  renderQuoteTaskOptions();
+  const el=document.getElementById('quote-table-body'); if(!el) return;
+  const winners = quoteWinnerMap();
+  el.innerHTML = quotes.length ? quotes.map(q=>{
+    const key = q.taskId || q.activityId;
+    const value = Number(q.value)||0;
+    const isWinner = key && value > 0 && winners[key] === value;
+    const result = isWinner ? '<span class="quote-winner-badge">✅ Ganhou cotação</span>' : '<span style="color:var(--text3);font-size:12px">Em comparação</span>';
+    return `<tr class="${isWinner?'quote-winner-row':''}"><td>${fmtDate(q.date)}</td><td><strong>${esc(quoteTaskTitle(key))}</strong></td><td><strong>${esc(q.desc)}</strong><br><small>${esc(q.notes||'')}</small></td><td>${esc(q.supplier||'—')}</td><td><strong>${moneyBR(q.value)}</strong></td><td>${result}</td><td><span class="quote-status quote-${(q.status||'Pendente').toLowerCase()}">${esc(q.status)}</span></td><td>${q.file?`<span class="file-pill" onclick="openQuoteFile(${q.id})">📎 ${esc(q.file.name)}</span>`:'—'}</td><td><button class="mini-btn red" onclick="deleteQuote(${q.id})">Excluir</button></td></tr>`;
+  }).join('') : `<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:24px">Nenhum orçamento cadastrado.</td></tr>`;
+}
 function showOverdueOnly(){ showTab('manutencao', document.querySelector('[data-top-tab=manutencao]')); const el=document.getElementById('list-all'); const atrasadas=tasks.filter(t=>t.status!=='Realizado' && t.status!=='Cancelado' && (isVencida(t.date)||t.prio==='Urgente')); if(el) el.innerHTML=atrasadas.length?atrasadas.map(t=>taskCardHtml(t)).join(''):`<div class="empty-state"><p>Nenhum item atrasado.</p></div>`; }
 const previousRenderV4 = render;
 render = function(){ previousRenderV4(); renderQuotes(); const n=(typeof appAlerts!=='undefined'?collectAlerts().length:0); const bell=document.getElementById('bell-count'); if(bell){ bell.textContent=n; bell.style.display=n?'flex':'none'; } };
