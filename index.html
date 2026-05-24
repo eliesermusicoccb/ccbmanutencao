@@ -3461,6 +3461,279 @@ renderLoginState();
 })();
 </script>
 
+<!-- V25 - Produto com setor e aba Tarefas periódicas -->
+<style>
+  .v25-sector-note{font-size:12px;color:var(--text3);margin-top:4px}
+  .v25-table-note{padding:0 16px 8px;font-size:12px;color:var(--text2)}
+  .v25-product-table-wrap{padding:0 16px 18px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .v25-product-table{width:100%;min-width:980px;border-collapse:separate;border-spacing:0;background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  .v25-product-table th{background:#f3f6fb;color:var(--text2);font-size:11px;text-transform:uppercase;letter-spacing:.5px;text-align:left;padding:10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .v25-product-table td{padding:10px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text);vertical-align:middle;white-space:nowrap}
+  .v25-product-table tr:last-child td{border-bottom:0}
+  .v25-product-name{font-weight:800;color:var(--text)}
+  .v25-product-actions{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+  .v25-tab-mark{position:relative}
+  .periodic-tools{padding:14px 16px 6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .periodic-card{background:#fff;border-radius:16px;box-shadow:var(--shadow);margin:10px 16px;padding:12px;border-left:4px solid var(--ccb-blue)}
+  .periodic-row{display:grid;grid-template-columns:74px 1fr auto;gap:12px;align-items:center}
+  .v25-date-badge{width:66px;height:66px;border-radius:16px;background:#131996;color:#ffd834;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;box-shadow:0 6px 16px rgba(19,25,150,.22);flex-shrink:0}
+  .v25-date-badge .day{font-size:26px;font-weight:900;letter-spacing:-1px}
+  .v25-date-badge .mon{font-size:15px;font-weight:900;margin-top:3px;text-transform:uppercase}
+  .v25-date-badge.empty{background:#eef2f7;color:#7a8494;box-shadow:none}
+  .periodic-name{font-size:15px;font-weight:900;color:var(--text);margin-bottom:3px}
+  .periodic-sub{font-size:13px;color:var(--text2);line-height:1.35}
+  .periodic-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+  .v25-pill{font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:var(--ccb-blue-light);color:var(--ccb-blue);white-space:nowrap}
+  .v25-pill.warn{background:var(--pending-bg);color:var(--pending)}
+  .v25-pill.bad{background:var(--danger-bg);color:var(--danger)}
+  .periodic-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  .periodic-actions .mini-btn{padding:7px 10px;font-size:12px}
+  .periodic-form-box{padding:0 16px 10px}
+  .periodic-empty{margin:14px 16px;background:#fff;border-radius:16px;padding:22px;text-align:center;color:var(--text2);box-shadow:var(--shadow)}
+  @media(max-width:620px){.periodic-row{grid-template-columns:66px 1fr}.periodic-actions{grid-column:1/-1;justify-content:flex-start}.v25-product-table{min-width:900px}}
+</style>
+<script>
+(function(){
+  'use strict';
+  var setoresV25 = ['Manutenção','Piedade','ADM','EBI','GEM','Ministério'];
+  function el(id){return document.getElementById(id);}
+  function safeEsc(v){return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function todayIsoV25(){return new Date().toISOString().slice(0,10);}
+  function dateObjV25(d){return d ? new Date(d+'T00:00:00') : null;}
+  function daysBetweenTodayV25(d){var dt=dateObjV25(d); if(!dt)return null; var now=new Date(); now.setHours(0,0,0,0); return Math.ceil((dt-now)/86400000);}
+  function dateBadgeV25(d){
+    var dt=dateObjV25(d);
+    if(!dt)return '<div class="v25-date-badge empty"><span class="day">--</span><span class="mon">SEM</span></div>';
+    var meses=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+    return '<div class="v25-date-badge"><span class="day">'+String(dt.getDate()).padStart(2,'0')+'</span><span class="mon">'+meses[dt.getMonth()]+'</span></div>';
+  }
+  function dateBRV25(d){var dt=dateObjV25(d); return dt ? dt.toLocaleDateString('pt-BR') : 'Sem data';}
+  function addMonthsV25(date, months){var d=new Date(date.getTime()); var day=d.getDate(); d.setMonth(d.getMonth()+months); if(d.getDate()<day)d.setDate(0); return d;}
+  function nextDateByPeriodV25(period){
+    var base=new Date(); base.setHours(0,0,0,0);
+    if(period==='Semanal') base.setDate(base.getDate()+7);
+    else if(period==='Quinzenal') base.setDate(base.getDate()+15);
+    else if(period==='Mensal') base=addMonthsV25(base,1);
+    else if(period==='Bimestral') base=addMonthsV25(base,2);
+    else if(period==='Trimestral') base=addMonthsV25(base,3);
+    else if(period==='Semestral') base=addMonthsV25(base,6);
+    else if(period==='Anual') base=addMonthsV25(base,12);
+    return base.toISOString().slice(0,10);
+  }
+  function periodicStatusV25(item){
+    var d=daysBetweenTodayV25(item.nextDate);
+    if(d===null)return {label:'Sem data', cls:'warn'};
+    if(d<0)return {label:'Atrasada', cls:'bad'};
+    if(d===0)return {label:'Hoje', cls:'bad'};
+    if(d <= (Number(item.alertDays)||7))return {label:'Próxima', cls:'warn'};
+    return {label:'Programada', cls:''};
+  }
+  function getPeriodicTasksV25(){
+    try{return JSON.parse(localStorage.getItem('ccb_periodic_tasks')||'[]');}catch(e){return [];}
+  }
+  function savePeriodicTasksV25(list){localStorage.setItem('ccb_periodic_tasks', JSON.stringify(list||[]));}
+
+  function setupProductSectorV25(){
+    if(el('prod-sector'))return;
+    var nameInput=el('prod-name');
+    if(!nameInput)return;
+    var row=nameInput.closest('.form-row');
+    if(!row || !row.parentNode)return;
+    var sectorRow=document.createElement('div');
+    sectorRow.className='form-row';
+    sectorRow.innerHTML='<div class="form-group"><label class="form-label">Setor que usa</label><select class="form-select" id="prod-sector">'
+      + setoresV25.map(function(s){return '<option value="'+safeEsc(s)+'">'+safeEsc(s)+'</option>';}).join('')
+      + '</select><div class="v25-sector-note">Escolha onde este produto é usado.</div></div>'
+      + '<div class="form-group"><label class="form-label">Observação simples</label><input class="form-input" id="prod-note" placeholder="Ex: usado no bebedouro, jardim, limpeza..."></div>';
+    row.parentNode.insertBefore(sectorRow, row.nextSibling);
+  }
+
+  function setupPeriodicTabV25(){
+    var tabs=document.querySelector('.tabs-inner');
+    if(tabs && !document.querySelector('[data-top-tab="tarefas"]')){
+      var btn=document.createElement('button');
+      btn.className='tab-btn v25-tab-mark';
+      btn.setAttribute('data-top-tab','tarefas');
+      btn.setAttribute('onclick',"showTab('tarefas', this)");
+      btn.innerHTML='<span class="tab-icon">🔁</span>Tarefas';
+      var manut=document.querySelector('[data-top-tab="manutencao"]');
+      if(manut && manut.parentNode) manut.parentNode.insertBefore(btn, manut.nextSibling); else tabs.appendChild(btn);
+    }
+    var main=document.querySelector('main.main');
+    if(main && !el('tab-tarefas')){
+      var panel=document.createElement('div');
+      panel.className='panel';
+      panel.id='tab-tarefas';
+      panel.innerHTML='<div class="category-hero"><div class="category-title">Tarefas</div><div class="category-sub">Serviços que precisam acontecer de tempos em tempos. Ex: limpar filtro, caixa d\'água, poda do jardim e limpeza geral.</div></div>'
+        + '<div class="periodic-tools"><button class="mini-btn blue" onclick="togglePeriodicFormV25()">+ Nova tarefa</button><button class="mini-btn" onclick="exportPeriodicTasksV25()">Exportar tarefas</button></div>'
+        + '<div class="periodic-form-box" id="periodic-form-v25" style="display:none">'
+        + '<div class="form-row"><div class="form-group"><label class="form-label">Tarefa</label><input class="form-input" id="per-name" placeholder="Ex: Limpar filtro do bebedouro"></div><div class="form-group"><label class="form-label">Setor</label><select class="form-select" id="per-sector">'+setoresV25.map(function(s){return '<option>'+safeEsc(s)+'</option>';}).join('')+'</select></div></div>'
+        + '<div class="form-row"><div class="form-group"><label class="form-label">Período</label><select class="form-select" id="per-period"><option>Semanal</option><option>Quinzenal</option><option selected>Mensal</option><option>Bimestral</option><option>Trimestral</option><option>Semestral</option><option>Anual</option></select></div><div class="form-group"><label class="form-label">Próxima data</label><input class="form-input" type="date" id="per-date"></div></div>'
+        + '<div class="form-row"><div class="form-group"><label class="form-label">Avisar antes (dias)</label><input class="form-input" type="number" id="per-alert" value="7"></div><div class="form-group"><label class="form-label">Responsável</label><select class="form-select" id="per-resp"></select></div></div>'
+        + '<div class="form-group"><label class="form-label">Observação</label><textarea class="form-textarea" id="per-note" placeholder="Explique de forma simples o que precisa ser feito."></textarea></div>'
+        + '<button class="btn-primary" onclick="savePeriodicTaskV25()">Salvar tarefa</button>'
+        + '</div><div id="periodic-list-v25"></div>';
+      var produtos=el('tab-produtos');
+      if(produtos && produtos.parentNode) produtos.parentNode.insertBefore(panel, produtos); else main.appendChild(panel);
+    }
+    fillPeriodicUsersV25();
+    var perDate=el('per-date'); if(perDate && !perDate.value) perDate.value=todayIsoV25();
+  }
+
+  function fillPeriodicUsersV25(){
+    var sel=el('per-resp'); if(!sel)return;
+    var current=sel.value;
+    var list=[];
+    try{ if(typeof users!=='undefined' && Array.isArray(users)) list=users; }catch(e){}
+    if(!list.length){try{list=JSON.parse(localStorage.getItem('ccb_users')||'[]');}catch(e){list=[];}}
+    sel.innerHTML='<option value="">Escolha</option>'+list.map(function(u){return '<option value="'+safeEsc(u.name||'')+'">'+safeEsc(u.name||'')+'</option>';}).join('');
+    if(current) sel.value=current;
+  }
+
+  window.togglePeriodicFormV25=function(){
+    setupPeriodicTabV25();
+    var box=el('periodic-form-v25'); if(!box)return;
+    box.style.display=box.style.display==='none'?'block':'none';
+    var perDate=el('per-date'); if(perDate && !perDate.value) perDate.value=todayIsoV25();
+  };
+  window.savePeriodicTaskV25=function(id){
+    var name=(el('per-name')||{}).value || '';
+    name=name.trim();
+    if(!name){ if(typeof showToast==='function') showToast('Informe a tarefa'); return; }
+    var list=getPeriodicTasksV25();
+    var item={id:id||Date.now(), name:name, sector:(el('per-sector')||{}).value||'', period:(el('per-period')||{}).value||'Mensal', nextDate:(el('per-date')||{}).value||todayIsoV25(), alertDays:Number((el('per-alert')||{}).value)||7, resp:(el('per-resp')||{}).value||'', note:((el('per-note')||{}).value||'').trim(), lastDone:''};
+    var idx=list.findIndex(function(x){return Number(x.id)===Number(item.id);});
+    if(idx>=0) list[idx]=Object.assign({}, list[idx], item); else list.push(item);
+    savePeriodicTasksV25(list);
+    ['per-name','per-note'].forEach(function(id){var i=el(id); if(i)i.value='';});
+    var d=el('per-date'); if(d)d.value=todayIsoV25();
+    var box=el('periodic-form-v25'); if(box)box.style.display='none';
+    renderPeriodicTasksV25();
+    try{ if(typeof runNotificationCheck==='function') runNotificationCheck(); }catch(e){}
+    if(typeof showToast==='function') showToast('Tarefa salva');
+  };
+  window.editPeriodicTaskV25=function(id){
+    setupPeriodicTabV25();
+    var list=getPeriodicTasksV25(); var item=list.find(function(x){return Number(x.id)===Number(id);}); if(!item)return;
+    var box=el('periodic-form-v25'); if(box)box.style.display='block';
+    if(el('per-name'))el('per-name').value=item.name||'';
+    if(el('per-sector'))el('per-sector').value=item.sector||'Manutenção';
+    if(el('per-period'))el('per-period').value=item.period||'Mensal';
+    if(el('per-date'))el('per-date').value=item.nextDate||todayIsoV25();
+    if(el('per-alert'))el('per-alert').value=item.alertDays||7;
+    fillPeriodicUsersV25(); if(el('per-resp'))el('per-resp').value=item.resp||'';
+    if(el('per-note'))el('per-note').value=item.note||'';
+    var btn=box ? box.querySelector('.btn-primary') : null;
+    if(btn) btn.setAttribute('onclick','savePeriodicTaskV25('+Number(id)+')');
+    if(box) box.scrollIntoView({behavior:'smooth', block:'start'});
+  };
+  window.deletePeriodicTaskV25=function(id){
+    if(!confirm('Excluir esta tarefa?'))return;
+    var list=getPeriodicTasksV25().filter(function(x){return Number(x.id)!==Number(id);});
+    savePeriodicTasksV25(list); renderPeriodicTasksV25(); if(typeof showToast==='function') showToast('Tarefa excluída');
+  };
+  window.donePeriodicTaskV25=function(id){
+    var list=getPeriodicTasksV25(); var item=list.find(function(x){return Number(x.id)===Number(id);}); if(!item)return;
+    item.lastDone=todayIsoV25();
+    item.nextDate=nextDateByPeriodV25(item.period||'Mensal');
+    savePeriodicTasksV25(list); renderPeriodicTasksV25(); if(typeof showToast==='function') showToast('Tarefa feita. Próxima data criada.');
+  };
+  window.renderPeriodicTasksV25=function(){
+    setupPeriodicTabV25();
+    var box=el('periodic-list-v25'); if(!box)return;
+    var list=getPeriodicTasksV25().sort(function(a,b){return String(a.nextDate||'9999').localeCompare(String(b.nextDate||'9999'));});
+    if(!list.length){box.innerHTML='<div class="periodic-empty"><strong>Nenhuma tarefa cadastrada.</strong><br><span>Cadastre serviços que voltam sempre, como filtro, caixa d\'água, jardim e limpeza.</span></div>';return;}
+    box.innerHTML=list.map(function(item){var st=periodicStatusV25(item);return '<div class="periodic-card"><div class="periodic-row">'
+      + dateBadgeV25(item.nextDate)
+      + '<div><div class="periodic-name">'+safeEsc(item.name)+'</div><div class="periodic-sub">Setor: '+safeEsc(item.sector||'—')+' · Período: '+safeEsc(item.period||'—')+' · Próxima data: '+dateBRV25(item.nextDate)+'</div>'
+      + (item.note?'<div class="periodic-sub">'+safeEsc(item.note)+'</div>':'')
+      + '<div class="periodic-meta"><span class="v25-pill '+st.cls+'">'+safeEsc(st.label)+'</span><span class="v25-pill">Avisar '+(Number(item.alertDays)||0)+' dia(s) antes</span><span class="v25-pill">'+safeEsc(item.resp||'Sem responsável')+'</span></div></div>'
+      + '<div class="periodic-actions"><button class="mini-btn blue" onclick="donePeriodicTaskV25('+Number(item.id)+')">Feita</button><button class="mini-btn" onclick="editPeriodicTaskV25('+Number(item.id)+')">Editar</button><button class="mini-btn red" onclick="deletePeriodicTaskV25('+Number(item.id)+')">Excluir</button></div>'
+      + '</div></div>';}).join('');
+  };
+  window.exportPeriodicTasksV25=function(){
+    var data={tarefas:getPeriodicTasksV25(), exportado:new Date().toLocaleString('pt-BR')};
+    if(typeof exportJsonFile==='function') exportJsonFile('tarefas-periodicas', data);
+    else {var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='tarefas-periodicas.json';a.click();}
+  };
+
+  function patchProductsV25(){
+    setupProductSectorV25();
+    try{
+      addProduct = function(){
+        var name=(el('prod-name')||{}).value || '';
+        name=name.trim();
+        if(!name){ if(typeof showToast==='function') showToast('Informe o produto'); return; }
+        products.push({
+          id:Date.now(),
+          name:name,
+          sector:(el('prod-sector')||{}).value||'Manutenção',
+          note:((el('prod-note')||{}).value||'').trim(),
+          supplier:((el('prod-supplier')||{}).value||'').trim(),
+          lead:Number((el('prod-lead')||{}).value)||0,
+          minBuy:Number((el('prod-minbuy')||{}).value)||0,
+          minStock:Number((el('prod-minstock')||{}).value)||0,
+          stock:Number((el('prod-stock')||{}).value)||0,
+          useMonth:Number((el('prod-use')||{}).value)||0,
+          alertDays:Number((el('prod-alert')||{}).value)||0
+        });
+        ['prod-name','prod-supplier','prod-note'].forEach(function(id){var i=el(id); if(i)i.value='';});
+        if(typeof saveProducts==='function') saveProducts();
+        renderProducts();
+        try{ if(typeof runNotificationCheck==='function') runNotificationCheck(); }catch(e){}
+        if(typeof showToast==='function') showToast('Produto cadastrado');
+      };
+      renderProducts = function(){
+        var listEl=el('product-list'); if(!listEl)return;
+        if(!products.length){listEl.innerHTML='<div class="empty-state"><p>Nenhum produto cadastrado.</p></div>';return;}
+        listEl.innerHTML='<div class="v25-table-note">No celular, vire o aparelho para ver a tabela melhor.</div><div class="v25-product-table-wrap"><table class="v25-product-table"><thead><tr><th>Produto</th><th>Setor</th><th>Fornecedor</th><th>Lead time</th><th>Compra mín.</th><th>Estoque mín.</th><th>Atual</th><th>Uso/mês</th><th>Status</th><th>Ações</th></tr></thead><tbody>'
+          + products.map(function(p){var st=(typeof stockStatus==='function')?stockStatus(p):{cls:'',label:''};return '<tr><td><div class="v25-product-name">'+safeEsc(p.name)+'</div>'+(p.note?'<div class="supplier-line">'+safeEsc(p.note)+'</div>':'')+'</td><td>'+safeEsc(p.sector||'—')+'</td><td>'+safeEsc(p.supplier||'—')+'</td><td>'+safeEsc(p.lead||0)+' dia(s)</td><td>'+safeEsc(p.minBuy||0)+'</td><td>'+safeEsc(p.minStock||0)+'</td><td><strong>'+safeEsc(p.stock||0)+'</strong></td><td>'+safeEsc(p.useMonth||0)+'</td><td><span class="stock-status '+safeEsc(st.cls)+'">'+safeEsc(st.label)+'</span></td><td><div class="v25-product-actions"><button class="mini-btn" onclick="adjustStock('+Number(p.id)+',-1)">- Baixa</button><button class="mini-btn blue" onclick="adjustStock('+Number(p.id)+',1)">+ Entrada</button><button class="mini-btn red" onclick="deleteProduct('+Number(p.id)+')">Excluir</button></div></td></tr>';}).join('')
+          + '</tbody></table></div>';
+      };
+    }catch(e){console.warn('Patch produto v25:', e);}
+  }
+
+  function patchAlertsV25(){
+    try{
+      var oldCollect = (typeof collectAlerts==='function') ? collectAlerts : null;
+      collectAlerts = function(){
+        var arr = oldCollect ? oldCollect() : [];
+        getPeriodicTasksV25().forEach(function(item){
+          var st=periodicStatusV25(item);
+          if(st.cls==='bad') arr.push({level:'critico', title:'Tarefa periódica', line:item.name+' está para fazer ou atrasada · '+(item.resp||'sem responsável')});
+          else if(st.cls==='warn') arr.push({level:'aviso', title:'Tarefa periódica próxima', line:item.name+' · próxima data '+dateBRV25(item.nextDate)});
+        });
+        return arr;
+      };
+    }catch(e){}
+  }
+
+  function patchRenderAndTabsV25(){
+    if(typeof render==='function' && !window.__v25RenderPatched){
+      window.__v25RenderPatched=true;
+      var oldRender=render;
+      render=function(){oldRender(); setupProductSectorV25(); try{renderPeriodicTasksV25();}catch(e){} };
+    }
+    if(typeof showTab==='function' && !window.__v25ShowTabPatched){
+      window.__v25ShowTabPatched=true;
+      var oldShow=showTab;
+      showTab=function(id,btn){oldShow(id,btn); if(id==='tarefas') setTimeout(renderPeriodicTasksV25,0); if(id==='produtos') setTimeout(function(){setupProductSectorV25(); try{renderProducts();}catch(e){}},0);};
+    }
+  }
+
+  function initV25(){
+    setupProductSectorV25();
+    setupPeriodicTabV25();
+    patchProductsV25();
+    patchAlertsV25();
+    patchRenderAndTabsV25();
+    try{renderPeriodicTasksV25();}catch(e){}
+    try{if(typeof renderProducts==='function')renderProducts();}catch(e){}
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', initV25); else initV25();
+  setTimeout(initV25,300);
+})();
+</script>
 </body>
 </html>
 <!-- V13 - Cronograma ligado as oportunidades e frentes de trabalho -->
