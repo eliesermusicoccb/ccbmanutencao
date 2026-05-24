@@ -3099,3 +3099,119 @@ renderLoginState();
   setTimeout(function(){ ensureSchedExtraFields(); fillSchedTaskOptions(''); if(window.render) render(); }, 300);
 })();
 </script>
+
+
+<!-- Ajuste v14: cronograma com editar e excluir direto -->
+<style>
+  .v14-sched-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .v14-sched-actions button{border:1.5px solid var(--border);background:var(--surface);border-radius:10px;padding:7px 11px;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;color:var(--text2)}
+  .v14-sched-actions .edit{border-color:var(--ccb-blue);background:var(--ccb-blue-light);color:var(--ccb-blue)}
+  .v14-sched-actions .del{border-color:var(--danger);background:var(--danger-bg);color:var(--danger)}
+</style>
+<script>
+(function(){
+  function listTasks(){ try { return tasks || []; } catch(e){ return window.tasks || []; } }
+  function listScheds(){ try { return scheds || []; } catch(e){ return window.scheds || []; } }
+  function setScheds(v){ try { scheds = v; window.scheds = scheds; } catch(e){ window.scheds = v; } }
+  function setTasks(v){ try { tasks = v; window.tasks = tasks; } catch(e){ window.tasks = v; } }
+  function simpleEsc(s){ return String(s ?? '').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function getTask(id){ return listTasks().find(function(t){ return String(t.id) === String(id); }); }
+  function shortText(s,n){ s=String(s||''); n=n||90; return s.length>n ? s.slice(0,n-1)+'…' : s; }
+  function dateText(d){ if(window.fmtDate) return fmtDate(d); if(!d) return '—'; try { return new Date(d+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); } catch(e){ return d; } }
+
+  try {
+    if(!Object.getOwnPropertyDescriptor(window,'tasks')) Object.defineProperty(window,'tasks',{get:function(){return tasks;},set:function(v){tasks=v;},configurable:true});
+    if(!Object.getOwnPropertyDescriptor(window,'scheds')) Object.defineProperty(window,'scheds',{get:function(){return scheds;},set:function(v){scheds=v;},configurable:true});
+  } catch(e) {}
+
+  window.schedMiniHtml = function(s){
+    var dt = new Date((s.date || '') + 'T00:00:00');
+    var day = s.date ? dt.getDate() : '—';
+    var mon = s.date ? dt.toLocaleDateString('pt-BR', { month:'short' }).replace('.','') : '';
+    var t = s.taskId ? getTask(s.taskId) : null;
+    var titulo = t ? (t.local || s.title || 'Serviço') : (s.title || 'Serviço');
+    var desc = t ? (t.desc || '') : (s.desc || '');
+    return `<div class="sched-card" onclick="openSchedDetail(${s.id})" style="padding:10px 14px;margin-bottom:8px">
+      <div class="sched-date"><div class="sd-day">${day}</div><div class="sd-mon">${simpleEsc(mon)}</div></div>
+      <div class="sched-info">
+        <div class="sched-title">${simpleEsc(titulo)}</div>
+        <div class="sched-sub">${simpleEsc(shortText(desc,70))}</div>
+        <div class="sched-tags">
+          <span class="tag">${simpleEsc(s.front || s.cat || 'Serviço')}</span>
+          <span class="tag gold">${simpleEsc(s.resp || 'sem responsável')}</span>
+          ${(s.nrs||[]).map(function(n){return `<span class="tag nr">${simpleEsc(n)}</span>`;}).join('')}
+        </div>
+        <div class="v14-sched-actions">
+          <button class="edit" onclick="event.stopPropagation(); openEditSched(${s.id})">Editar</button>
+          <button class="del" onclick="event.stopPropagation(); deleteSched(${s.id})">Excluir</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  var oldOpenEdit = window.openEditSched;
+  window.openEditSched = function(id){
+    if(typeof closeModal === 'function') closeModal('modal-detail');
+    if(typeof oldOpenEdit === 'function') {
+      oldOpenEdit(id);
+    } else {
+      var s = listScheds().find(function(x){return String(x.id)===String(id);});
+      if(!s) return;
+      if(document.getElementById('sched-title')) document.getElementById('sched-title').value = s.title || '';
+      if(document.getElementById('sched-desc')) document.getElementById('sched-desc').value = s.desc || '';
+      if(document.getElementById('sched-date')) document.getElementById('sched-date').value = s.date || '';
+      if(document.getElementById('sched-resp')) document.getElementById('sched-resp').value = s.resp || '';
+      var hid = document.getElementById('sched-edit-id'); if(hid) hid.value = s.id;
+      openModal('modal-sched');
+    }
+    var title = document.querySelector('#modal-sched .modal-title'); if(title) title.textContent = 'Editar cronograma';
+  };
+
+  window.deleteSched = function(id){
+    var s = listScheds().find(function(x){ return String(x.id) === String(id); });
+    if(!s) return;
+    if(!confirm('Excluir este item do cronograma?')) return;
+    var novaLista = listScheds().filter(function(x){ return String(x.id) !== String(id); });
+    setScheds(novaLista);
+    try { localStorage.setItem('ccb_scheds', JSON.stringify(novaLista)); } catch(e) {}
+    if(s.taskId){
+      var t = getTask(s.taskId);
+      if(t && typeof addHistory === 'function') {
+        addHistory(t, s.resp || 'Administração', 'excluiu do cronograma', dateText(s.date));
+        if(typeof saveTasks === 'function') saveTasks();
+      }
+    }
+    if(typeof closeModal === 'function') { closeModal('modal-detail'); closeModal('modal-sched'); }
+    if(typeof render === 'function') render();
+    if(typeof renderServiceFronts === 'function') renderServiceFronts();
+    if(typeof showToast === 'function') showToast('Cronograma excluído');
+  };
+
+  var oldRenderFronts = window.renderServiceFronts;
+  window.renderServiceFronts = function(){
+    if(typeof oldRenderFronts === 'function') oldRenderFronts();
+    var hi = document.getElementById('scheduled-highlight-list');
+    if(!hi) return;
+    var rows = listScheds().slice().sort(function(a,b){return String(a.date||'9999').localeCompare(String(b.date||'9999'));}).slice(0,10);
+    hi.innerHTML = rows.length ? rows.map(function(s){
+      var t = s.taskId ? getTask(s.taskId) : null;
+      var local = t ? (t.local || 'Local') : (s.title || 'Serviço');
+      var desc = t ? (t.desc || '') : (s.desc || '');
+      return `<div class="crono-item" onclick="openSchedDetail(${s.id})">
+        <div class="crono-item-top"><strong>${simpleEsc(local)}</strong><small>${dateText(s.date)}</small></div>
+        <p>${simpleEsc(shortText(desc,90))}</p>
+        <p><b>Responsável:</b> ${simpleEsc(s.resp||'Ainda não definido')} · <b>Frente:</b> ${simpleEsc(s.front||s.cat||'—')}</p>
+        <div class="v14-sched-actions">
+          <button class="edit" onclick="event.stopPropagation(); openEditSched(${s.id})">Editar</button>
+          <button class="del" onclick="event.stopPropagation(); deleteSched(${s.id})">Excluir</button>
+        </div>
+      </div>`;
+    }).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px">Nenhum serviço no cronograma.</div>';
+  };
+
+  setTimeout(function(){
+    if(typeof render === 'function') render();
+    if(typeof renderServiceFronts === 'function') renderServiceFronts();
+  }, 100);
+})();
+</script>
