@@ -2548,135 +2548,7 @@ function viewMedia(i) {
   const m = gallery[i];
   if (!m) return;
   const w = window.open('');
-  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh">${m.type==='video'?`<video controls autoplay style="max-width:100%;max-height:100vh" src="${m.data}"></video>`:`<img style="max-width:100%;max-height:100vh" src="${m.data}">`}
-
-<script>
-// ===== SONS DO APP v31 =====
-// Os sons sao gerados pelo navegador. Nao dependem de arquivo externo.
-(function(){
-  var audioCtx = null;
-  var soundReady = false;
-  var lastChatCount = 0;
-  var lastAlertCount = 0;
-
-  function getCtx(){
-    if(!audioCtx){
-      var Ctx = window.AudioContext || window.webkitAudioContext;
-      if(!Ctx) return null;
-      audioCtx = new Ctx();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume().catch(function(){});
-    return audioCtx;
-  }
-
-  function beep(freq, start, dur, type, gainValue){
-    var ctx = getCtx();
-    if(!ctx) return;
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.type = type || 'sine';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
-    gain.gain.exponentialRampToValueAtTime(gainValue || 0.16, ctx.currentTime + start + 0.018);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + dur);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(ctx.currentTime + start);
-    osc.stop(ctx.currentTime + start + dur + 0.03);
-  }
-
-  window.playNotificationBell = function(){
-    // Campainha simples - modelo 1
-    try{
-      beep(880, 0.00, 0.18, 'sine', 0.18);
-      beep(660, 0.17, 0.20, 'sine', 0.15);
-      beep(440, 0.36, 0.28, 'triangle', 0.12);
-    }catch(e){}
-  };
-
-  window.playChatIphoneStyle = function(){
-    // Som curto de mensagem, estilo iPhone, sem usar arquivo externo.
-    try{
-      beep(1046, 0.00, 0.10, 'sine', 0.12);
-      beep(1318, 0.11, 0.13, 'sine', 0.11);
-      beep(1760, 0.25, 0.10, 'triangle', 0.08);
-    }catch(e){}
-  };
-
-  function enableSoundOnce(){
-    soundReady = true;
-    var ctx = getCtx();
-    if(ctx && ctx.state === 'suspended') ctx.resume().catch(function(){});
-  }
-
-  ['click','touchstart','keydown'].forEach(function(ev){
-    document.addEventListener(ev, enableSoundOnce, {once:true, passive:true});
-  });
-
-  function safeChatList(){
-    try { return JSON.parse(localStorage.getItem('ccb_chat_messages') || '[]') || []; }
-    catch(e){ return []; }
-  }
-
-  function getCurrentUserIdSafe(){
-    try{
-      if(typeof currentUser === 'function'){
-        var u = currentUser();
-        return u && u.id ? String(u.id) : '';
-      }
-    }catch(e){}
-    try { return String(localStorage.getItem('ccb_current_admin') || ''); } catch(e){}
-    return '';
-  }
-
-  function checkChatSound(){
-    var list = safeChatList();
-    if(!lastChatCount){ lastChatCount = list.length; return; }
-    if(list.length > lastChatCount){
-      var last = list[list.length - 1] || {};
-      var currentId = getCurrentUserIdSafe();
-      if(String(last.senderId || '') !== currentId && soundReady){ window.playChatIphoneStyle(); }
-    }
-    lastChatCount = list.length;
-  }
-
-  window.addEventListener('storage', function(e){
-    if(e.key === 'ccb_chat_messages') checkChatSound();
-  });
-
-  setInterval(checkChatSound, 2500);
-
-  function countAlertsSafe(){
-    try{
-      if(typeof collectAlerts === 'function') return collectAlerts().length;
-    }catch(e){}
-    var bell = document.getElementById('bell-count');
-    return Number((bell && bell.textContent) || 0) || 0;
-  }
-
-  window.addEventListener('load', function(){
-    lastAlertCount = countAlertsSafe();
-    lastChatCount = safeChatList().length;
-
-    if(typeof runNotificationCheck === 'function' && !window.__soundRunNotificationPatched){
-      var oldRun = runNotificationCheck;
-      window.__soundRunNotificationPatched = true;
-      window.runNotificationCheck = function(manual){
-        var before = countAlertsSafe();
-        var result = oldRun.apply(this, arguments);
-        setTimeout(function(){
-          var after = countAlertsSafe();
-          if(soundReady && after > before) window.playNotificationBell();
-          lastAlertCount = after;
-        }, 120);
-        return result;
-      };
-    }
-  });
-})();
-</script>
-
-</body></html>`);
+  w.document.write(`<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh">${m.type==='video'?`<video controls autoplay style="max-width:100%;max-height:100vh" src="${m.data}"></video>`:`<img style="max-width:100%;max-height:100vh" src="${m.data}">`}</body></html>`);
 }
 
 // ═══════════════════════════════════════════════════
@@ -4291,6 +4163,136 @@ renderLoginState();
   setTimeout(initV25,300);
 })();
 </script>
+
+<script>
+(function(){
+  var soundReady = false;
+  var audioCtx = null;
+  var lastChatCount = 0;
+  var lastAlertCount = 0;
+
+  function getAudioCtx(){
+    try{
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      if(!audioCtx) audioCtx = new Ctx();
+      return audioCtx;
+    }catch(e){ return null; }
+  }
+
+  function tone(freq, start, duration, type, volume){
+    var ctx = getAudioCtx();
+    if(!ctx || !soundReady) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime + start);
+    gain.gain.exponentialRampToValueAtTime(volume || 0.10, ctx.currentTime + start + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + start + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(ctx.currentTime + start);
+    osc.stop(ctx.currentTime + start + duration + 0.04);
+  }
+
+  window.tocarCampainhaAviso = function(){
+    try{
+      tone(880, 0.00, 0.16, 'sine', 0.13);
+      tone(660, 0.18, 0.18, 'sine', 0.11);
+      tone(880, 0.40, 0.18, 'sine', 0.12);
+    }catch(e){}
+  };
+
+  window.tocarMensagemIphone = function(){
+    try{
+      tone(1046, 0.00, 0.09, 'sine', 0.12);
+      tone(1318, 0.10, 0.11, 'sine', 0.10);
+      tone(1760, 0.23, 0.08, 'triangle', 0.08);
+    }catch(e){}
+  };
+
+  function enableSound(){
+    soundReady = true;
+    var ctx = getAudioCtx();
+    if(ctx && ctx.state === 'suspended') ctx.resume().catch(function(){});
+  }
+
+  ['click','touchstart','keydown'].forEach(function(ev){
+    document.addEventListener(ev, enableSound, {once:true, passive:true});
+  });
+
+  function chatList(){
+    try { return JSON.parse(localStorage.getItem('ccb_chat_messages') || '[]') || []; }
+    catch(e){ return []; }
+  }
+
+  function currentUserId(){
+    try{
+      if(typeof currentUser === 'function'){
+        var u = currentUser();
+        return u && u.id ? String(u.id) : '';
+      }
+    }catch(e){}
+    try { return String(localStorage.getItem('ccb_current_admin') || ''); } catch(e){}
+    return '';
+  }
+
+  function checkNewChat(){
+    var list = chatList();
+    if(lastChatCount === 0){ lastChatCount = list.length; return; }
+    if(list.length > lastChatCount){
+      var last = list[list.length - 1] || {};
+      if(String(last.senderId || '') !== currentUserId()) window.tocarMensagemIphone();
+    }
+    lastChatCount = list.length;
+  }
+
+  function alertCount(){
+    try{
+      if(typeof collectAlerts === 'function') return collectAlerts().length;
+    }catch(e){}
+    var bell = document.getElementById('bell-count');
+    return Number((bell && bell.textContent) || 0) || 0;
+  }
+
+  function checkNewAlerts(){
+    var n = alertCount();
+    if(lastAlertCount === 0){ lastAlertCount = n; return; }
+    if(n > lastAlertCount) window.tocarCampainhaAviso();
+    lastAlertCount = n;
+  }
+
+  window.addEventListener('storage', function(e){
+    if(e.key === 'ccb_chat_messages') checkNewChat();
+    if(e.key === 'ccb_alerts' || e.key === 'ccb_tasks' || e.key === 'ccb_products') checkNewAlerts();
+  });
+
+  window.addEventListener('load', function(){
+    lastChatCount = chatList().length;
+    lastAlertCount = alertCount();
+
+    if(typeof runNotificationCheck === 'function' && !window.__ccbAvisoSomPatch){
+      var oldRunNotificationCheck = runNotificationCheck;
+      window.__ccbAvisoSomPatch = true;
+      window.runNotificationCheck = function(){
+        var before = alertCount();
+        var result = oldRunNotificationCheck.apply(this, arguments);
+        setTimeout(function(){
+          var after = alertCount();
+          if(after > before) window.tocarCampainhaAviso();
+          lastAlertCount = after;
+        }, 150);
+        return result;
+      };
+    }
+
+    setInterval(checkNewChat, 2500);
+    setInterval(checkNewAlerts, 5000);
+  });
+})();
+</script>
+
 </body>
 </html>
 <!-- V13 - Cronograma ligado as oportunidades e frentes de trabalho -->
