@@ -2870,3 +2870,232 @@ renderLoginState();
 
 </body>
 </html>
+<!-- V13 - Cronograma ligado as oportunidades e frentes de trabalho -->
+<style>
+.v13-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 8px;border-radius:999px;background:#fff7df;color:#7a5a00;border:1px solid #e8d08a;margin-top:6px}
+.v13-next{background:#fff7df;border:1px solid #ecd18a;border-radius:12px;padding:8px;margin-top:8px;font-size:12px;color:#4d3b00}
+.v13-sched-row{border:1px solid var(--border);border-radius:12px;background:var(--surface2);padding:10px;margin-top:8px}
+.v13-sched-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.v13-sched-top strong{font-size:14px;color:var(--text)}
+.v13-sched-top small{font-size:12px;color:var(--ccb-blue);font-weight:800;white-space:nowrap}
+.v13-sched-row p{font-size:13px;color:var(--text2);margin:4px 0 0;line-height:1.35}
+.v13-mini-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.v13-mini-actions button{padding:7px 10px;border-radius:9px;border:1px solid var(--border);background:#fff;font-size:12px;font-weight:700;cursor:pointer}
+.v13-mini-actions .blue{background:var(--ccb-blue-light);border-color:var(--ccb-blue);color:var(--ccb-blue)}
+.v13-mini-actions .red{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.v13-linked-card{border-left:4px solid var(--ccb-gold)!important;background:#fffdf5!important}
+.v13-table{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.v13-table th,.v13-table td{border-bottom:1px solid var(--border);padding:8px;text-align:left;vertical-align:top}
+.v13-table th{background:var(--surface2);font-size:11px;text-transform:uppercase;color:var(--text2);letter-spacing:.4px}
+@media(max-width:520px){.v13-sched-top{flex-direction:column}.v13-table{font-size:12px}.v13-table th,.v13-table td{padding:6px}}
+</style>
+<script>
+(function(){
+  function safeEsc(s){ return (window.esc ? esc(s) : String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))); }
+  function getTaskById(id){ return (window.tasks||[]).find(t => String(t.id) === String(id)); }
+  function linkedScheds(taskId){ return (window.scheds||[]).filter(s => String(s.taskId||'') === String(taskId)).sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999'))); }
+  function nextSched(taskId){ return linkedScheds(taskId).filter(s => !s.done && !s.cancelled)[0] || linkedScheds(taskId)[0] || null; }
+  function taskShort(t){ const txt=String(t.desc || t.title || ''); return txt.length>86 ? txt.slice(0,85)+'…' : txt; }
+
+  function ensureSchedExtraFields(){
+    const modal = document.querySelector('#modal-sched .modal-body');
+    if(!modal || document.getElementById('sched-edit-id')) return;
+    const html = document.createElement('div');
+    html.id = 'sched-extra-v13';
+    html.innerHTML = `
+      <input type="hidden" id="sched-edit-id" value="">
+      <div class="form-group">
+        <label class="form-label">Ligado a qual manutenção?</label>
+        <select class="form-select" id="sched-task-id"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Frente de trabalho</label><input class="form-input" id="sched-front" placeholder="Ex: Elétrica, Civil, Hidráulica"></div>
+        <div class="form-group"><label class="form-label">Colaboradores</label><input class="form-input" id="sched-helpers" placeholder="Nomes separados por vírgula"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Itens que serão usados</label><textarea class="form-textarea" id="sched-items" placeholder="Ex: lâmpada LED - 4 unidades\nfita isolante - 1 rolo"></textarea></div>
+      <div class="preparo-box">Importante: se o serviço for no sábado ou feriado, confira os itens e compre durante a semana.</div>`;
+    const btn = modal.querySelector('.btn-primary');
+    modal.insertBefore(html, btn);
+  }
+
+  function fillSchedTaskOptions(selected){
+    ensureSchedExtraFields();
+    const sel = document.getElementById('sched-task-id'); if(!sel) return;
+    const opts = ['<option value="">Sem ligação</option>'].concat((window.tasks||[]).map(t=>`<option value="${safeEsc(t.id)}">${safeEsc(t.local||'Local')} - ${safeEsc(taskShort(t))}</option>`));
+    sel.innerHTML = opts.join('');
+    sel.value = selected ? String(selected) : '';
+  }
+
+  const oldOpenModal = window.openModal;
+  window.openModal = function(id){
+    if(id === 'modal-sched') { ensureSchedExtraFields(); fillSchedTaskOptions(document.getElementById('sched-task-id')?.value || ''); }
+    oldOpenModal(id);
+  };
+
+  window.openNewSchedForTask = function(taskId){
+    ensureSchedExtraFields();
+    const t = getTaskById(taskId);
+    document.getElementById('sched-edit-id').value = '';
+    document.getElementById('sched-title').value = t ? (t.local || 'Manutenção') : '';
+    document.getElementById('sched-desc').value = t ? (t.desc || '') : '';
+    document.getElementById('sched-date').value = '';
+    document.getElementById('sched-resp').value = t ? (t.resp || '') : '';
+    document.getElementById('sched-cat').value = t ? (t.frente || t.cat || 'Outro') : 'Outro';
+    fillSchedTaskOptions(taskId);
+    document.getElementById('sched-front').value = t ? (t.frente || t.cat || '') : '';
+    document.getElementById('sched-helpers').value = '';
+    document.getElementById('sched-items').value = (t && Array.isArray(t.materials)) ? t.materials.map(m => `${m.nome||m.name||''} - ${m.qtd||m.qty||''}`).join('\n') : '';
+    const title = document.querySelector('#modal-sched .modal-title'); if(title) title.textContent = 'Colocar no cronograma';
+    openModal('modal-sched');
+  };
+
+  window.openEditSched = function(id){
+    const s = (window.scheds||[]).find(x=>String(x.id)===String(id)); if(!s) return;
+    ensureSchedExtraFields();
+    document.getElementById('sched-edit-id').value = s.id;
+    document.getElementById('sched-title').value = s.title || '';
+    document.getElementById('sched-desc').value = s.desc || '';
+    document.getElementById('sched-date').value = s.date || '';
+    document.getElementById('sched-resp').value = s.resp || '';
+    document.getElementById('sched-cat').value = s.cat || 'Outro';
+    fillSchedTaskOptions(s.taskId || '');
+    document.getElementById('sched-front').value = s.front || s.frente || s.cat || '';
+    document.getElementById('sched-helpers').value = s.helpers || s.colaboradores || '';
+    document.getElementById('sched-items').value = s.itemsText || (Array.isArray(s.items) ? s.items.map(i=>`${i.nome||i.name||''} - ${i.qtd||i.qty||''}`).join('\n') : '');
+    const title = document.querySelector('#modal-sched .modal-title'); if(title) title.textContent = 'Editar cronograma';
+    openModal('modal-sched');
+  };
+
+  window.saveSched = function(){
+    ensureSchedExtraFields();
+    const title = document.getElementById('sched-title').value.trim();
+    const date = document.getElementById('sched-date').value;
+    if(!title || !date){ showToast('⚠️ Preencha título e data'); return; }
+    const idEdit = document.getElementById('sched-edit-id')?.value || '';
+    const taskId = document.getElementById('sched-task-id')?.value || '';
+    const nrs = [...document.querySelectorAll('#sched-nr-chips .chip.selected')].map(c => c.dataset.val);
+    const obj = {
+      id: idEdit ? Number(idEdit) : Date.now(),
+      title,
+      desc: document.getElementById('sched-desc').value.trim(),
+      date,
+      resp: document.getElementById('sched-resp').value.trim(),
+      cat: document.getElementById('sched-cat').value,
+      nrs,
+      taskId,
+      front: document.getElementById('sched-front')?.value.trim() || document.getElementById('sched-cat').value,
+      helpers: document.getElementById('sched-helpers')?.value.trim() || '',
+      itemsText: document.getElementById('sched-items')?.value.trim() || ''
+    };
+    if(idEdit){
+      const idx = scheds.findIndex(s=>String(s.id)===String(idEdit));
+      if(idx>=0) scheds[idx] = {...scheds[idx], ...obj};
+      const t = taskId ? getTaskById(taskId) : null;
+      if(t){ addHistory(t, obj.resp || 'Administração', 'editou o cronograma', `próxima data ${fmtDate(obj.date)}`); }
+      showToast('📅 Cronograma alterado');
+    } else {
+      scheds.push(obj);
+      const t = taskId ? getTaskById(taskId) : null;
+      if(t){
+        t.prazo = obj.date; t.previsao = obj.date; t.resp = obj.resp || t.resp; t.frente = obj.front || t.frente; t.status = t.status === 'Pendente' ? 'Iniciado' : (t.status || 'Iniciado');
+        addHistory(t, obj.resp || 'Administração', 'colocou no cronograma', `data ${fmtDate(obj.date)} · frente ${obj.front||'—'}`);
+        saveTasks();
+      }
+      showToast('📅 Adicionado ao cronograma');
+    }
+    saveScheds();
+    closeModal('modal-sched');
+    if(document.getElementById('sched-edit-id')) document.getElementById('sched-edit-id').value = '';
+    render();
+  };
+
+  window.openSchedDetail = function(id){
+    const s = (window.scheds||[]).find(x=>String(x.id)===String(id)); if(!s) return;
+    const t = s.taskId ? getTaskById(s.taskId) : null;
+    document.getElementById('detail-content').innerHTML = `
+      <div class="detail-header-bg" style="padding-top:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span class="modal-title">Cronograma</span>
+          <button class="modal-close" onclick="closeModal('modal-detail')" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:#fff">✕</button>
+        </div>
+        <div style="font-size:18px;font-weight:600;color:#fff;margin-bottom:8px">${safeEsc(s.title)}</div>
+        <div style="font-size:14px;color:rgba(255,255,255,0.75)">${fmtDate(s.date)} · ${safeEsc(s.front||s.cat||'Frente')}</div>
+      </div>
+      <div class="modal-body">
+        <div class="detail-section"><div class="detail-section-title">Resumo</div><div class="detail-text">${safeEsc(s.desc||'')}</div></div>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="di-label">Responsável</div><div class="di-value">${safeEsc(s.resp||'—')}</div></div>
+          <div class="detail-item"><div class="di-label">Colaboradores</div><div class="di-value">${safeEsc(s.helpers||'—')}</div></div>
+          <div class="detail-item"><div class="di-label">Frente</div><div class="di-value">${safeEsc(s.front||s.cat||'—')}</div></div>
+          <div class="detail-item"><div class="di-label">Manutenção ligada</div><div class="di-value">${t ? safeEsc(t.local||'Ocorrência') : '—'}</div></div>
+        </div>
+        <div class="detail-section" style="margin-top:14px"><div class="detail-section-title">Itens para comprar/separar</div><div class="preparo-box">Confira durante a semana. No sábado ou feriado é mais difícil comprar.</div><div class="detail-text" style="white-space:pre-line">${safeEsc(s.itemsText||'Nenhum item informado.')}</div></div>
+        ${t ? `<button class="action-btn blue" onclick="openDetail(${t.id})">Abrir perfil da manutenção</button>` : ''}
+        <div class="action-btns" style="margin-top:10px">
+          <button class="action-btn blue" onclick="openEditSched(${s.id})">Editar cronograma</button>
+          <button class="action-btn red" onclick="deleteSched(${s.id})">Remover do cronograma</button>
+        </div>
+      </div>`;
+    openModal('modal-detail');
+  };
+
+  const oldTaskCard = window.taskCardHtml;
+  window.taskCardHtml = function(t){
+    let html = oldTaskCard ? oldTaskCard(t) : '';
+    const n = nextSched(t.id);
+    if(n){
+      html = html.replace('class="task-card simple-list"', 'class="task-card simple-list v13-linked-card"');
+      html = html.replace('</div>\n      </div>\n    </div>', `<div class="v13-next"><b>Próxima data:</b> ${fmtDate(n.date)} · <b>Responsável:</b> ${safeEsc(n.resp||'—')}</div></div>\n      </div>\n    </div>`);
+    }
+    return html;
+  };
+
+  window.renderServiceFronts = function(){
+    const grid = document.getElementById('frontes-grid');
+    const hi = document.getElementById('scheduled-highlight-list');
+    if(!grid || !hi) return;
+    const fronts = {};
+    (window.scheds||[]).forEach(s=>{ const f=s.front||s.cat||'Geral'; if(!fronts[f]) fronts[f]=[]; fronts[f].push(s); });
+    const names = Object.keys(fronts).length ? Object.keys(fronts) : ['Elétrica','Hidráulica','Civil','Hidráulica','Limpeza','Geral'];
+    grid.innerHTML = names.map(f=>{
+      const count = (fronts[f]||[]).length;
+      const resp = (fronts[f]||[]).map(s=>s.resp).filter(Boolean)[0] || 'sem responsável';
+      return `<div class="frente-card" onclick="filterFrente('${safeEsc(f)}')"><strong>${safeEsc(f)}</strong><span>${count} no cronograma · ${safeEsc(resp)}</span></div>`;
+    }).join('');
+    const rows = [...(window.scheds||[])].sort((a,b)=>String(a.date||'9999').localeCompare(String(b.date||'9999'))).slice(0,10);
+    hi.innerHTML = rows.length ? rows.map(s=>{
+      const t = s.taskId ? getTaskById(s.taskId) : null;
+      return `<div class="crono-item" onclick="openSchedDetail(${s.id})"><div class="crono-item-top"><strong>${safeEsc(t?.local || s.title || 'Serviço')}</strong><small>${fmtDate(s.date)}</small></div><p>${safeEsc(taskShort(t || s))}</p><p><b>Responsável:</b> ${safeEsc(s.resp||'Ainda não definido')} · <b>Frente:</b> ${safeEsc(s.front||s.cat||'—')}</p></div>`;
+    }).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px">Nenhum serviço no cronograma.</div>';
+  };
+
+  window.filterFrente = function(frente){
+    const el=document.getElementById('list-all'); if(!el) return;
+    const ids = new Set((window.scheds||[]).filter(s => (s.front||s.cat||'Geral')===frente && s.taskId).map(s=>String(s.taskId)));
+    const items = (window.tasks||[]).filter(t => ids.has(String(t.id)) || (t.frente||t.cat||'Geral')===frente);
+    el.innerHTML = items.length ? items.map(t=>taskCardHtml(t)).join('') : `<div class="empty-state"><p>Nenhum item nesta frente.</p></div>`;
+    showToast('Frente: '+frente);
+  };
+
+  const oldOpenDetail = window.openDetail;
+  window.openDetail = function(id){
+    oldOpenDetail(id);
+    setTimeout(function(){
+      const t = getTaskById(id); if(!t) return;
+      const body = document.querySelector('#detail-content .modal-body'); if(!body || document.getElementById('v13-profile-crono-'+id)) return;
+      const list = linkedScheds(id);
+      const sec = document.createElement('div');
+      sec.className = 'detail-section';
+      sec.id = 'v13-profile-crono-'+id;
+      sec.innerHTML = `<div class="detail-section-title">Cronograma desta manutenção</div>
+        <div class="preparo-box">Quando esta manutenção entrar no cronograma, ela fica em destaque na lista e mostra a próxima data. Informe a frente de trabalho, responsável, colaboradores e itens que serão usados.</div>
+        ${list.length ? list.map(s=>`<div class="v13-sched-row"><div class="v13-sched-top"><strong>${safeEsc(s.title||'Serviço')}</strong><small>${fmtDate(s.date)}</small></div><p><b>Responsável:</b> ${safeEsc(s.resp||'—')} · <b>Frente:</b> ${safeEsc(s.front||s.cat||'—')}</p><p><b>Colaboradores:</b> ${safeEsc(s.helpers||'—')}</p><p><b>Itens:</b><br>${safeEsc(s.itemsText||'Nenhum item informado.')}</p><div class="v13-mini-actions"><button class="blue" onclick="openEditSched(${s.id})">Editar</button><button onclick="openSchedDetail(${s.id})">Ver</button></div></div>`).join('') : '<div class="history-item">Ainda não está no cronograma.</div>'}
+        <button class="btn-primary" style="margin-top:10px" onclick="openNewSchedForTask(${id})">+ Colocar no cronograma</button>`;
+      const hist = body.querySelector('.history-list')?.closest('.detail-section');
+      if(hist) body.insertBefore(sec, hist); else body.appendChild(sec);
+    },0);
+  };
+
+  setTimeout(function(){ ensureSchedExtraFields(); fillSchedTaskOptions(''); if(window.render) render(); }, 300);
+})();
+</script>
