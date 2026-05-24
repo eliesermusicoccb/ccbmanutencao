@@ -2560,7 +2560,7 @@ function openDetail(id) {
       <div class="detail-status-row">${statusPill(t.status, t.prio)} ${venc ? '<span class="status-pill sp-urge">Atrasado</span>' : ''}</div>
     </div>
     <div class="modal-body">
-      <div class="notice-simple" style="margin:0 0 14px">A irmandade pode lançar. Só quem cuida do app altera, escolhe responsável e envia aviso.</div>
+      <div class="notice-simple" style="margin:0 0 14px"></div>
       <div class="detail-section"><div class="detail-section-title">Problema</div><div class="detail-text">${esc(t.desc||'')}</div></div>
       <div class="detail-section"><div class="detail-section-title">Informações</div>
         <div class="detail-grid">
@@ -2833,12 +2833,12 @@ renderLoginState();
       box.id = 'frontes-servico-box';
       box.innerHTML = `
         <div class="frontes-box">
-          <div class="frontes-title">Frentes de serviço</div>
+          <div class="frontes-title"></div>
           <div class="frontes-grid" id="frontes-grid"></div>
         </div>
         <div class="crono-destaque">
           <h3>Serviços no cronograma</h3>
-          <div class="preparo-box">Atenção: muitos serviços são feitos no sábado ou feriado. Veja os itens que serão usados e compre durante a semana.</div>
+          <div class="preparo-box"></div>
           <div id="scheduled-highlight-list"></div>
         </div>`;
       if(list) maint.insertBefore(box, list);
@@ -2914,10 +2914,10 @@ renderLoginState();
         extra.id = 'v12-extra-'+id;
         extra.innerHTML = `
           <div class="form-row">
-            <div class="form-group"><label class="form-label">Frente de serviço</label><select class="form-select" id="admin-frente-${id}"><option>Geral</option><option>Elétrica</option><option>Hidráulica</option><option>Civil</option><option>Limpeza</option><option>Compras</option></select></div>
+            <div class="form-group"><label class="form-label">Responsável pelo serviço</label><select class="form-select" id="admin-frente-${id}"><option>Geral</option><option>Elétrica</option><option>Hidráulica</option><option>Civil</option><option>Limpeza</option><option>Compras</option></select></div>
             <div class="form-group"><label class="form-label">Previsão de realização</label><input class="form-input" type="date" id="admin-previsao-${id}" value="${esc(t.previsao || t.prazo || t.date || '')}"></div>
           </div>
-          <div class="form-group"><label class="form-label">Itens que serão utilizados</label><div class="preparo-box">Preencha antes do sábado/feriado para saber o que precisa comprar durante a semana.</div><div class="mat-list" id="materials-box-${id}"></div><button type="button" class="mini-btn blue" onclick="addMaterialRow(${id})">+ Adicionar item</button></div>
+          <div class="form-group"><label class="form-label">Itens que serão utilizados</label><div class="preparo-box">Informe os itens que serão usados.</div><div class="mat-list" id="materials-box-${id}"></div><button type="button" class="mini-btn blue" onclick="addMaterialRow(${id})">+ Adicionar item</button></div>
           <div class="form-group"><label class="form-label">Evolução do cronograma</label><textarea class="form-textarea" id="admin-cronograma-${id}" placeholder="Ex: compra na quarta, execução no sábado, conferência no domingo">${esc(t.cronograma || '')}</textarea></div>`;
         const firstBtn = adminBox.querySelector('.btn-primary');
         adminBox.insertBefore(extra, firstBtn);
@@ -2930,7 +2930,7 @@ renderLoginState();
         view.id = 'v12-view-'+id;
         const mats = (t.materials||[]).map(m=>`<li>${esc(m.nome||m.name||'Item')} - ${esc(m.qtd||m.qty||'')}</li>`).join('') || '<li>Nenhum item informado.</li>';
         view.className = 'detail-section';
-        view.innerHTML = `<div class="detail-section-title">Preparo para o serviço</div><div class="preparo-box">Serviços de sábado/feriado precisam dos materiais comprados antes.</div><div class="detail-grid"><div class="detail-item"><div class="di-label">Frente</div><div class="di-value">${esc(t.frente||t.cat||'Geral')}</div></div><div class="detail-item"><div class="di-label">Previsão</div><div class="di-value">${fmtDate(t.previsao || t.prazo || t.date)}</div></div></div><div style="margin-top:10px;font-size:14px"><b>Itens que serão usados:</b><ul style="margin:6px 0 0 18px">${mats}</ul></div>${t.cronograma?`<div style="margin-top:10px;font-size:14px"><b>Evolução do cronograma:</b><br>${esc(t.cronograma)}</div>`:''}`;
+        view.innerHTML = `<div class="detail-section-title">Preparo para o serviço</div><div class="preparo-box">Confira os itens que serão usados.</div><div class="detail-grid"><div class="detail-item"><div class="di-label">Frente</div><div class="di-value">${esc(t.frente||t.cat||'Geral')}</div></div><div class="detail-item"><div class="di-label">Previsão</div><div class="di-value">${fmtDate(t.previsao || t.prazo || t.date)}</div></div></div><div style="margin-top:10px;font-size:14px"><b>Itens que serão usados:</b><ul style="margin:6px 0 0 18px">${mats}</ul></div>${t.cronograma?`<div style="margin-top:10px;font-size:14px"><b>Evolução do cronograma:</b><br>${esc(t.cronograma)}</div>`:''}`;
         problemSection.parentNode.insertBefore(view, problemSection.nextSibling);
       }
     },0);
@@ -2992,11 +2992,11 @@ renderLoginState();
         <select class="form-select" id="sched-task-id"></select>
       </div>
       <div class="form-row">
-        <div class="form-group"><label class="form-label">Frente de trabalho</label><input class="form-input" id="sched-front" placeholder="Ex: Elétrica, Civil, Hidráulica"></div>
+        <div class="form-group"><label class="form-label">Responsável pelo serviço</label><input class="form-input" id="sched-front" placeholder="Ex: Elétrica, Civil, Hidráulica"></div>
         <div class="form-group"><label class="form-label">Colaboradores</label><input class="form-input" id="sched-helpers" placeholder="Nomes separados por vírgula"></div>
       </div>
       <div class="form-group"><label class="form-label">Itens que serão usados</label><textarea class="form-textarea" id="sched-items" placeholder="Ex: lâmpada LED - 4 unidades\nfita isolante - 1 rolo"></textarea></div>
-      <div class="preparo-box">Importante: se o serviço for no sábado ou feriado, confira os itens e compre durante a semana.</div>`;
+      <div class="preparo-box"></div>`;
     const btn = modal.querySelector('.btn-primary');
     modal.insertBefore(html, btn);
   }
@@ -3112,7 +3112,7 @@ renderLoginState();
           <div class="detail-item"><div class="di-label">Frente</div><div class="di-value">${safeEsc(s.front||s.cat||'—')}</div></div>
           <div class="detail-item"><div class="di-label">Manutenção ligada</div><div class="di-value">${t ? safeEsc(t.local||'Ocorrência') : '—'}</div></div>
         </div>
-        <div class="detail-section" style="margin-top:14px"><div class="detail-section-title">Itens para comprar/separar</div><div class="preparo-box">Confira durante a semana. No sábado ou feriado é mais difícil comprar.</div><div class="detail-text" style="white-space:pre-line">${safeEsc(s.itemsText||'Nenhum item informado.')}</div></div>
+        <div class="detail-section" style="margin-top:14px"><div class="detail-section-title">Itens para comprar/separar</div><div class="preparo-box">Confira os itens que serão usados.</div><div class="detail-text" style="white-space:pre-line">${safeEsc(s.itemsText||'Nenhum item informado.')}</div></div>
         ${t ? `<button class="action-btn blue" onclick="openDetail(${t.id})">Abrir perfil da manutenção</button>` : ''}
         <div class="action-btns" style="margin-top:10px">
           <button class="action-btn blue" onclick="openEditSched(${s.id})">Editar cronograma</button>
@@ -3296,5 +3296,230 @@ renderLoginState();
     if(typeof render === 'function') render();
     if(typeof renderServiceFronts === 'function') renderServiceFronts();
   }, 100);
+})();
+</script>
+
+
+<!-- Ajuste v17: sem frentes, sem avisos de sábado e sem frase da irmandade -->
+<style>
+  .frontes-box, #frontes-grid, .frontes-title { display:none !important; }
+  .v17-hide { display:none !important; }
+</style>
+<script>
+(function(){
+  function escTxt(s){ return String(s ?? '').replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; }); }
+  function tasksList(){ try { return window.tasks || tasks || []; } catch(e){ return []; } }
+  function schedList(){ try { return window.scheds || scheds || []; } catch(e){ return []; } }
+  function setSchedList(v){ try { scheds = v; window.scheds = v; } catch(e){ window.scheds = v; } }
+  function getTask(id){ return tasksList().find(function(t){ return String(t.id) === String(id); }); }
+  function shortText(s,n){ s=String(s||''); n=n||90; return s.length>n ? s.slice(0,n-1)+'…' : s; }
+  function dateText(d){ if(window.fmtDate) return fmtDate(d); if(!d) return '—'; try { return new Date(d+'T00:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'}); } catch(e){ return d || '—'; } }
+
+  function cleanSimpleTexts(){
+    document.querySelectorAll('.frontes-box,#frontes-grid,.frontes-title').forEach(function(el){ el.remove(); });
+    document.querySelectorAll('.preparo-box,.notice-simple').forEach(function(el){
+      var t=(el.textContent||'').toLowerCase();
+      if(t.includes('muitos serviços') || t.includes('sábado') || t.includes('sabado') || t.includes('feriado') || t.includes('irmandade pode lançar')) el.remove();
+    });
+    document.querySelectorAll('label').forEach(function(label){
+      if((label.textContent||'').toLowerCase().includes('frente')){
+        var g = label.closest('.form-group') || label.parentElement;
+        if(g) g.classList.add('v17-hide');
+      }
+    });
+    document.querySelectorAll('.detail-item').forEach(function(item){
+      var lab = item.querySelector('.di-label');
+      if(lab && (lab.textContent||'').toLowerCase().includes('frente')) item.remove();
+    });
+    document.querySelectorAll('p').forEach(function(p){
+      p.innerHTML = p.innerHTML.replace(/\s*·\s*<b>Frente:<\/b>[^<]*/gi, '');
+      p.innerHTML = p.innerHTML.replace(/\s*·\s*<b>Responsável pelo serviço:<\/b>[^<]*/gi, '');
+    });
+  }
+
+  function ensureScheduledOnlyBox(){
+    var maint = document.getElementById('tab-manutencao');
+    if(!maint) return null;
+    var box = document.getElementById('frontes-servico-box');
+    var list = document.getElementById('list-all');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'frontes-servico-box';
+      if(list) maint.insertBefore(box, list); else maint.appendChild(box);
+    }
+    box.innerHTML = '<div class="crono-destaque"><h3>Serviços no cronograma</h3><div id="scheduled-highlight-list"></div></div>';
+    return document.getElementById('scheduled-highlight-list');
+  }
+
+  window.renderServiceFronts = function(){
+    var hi = ensureScheduledOnlyBox();
+    if(!hi) return;
+    var rows = schedList().slice().sort(function(a,b){ return String(a.date||'9999').localeCompare(String(b.date||'9999')); }).slice(0,12);
+    hi.innerHTML = rows.length ? rows.map(function(s){
+      var t = s.taskId ? getTask(s.taskId) : null;
+      var local = t ? (t.local || 'Local não informado') : (s.title || 'Serviço');
+      var desc = t ? (t.desc || '') : (s.desc || '');
+      return '<div class="crono-item" onclick="openSchedDetail('+s.id+')">'
+        + '<div class="crono-item-top"><strong>'+escTxt(local)+'</strong><small>'+dateText(s.date)+'</small></div>'
+        + '<p>'+escTxt(shortText(desc,90))+'</p>'
+        + '<p><b>Responsável:</b> '+escTxt(s.resp || 'Ainda não definido')+'</p>'
+        + '<div class="v14-sched-actions">'
+        + '<button class="edit" onclick="event.stopPropagation(); openEditSched('+s.id+')">Editar</button>'
+        + '<button class="del" onclick="event.stopPropagation(); deleteSched('+s.id+')">Excluir</button>'
+        + '</div></div>';
+    }).join('') : '<div style="font-size:13px;color:var(--text3);padding:8px">Nenhum serviço no cronograma.</div>';
+    cleanSimpleTexts();
+  };
+
+  window.filterFrente = function(){
+    if(typeof showToast === 'function') showToast('Use o filtro por status ou responsável.');
+  };
+
+  window.schedMiniHtml = function(s){
+    var dt = new Date((s.date || '') + 'T00:00:00');
+    var day = s.date ? dt.getDate() : '—';
+    var mon = s.date ? dt.toLocaleDateString('pt-BR', { month:'short' }).replace('.','') : '';
+    var t = s.taskId ? getTask(s.taskId) : null;
+    var titulo = t ? (t.local || s.title || 'Serviço') : (s.title || 'Serviço');
+    var desc = t ? (t.desc || '') : (s.desc || '');
+    return '<div class="sched-card" onclick="openSchedDetail('+s.id+')" style="padding:10px 14px;margin-bottom:8px">'
+      + '<div class="sched-date"><div class="sd-day">'+day+'</div><div class="sd-mon">'+escTxt(mon)+'</div></div>'
+      + '<div class="sched-info"><div class="sched-title">'+escTxt(titulo)+'</div>'
+      + '<div class="sched-sub">'+escTxt(shortText(desc,70))+'</div>'
+      + '<div class="sched-tags"><span class="tag gold">'+escTxt(s.resp || 'sem responsável')+'</span>'
+      + ((s.nrs||[]).map(function(n){ return '<span class="tag nr">'+escTxt(n)+'</span>'; }).join(''))
+      + '</div><div class="v14-sched-actions">'
+      + '<button class="edit" onclick="event.stopPropagation(); openEditSched('+s.id+')">Editar</button>'
+      + '<button class="del" onclick="event.stopPropagation(); deleteSched('+s.id+')">Excluir</button>'
+      + '</div></div></div>';
+  };
+
+  function ensureSchedFieldsV17(){
+    var modal = document.querySelector('#modal-sched .modal-body');
+    if(!modal) return;
+    if(!document.getElementById('sched-edit-id')){
+      var div = document.createElement('div');
+      div.id = 'sched-extra-v17';
+      div.innerHTML = '<input type="hidden" id="sched-edit-id" value="">'
+        + '<div class="form-group"><label class="form-label">Ligado a qual manutenção?</label><select class="form-select" id="sched-task-id"></select></div>'
+        + '<div class="form-group"><label class="form-label">Colaboradores</label><input class="form-input" id="sched-helpers" placeholder="Nomes separados por vírgula"></div>'
+        + '<div class="form-group"><label class="form-label">Itens que serão usados</label><textarea class="form-textarea" id="sched-items" placeholder="Ex: lâmpada LED - 4 unidades\nfita isolante - 1 rolo"></textarea></div>'
+        + '<input type="hidden" id="sched-front" value="">';
+      var btn = modal.querySelector('.btn-primary');
+      if(btn) modal.insertBefore(div, btn); else modal.appendChild(div);
+    }
+    var sel = document.getElementById('sched-task-id');
+    if(sel){
+      var current = sel.value;
+      sel.innerHTML = '<option value="">Sem ligação</option>' + tasksList().map(function(t){ return '<option value="'+escTxt(t.id)+'">'+escTxt((t.local||'Local')+' - '+shortText(t.desc||t.title||'', 60))+'</option>'; }).join('');
+      if(current) sel.value = current;
+    }
+    cleanSimpleTexts();
+  }
+
+  var oldOpenNewSched = window.openNewSchedForTask;
+  window.openNewSchedForTask = function(taskId){
+    if(typeof oldOpenNewSched === 'function') oldOpenNewSched(taskId); else if(typeof openModal === 'function') openModal('modal-sched');
+    setTimeout(function(){
+      ensureSchedFieldsV17();
+      var t = taskId ? getTask(taskId) : null;
+      var el = document.getElementById('sched-task-id'); if(el) el.value = taskId ? String(taskId) : '';
+      var fr = document.getElementById('sched-front'); if(fr) fr.value = (document.getElementById('sched-resp')?.value || t?.resp || '');
+      cleanSimpleTexts();
+    }, 0);
+  };
+
+  var oldOpenEditSchedV17 = window.openEditSched;
+  window.openEditSched = function(id){
+    if(typeof oldOpenEditSchedV17 === 'function') oldOpenEditSchedV17(id); else if(typeof openModal === 'function') openModal('modal-sched');
+    setTimeout(function(){
+      ensureSchedFieldsV17();
+      var s = schedList().find(function(x){ return String(x.id) === String(id); });
+      if(s){
+        var hid = document.getElementById('sched-edit-id'); if(hid) hid.value = s.id;
+        if(document.getElementById('sched-task-id')) document.getElementById('sched-task-id').value = s.taskId || '';
+        if(document.getElementById('sched-helpers')) document.getElementById('sched-helpers').value = s.helpers || '';
+        if(document.getElementById('sched-items')) document.getElementById('sched-items').value = s.itemsText || '';
+        if(document.getElementById('sched-front')) document.getElementById('sched-front').value = s.resp || '';
+      }
+      cleanSimpleTexts();
+    },0);
+  };
+
+  window.saveSched = function(){
+    ensureSchedFieldsV17();
+    var title = (document.getElementById('sched-title')?.value || '').trim();
+    var date = document.getElementById('sched-date')?.value || '';
+    if(!title || !date){ if(typeof showToast === 'function') showToast('Preencha título e data'); return; }
+    var idEdit = document.getElementById('sched-edit-id')?.value || '';
+    var taskId = document.getElementById('sched-task-id')?.value || '';
+    var resp = (document.getElementById('sched-resp')?.value || '').trim();
+    var obj = {
+      id: idEdit ? Number(idEdit) : Date.now(),
+      title: title,
+      desc: (document.getElementById('sched-desc')?.value || '').trim(),
+      date: date,
+      resp: resp,
+      cat: document.getElementById('sched-cat')?.value || 'Serviço',
+      nrs: Array.from(document.querySelectorAll('#sched-nr-chips .chip.selected')).map(function(c){ return c.dataset.val; }),
+      taskId: taskId,
+      front: resp,
+      helpers: (document.getElementById('sched-helpers')?.value || '').trim(),
+      itemsText: (document.getElementById('sched-items')?.value || '').trim()
+    };
+    var arr = schedList().slice();
+    if(idEdit){
+      var idx = arr.findIndex(function(s){ return String(s.id) === String(idEdit); });
+      if(idx >= 0) arr[idx] = Object.assign({}, arr[idx], obj); else arr.push(obj);
+    } else arr.push(obj);
+    setSchedList(arr);
+    try { localStorage.setItem('ccb_scheds', JSON.stringify(arr)); } catch(e) {}
+    if(taskId){
+      var t = getTask(taskId);
+      if(t){
+        t.prazo = date; t.previsao = date; if(resp) t.resp = resp; if(t.status === 'Pendente') t.status = 'Iniciado';
+        if(typeof addHistory === 'function') addHistory(t, resp || 'Administração', idEdit ? 'editou o cronograma' : 'colocou no cronograma', 'data '+dateText(date));
+        if(typeof saveTasks === 'function') saveTasks();
+      }
+    }
+    if(typeof closeModal === 'function') closeModal('modal-sched');
+    if(typeof render === 'function') render();
+    if(typeof renderServiceFronts === 'function') renderServiceFronts();
+    if(typeof showToast === 'function') showToast(idEdit ? 'Cronograma alterado' : 'Adicionado ao cronograma');
+  };
+
+  window.openSchedDetail = function(id){
+    var s = schedList().find(function(x){ return String(x.id) === String(id); }); if(!s) return;
+    var t = s.taskId ? getTask(s.taskId) : null;
+    document.getElementById('detail-content').innerHTML = '<div class="detail-header-bg" style="padding-top:16px">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span class="modal-title">Cronograma</span><button class="modal-close" onclick="closeModal(\'modal-detail\')" style="background:rgba(255,255,255,0.2);border-color:rgba(255,255,255,0.3);color:#fff">✕</button></div>'
+      + '<div style="font-size:18px;font-weight:600;color:#fff;margin-bottom:8px">'+escTxt(s.title)+'</div>'
+      + '<div style="font-size:14px;color:rgba(255,255,255,0.75)">'+dateText(s.date)+'</div></div>'
+      + '<div class="modal-body">'
+      + '<div class="detail-section"><div class="detail-section-title">Resumo</div><div class="detail-text">'+escTxt(s.desc||'')+'</div></div>'
+      + '<div class="detail-grid"><div class="detail-item"><div class="di-label">Responsável</div><div class="di-value">'+escTxt(s.resp||'—')+'</div></div>'
+      + '<div class="detail-item"><div class="di-label">Colaboradores</div><div class="di-value">'+escTxt(s.helpers||'—')+'</div></div>'
+      + '<div class="detail-item"><div class="di-label">Manutenção ligada</div><div class="di-value">'+(t ? escTxt(t.local||'Ocorrência') : '—')+'</div></div></div>'
+      + '<div class="detail-section" style="margin-top:14px"><div class="detail-section-title">Itens para comprar/separar</div><div class="detail-text" style="white-space:pre-line">'+escTxt(s.itemsText||'Nenhum item informado.')+'</div></div>'
+      + (t ? '<button class="action-btn blue" onclick="openDetail('+t.id+')">Abrir perfil da manutenção</button>' : '')
+      + '<div class="action-btns" style="margin-top:10px"><button class="action-btn blue" onclick="openEditSched('+s.id+')">Editar cronograma</button><button class="action-btn red" onclick="deleteSched('+s.id+')">Excluir cronograma</button></div></div>';
+    if(typeof openModal === 'function') openModal('modal-detail');
+  };
+
+  var oldOpenDetailV17 = window.openDetail;
+  window.openDetail = function(id){
+    if(typeof oldOpenDetailV17 === 'function') oldOpenDetailV17(id);
+    setTimeout(function(){ cleanSimpleTexts(); }, 0);
+  };
+
+  var oldRenderV17 = window.render;
+  window.render = function(){
+    if(typeof oldRenderV17 === 'function') oldRenderV17();
+    if(typeof renderServiceFronts === 'function') renderServiceFronts();
+    cleanSimpleTexts();
+  };
+
+  setInterval(cleanSimpleTexts, 800);
+  setTimeout(function(){ ensureSchedFieldsV17(); if(typeof render === 'function') render(); }, 250);
 })();
 </script>
