@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CCB Torrinha • Manutenção</title>
+<meta name="theme-color" content="#1E3A8A">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231E3A8A'/%3E%3Ctext x='50' y='62' font-family='Arial' font-size='42' font-weight='bold' fill='white' text-anchor='middle'%3ECCB%3C/text%3E%3C/svg%3E">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Playfair+Display:wght@700&amp;display=swap');
+
+  :root {
+    --primary: #1E3A8A;
+    --primary-dark: #152C6B;
+    --primary-light: #E0E7FF;
+    --accent: #D4AF37;
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --surface-2: #F1F5F9;
+    --text: #0F172A;
+    --text-2: #475569;
+    --text-3: #64748B;
+    --border: #E2E8F0;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger: #EF4444;
+    --radius: 16px;
+    --shadow: 0 10px 15px -3px rgb(15 23 42 / 0.1), 0 4px 6px -4px rgb(15 23 42 / 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { 
+    font-family: 'Inter', system_ui, sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    line-height: 1.5; 
+    font-size: 15px;
+    padding-bottom: 80px;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 12px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(30, 58, 138, 0.3);
+  }
+  .header-inner {
+    max-width: 1280px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700;
+    border: 2px solid rgba(212, 175, 55, 0.6);
+  }
+  .header-title { font-size: 18px; font-weight: 600; }
+  .header-title small { display: block; font-size: 11px; opacity: 0.75; margin-top: -2px; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+  .icon-btn {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .icon-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.2); }
+
+  /* BOTTOM NAV (MOBILE) */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: white;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 12px;
+    z-index: 200;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  }
+  .bottom-nav button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    color: var(--text-3);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 0;
+    transition: color 0.2s;
+  }
+  .bottom-nav button.active { color: var(--primary); font-weight: 600; }
+  .bottom-nav button svg { width: 22px; height: 22px; margin-bottom: 1px; }
+  .bottom-nav .badge {
+    position: absolute;
+    top: 2px; right: 18px;
+    background: var(--danger);
+    color: white;
+    font-size: 9px;
+    min-width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* MAIN */
+  .main { max-width: 1280px; margin: 0 auto; padding: 16px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* CARDS & SECTIONS */
+  .section { margin-bottom: 24px; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-size: 15px; font-weight: 600; color: var(--text-2);
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  /* SUMMARY / KPI */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: white;
+    border-radius: 20px;
+    padding: 18px 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .kpi-card:active { transform: scale(0.98); }
+  .kpi-value { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 4px; }
+  .kpi-value.pending { color: var(--warning); }
+  .kpi-value.active { color: #3B82F6; }
+  .kpi-value.done { color: var(--success); }
+  .kpi-label { font-size: 12px; color: var(--text-3); font-weight: 500; }
+
+  /* TASK CARD */
+  .task-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    margin-bottom: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .task-card:active { transform: scale(0.995); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .task-card-header {
+    padding: 14px 16px 10px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .task-priority {
+    width: 6px; height: 42px; border-radius: 999px; flex-shrink: 0;
+  }
+  .priority-alta { background: #EF4444; }
+  .priority-media { background: #F59E0B; }
+  .priority-baixa { background: #10B981; }
+  .task-main { flex: 1; min-width: 0; }
+  .task-title { font-weight: 600; font-size: 15px; line-height: 1.3; margin-bottom: 4px; }
+  .task-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: var(--text-3); }
+  .task-meta span { display: flex; align-items: center; gap: 4px; }
+  .task-status {
+    font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+  }
+  .status-pendente { background: #FEF3C7; color: #92400E; }
+  .status-iniciado { background: #DBEAFE; color: #1E40AF; }
+  .status-realizado { background: #D1FAE5; color: #065F46; }
+  .status-cancelado { background: #FEE2E2; color: #991B1B; }
+
+  /* KANBAN */
+  .kanban-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .kanban-column {
+    background: var(--surface-2);
+    border-radius: 20px;
+    padding: 12px;
+    min-height: 420px;
+    border: 1px solid var(--border);
+  }
+  .kanban-column-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; margin-bottom: 12px;
+    font-weight: 600; font-size: 14px;
+  }
+  .kanban-column-header .count {
+    background: white; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  }
+  .kanban-list { min-height: 320px; }
+  .kanban-card {
+    background: white;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    border: 1px solid var(--border);
+    cursor: grab;
+    transition: box-shadow 0.2s;
+  }
+  .kanban-card:active { box-shadow: 0 8px 16px rgba(0,0,0,0.12); cursor: grabbing; }
+  .kanban-card .title { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .kanban-card .meta { font-size: 11px; color: var(--text-3); display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* TIMELINE / CRONOGRAMA */
+  .timeline {
+    background: white;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .timeline-header {
+    padding: 16px 20px;
+    background: linear-gradient(90deg, #1E3A8A, #3B82F6);
+    color: white;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .gantt {
+    padding: 16px;
+    overflow-x: auto;
+  }
+  .gantt-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: center;
+  }
+  .gantt-label { font-size: 13px; font-weight: 500; }
+  .gantt-bar-container { position: relative; height: 28px; background: #F1F5F9; border-radius: 999px; overflow: hidden; }
+  .gantt-bar {
+    position: absolute; top: 4px; height: 20px; border-radius: 999px;
+    display: flex; align-items: center; padding: 0 10px; font-size: 11px; font-weight: 600; color: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .gantt-bar.pendente { background: #F59E0B; }
+  .gantt-bar.iniciado { background: #3B82F6; }
+  .gantt-bar.realizado { background: #10B981; }
+  .gantt-bar.cancelado { background: #EF4444; }
+
+  /* FORMS & MODALS */
+  .modal {
+    position: fixed; inset: 0; background: rgba(15,23,42,0.6);
+    display: none; align-items: flex-end; z-index: 300;
+  }
+  .modal.open { display: flex; }
+  .modal-content {
+    background: white;
+    width: 100%; max-width: 520px; margin: 0 auto;
+    border-radius: 24px 24px 0 0;
+    max-height: 92vh; overflow-y: auto;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+  }
+  .modal-header {
+    padding: 20px 24px 12px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; background: white; z-index: 10;
+  }
+  .modal-title { font-size: 20px; font-weight: 700; }
+  .form-group { margin-bottom: 16px; padding: 0 24px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); margin-bottom: 6px; }
+  .form-input, .form-select, .form-textarea {
+    width: 100%; padding: 12px 16px; border: 1.5px solid var(--border);
+    border-radius: 12px; font-size: 15px; font-family: inherit;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(30,58,138,0.12);
+  }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 14px 24px; border-radius: 999px; font-weight: 600; font-size: 15px;
+    cursor: pointer; transition: all 0.2s; border: none;
+  }
+  .btn-primary { background: var(--primary); color: white; width: 100%; }
+  .btn-primary:active { background: var(--primary-dark); transform: translateY(1px); }
+  .btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+  .fab {
+    position: fixed; bottom: 92px; right: 20px;
+    width: 58px; height: 58px; border-radius: 999px;
+    background: var(--primary); color: white; box-shadow: 0 8px 25px rgba(30,58,138,0.4);
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
+    z-index: 150; cursor: pointer; transition: transform 0.2s;
+  }
+  .fab:active { transform: scale(0.9); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    .kanban-board { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 1024px) {
+    .bottom-nav { display: none; }
+    body { padding-bottom: 0; }
+  }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--text-3); }
+  .toast {
+    position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+    background: #0F172A; color: white; padding: 12px 24px; border-radius: 999px;
+    font-size: 14px; box-shadow: 0 10px 20px rgba(0,0,0,0.3); z-index: 400;
+    opacity: 0; transition: all 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(-10px); }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-left" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+      <div style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px;">MANUTENÇÃO TORRINHA</div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div class="logo" style="width: 32px; height: 32px; font-size: 14px;">CCB</div>
+        <small style="font-size: 11px; opacity: 0.85;">Adm. Jaú • SP</small>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" onclick="openChat()" title="Chat">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+  </svg>
+</button>
+      <button class="icon-btn" onclick="syncWithSupabase()" title="Sincronizar Supabase" style="background:#16a34a; font-size:18px;">🔄</button>
+      <button class="icon-btn" onclick="showNotifications()" title="Notificações">🔔</button>
+      <button class="icon-btn" onclick="openSettings()" title="Configurações">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<!-- BOTTOM NAV (MOBILE) -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button onclick="showTab('inicio')" class="active" data-tab="inicio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Início
+  </button>
+  <button onclick="showTab('kanban')" data-tab="kanban">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Kanban
+  </button>
+  <button onclick="showTab('manutencao')" data-tab="manutencao">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Tarefas
+  </button>
+  <button onclick="showTab('cronograma')" data-tab="cronograma">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Crono
+  </button>
+  <button onclick="showTab('produtos')" data-tab="produtos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+    Estoque
+  </button>
+  <button onclick="showTab('chat')" data-tab="chat">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      <path d="M8 10h.01M12 10h.01M16 10h.01"/>
+    </svg>
+    Chat
+  </button>
+</nav>
+
+<main class="main">
+
+  <!-- INÍCIO / DASHBOARD -->
+  <div id="tab-inicio" class="panel active">
+    <div class="kpi-grid">
+      <div class="kpi-card" onclick="showTab('manutencao')">
+        <div class="kpi-value pending" id="kpi-pend">12</div>
+        <div class="kpi-label">Pendentes</div>
+      </div>
+      <div class="kpi-card" onclick="showTab('kanban')">
+        <div class="kpi-value active" id="kpi-iniciado">7</div>
+        <div class="kpi-label">Em Andamento</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-value done" id="kpi-realizado">34</div>
+        <div class="kpi-label">Concluídas</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Urgentes • Vencidas</div>
+        <button class="btn btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="showTab('manutencao')">Ver todas</button>
+      </div>
+      <div id="urgent-list"></div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Próximos no Cronograma</div>
+        <button class="btn btn-secondary" style="padding:6px 14px; font-size:12px;" onclick="showTab('cronograma')">Ver timeline</button>
+      </div>
+      <div id="upcoming-timeline"></div>
+    </div>
+  </div>
+
+  <!-- KANBAN (Monday.com style) -->
+  <div id="tab-kanban" class="panel">
+    <div class="section-header" style="margin-bottom:16px">
+      <div class="section-title">Quadro Kanban</div>
+      <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="openNewTask()">+ Nova Tarefa</button>
+    </div>
+    <div class="kanban-board" id="kanban-board">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- MANUTENÇÃO / LISTA DE TAREFAS -->
+  <div id="tab-manutencao" class="panel">
+    <div style="display:flex; gap:8px; margin-bottom:16px;">
+      <div style="flex:1; position:relative;">
+        <input type="text" id="search-manut" placeholder="Buscar tarefa ou local..." 
+               style="width:100%; padding:12px 16px 12px 44px; border-radius:999px; border:1.5px solid var(--border);"
+               oninput="filterTasks()">
+        <span style="position:absolute; left:16px; top:13px; font-size:18px;">🔍</span>
+      </div>
+      <button class="btn btn-secondary" onclick="filterTasks('all')">Todos</button>
+    </div>
+    
+    <div class="section-header">
+      <div class="section-title">Todas as Manutenções</div>
+      <div style="font-size:12px; color:var(--text-3);">Arraste no Kanban para mudar status</div>
+    </div>
+    <div id="task-list-manut"></div>
+  </div>
+
+  <!-- CRONOGRAMA / TIMELINE (Leankeep + Monday) -->
+  <div id="tab-cronograma" class="panel">
+    <div class="section-header">
+      <div class="section-title">Cronograma • Timeline</div>
+      <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="openNewSched()">+ Agendar</button>
+    </div>
+    
+    <div class="timeline">
+      <div class="timeline-header">
+        <div><strong>Visão Gantt</strong> <span style="font-size:12px; opacity:0.8;">(próximos 30 dias)</span></div>
+        <button onclick="exportCronograma()" style="background:rgba(255,255,255,0.2); border:none; color:white; padding:6px 12px; border-radius:8px; font-size:12px;">Exportar</button>
+      </div>
+      <div class="gantt" id="gantt-container">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUTOS / ESTOQUE -->
+  <div id="tab-produtos" class="panel">
+    <div class="section-header">
+      <div class="section-title">Estoque &amp; Compras</div>
+      <button class="btn btn-primary" style="padding:8px 16px; font-size:13px;" onclick="openNewProduct()">+ Item</button>
+    </div>
+    <div id="product-list"></div>
+  </div>
+
+  <!-- RELATÓRIO -->
+  <div id="tab-relatorio" class="panel">
+    <div class="card" style="padding:24px;">
+      <h3 style="margin-bottom:16px;">Relatório de Manutenção</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+        <div><strong>Taxa de conclusão:</strong> <span style="color:#10B981; font-size:22px; font-weight:700;">78%</span></div>
+        <div><strong>Tempo médio:</strong> <span style="font-size:22px; font-weight:700;">4.2 dias</span></div>
+      </div>
+      <div style="height:180px; background:#F8FAFC; border-radius:12px; display:flex; align-items:center; justify-content:center; color:#64748B;">
+        Gráfico de barras (simulado)
+      </div>
+      <button class="btn btn-primary" style="margin-top:20px;" onclick="generateReport()">Gerar PDF Completo</button>
+    </div>
+  </div>
+
+  <!-- CHAT (WhatsApp style) -->
+  <div id="tab-chat" class="panel">
+    <div style="background:#075E54; color:white; padding:12px 16px; display:flex; align-items:center; gap:12px;">
+      <div style="width:36px;height:36px;background:#128C7E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">👥</div>
+      <div>
+        <div style="font-weight:700;">Grupo Manutenção CCB</div>
+        <div style="font-size:12px;opacity:0.8;">12 membros • online</div>
+      </div>
+    </div>
+
+    <div id="chat-list" style="padding:12px; background:#E5DDD5; min-height:420px; max-height:calc(100vh - 280px); overflow-y:auto;"></div>
+
+    <div style="position:fixed; bottom:78px; left:0; right:0; background:white; border-top:1px solid #ddd; padding:8px 12px; max-width:1280px; margin:0 auto;">
+      <div style="display:flex; gap:8px; align-items:flex-end;">
+        <button onclick="showStickerPicker()" style="width:42px;height:42px;border:none;background:#f0f0f0;border-radius:999px;font-size:22px;">😊</button>
+        
+        <div style="flex:1; position:relative;">
+          <textarea id="chat-input" placeholder="Mensagem... (digite @ para mencionar)" rows="1" 
+                    style="width:100%; padding:12px 16px; border:1.5px solid #ddd; border-radius:24px; font-size:15px; resize:none; max-height:100px;"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault(); sendMessage();}"
+                    oninput="if(this.value.match(/@\w*$/)) showMentionList(this);"></textarea>
+        </div>
+        
+        <button onclick="toggleVoiceRecording()" id="voice-btn"
+                style="width:48px;height:48px;border:none;background:#25D366;border-radius:999px;color:white;font-size:22px;display:flex;align-items:center;justify-content:center;position:relative;">
+          🎤
+          <span id="recording-indicator" style="position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:#ef4444;border-radius:50%;display:none;animation:pulse 1s infinite;"></span>
+        </button>
+        
+        <button onclick="sendMessage()" 
+                style="width:42px;height:42px;border:none;background:#25D366;border-radius:999px;color:white;font-size:20px;display:flex;align-items:center;justify-content:center;">➤</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FAB -->
+<button class="fab" onclick="openSimpleNewMaintenance()" title="Nova Manutenção">＋</button>
+
+<!-- MODAL NOVA TAREFA -->
+<div id="modal-new-task" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Nova Manutenção</div>
+      <button onclick="closeModal('modal-new-task')" style="background:none; border:none; font-size:24px;">×</button>
+    </div>
+    <div style="padding:20px 0;">
+      <div class="form-group">
+        <label class="form-label">Local / Setor</label>
+        <input id="task-local" class="form-input" placeholder="Ex: Salão Principal, Banheiro dos Homens">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descrição do problema</label>
+        <textarea id="task-desc" class="form-textarea" rows="3" placeholder="Lâmpada queimada no teto..."></textarea>
+      </div>
+      <div class="form-group" style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div>
+          <label class="form-label">Prioridade</label>
+          <select id="task-priority" class="form-select">
+            <option value="baixa">Baixa</option>
+            <option value="media" selected>Média</option>
+            <option value="alta">Alta / Urgente</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Responsável</label>
+          <input id="task-resp" class="form-input" placeholder="Nome do irmão">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Data prevista</label>
+        <input id="task-date" type="date" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoria</label>
+        <select id="task-cat" class="form-select">
+          <option>Elétrica</option>
+          <option>Hidráulica</option>
+          <option>Civil</option>
+          <option>Segurança</option>
+          <option>Limpeza</option>
+          <option>Outro</option>
+        </select>
+      </div>
+    </div>
+    <div style="padding:0 24px 24px;">
+      <button class="btn btn-primary" onclick="saveNewTask()">Criar Tarefa</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE TAREFA -->
+<div id="modal-detail" class="modal">
+  <div class="modal-content" style="max-width:480px;">
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- MODAL NOVA MANUTENÇÃO SIMPLES (para qualquer membro) -->
+<div id="modal-simple-new" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">Nova Manutenção</div>
+      <button onclick="closeModal('modal-simple-new')" style="background:none; border:none; font-size:24px;">×</button>
+    </div>
+    
+    <div style="padding: 8px 24px 24px;">
+      <div class="form-group">
+        <label class="form-label">Data</label>
+        <input id="simple-date" type="date" class="form-input">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Local / Setor *</label>
+        <input id="simple-local" class="form-input" placeholder="Ex: Salão Principal, Banheiro...">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Descrição do problema *</label>
+        <textarea id="simple-desc" class="form-textarea" rows="4" placeholder="O que precisa ser feito?"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label">Foto ou Vídeo (opcional)</label>
+        <div onclick="document.getElementById('simple-media').click()" 
+             style="border:2px dashed #ccc; border-radius:12px; padding:20px; text-align:center; cursor:pointer; background:#f8fafc;">
+          <div style="font-size:28px; margin-bottom:6px;">📷</div>
+          <div style="font-weight:600; color:#475569;">Toque para enviar foto ou vídeo</div>
+          <div style="font-size:12px; color:#64748B;">Máx 10MB</div>
+        </div>
+        <input type="file" id="simple-media" accept="image/*,video/*" style="display:none" onchange="previewSimpleMedia(this)">
+        <div id="simple-media-preview" style="margin-top:10px; display:none;"></div>
+      </div>
+      
+      <button class="btn btn-primary" onclick="saveSimpleMaintenance()" style="margin-top:12px;">
+        Enviar Manutenção
+      </button>
+      
+      <div style="text-align:center; margin-top:12px; font-size:12px; color:#64748B;">
+        Um administrador irá transformar em tarefa
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== SAFE STORAGE (sandbox-proof) ====================
+const safeStorage = {
+  get(key, fallback = null) {
+    try {
+      const val = localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      // Sandboxed environment (iframe without allow-same-origin) or private mode
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      // Silently ignore in sandboxed contexts
+    }
+  },
+  clear() {
+    try { localStorage.clear(); } catch(e){}
+  }
+};
+
+// ==================== SUPABASE CONFIG ====================
+const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
+
+// Detect sandboxed environment (safe version)
+let isSandboxed = false;
+try {
+  localStorage.setItem('__test_sandbox__', '1');
+  localStorage.removeItem('__test_sandbox__');
+} catch (e) {
+  isSandboxed = true;
+}
+
+// Only log warning once per page load (using memory variable)
+if (isSandboxed && !window.__sandboxWarningShown) {
+  console.log('[CCB Manutenção] Ambiente com armazenamento limitado. Os dados serão salvos apenas durante esta sessão.');
+  window.__sandboxWarningShown = true;
+}
+
+// ==================== CORE DATA ====================
+let tasks = JSON.parse(safeStorage.get('ccb_tasks', '[]'));
+let scheds = JSON.parse(safeStorage.get('ccb_scheds', '[]'));
+let products = JSON.parse(safeStorage.get('ccb_products', '[]'));
+let users = JSON.parse(safeStorage.get('ccb_users', '[{"id":1,"name":"Pr. João Silva","role":"Administrador"}]'));
+
+function saveTasks() { safeStorage.set('ccb_tasks', JSON.stringify(tasks)); }
+function saveScheds() { safeStorage.set('ccb_scheds', JSON.stringify(scheds)); }
+function saveProducts() { safeStorage.set('ccb_products', JSON.stringify(products)); }
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.className = 'toast show';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 2400);
+}
+
+// ==================== TAB NAVIGATION ====================
+function showTab(tab, btn = null) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  
+  // Bottom nav active state
+  document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.bottom-nav button[data-tab="${tab}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  // Render specific views
+  if (tab === 'kanban') renderKanban();
+  if (tab === 'manutencao') renderTaskList();
+  if (tab === 'cronograma') renderGantt();
+  if (tab === 'produtos') renderProducts();
+  if (tab === 'inicio') renderDashboard();
+}
+
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const pend = tasks.filter(t => t.status === 'Pendente').length;
+  const inici = tasks.filter(t => t.status === 'Iniciado').length;
+  const conc = tasks.filter(t => t.status === 'Realizado').length;
+
+  document.getElementById('kpi-pend').textContent = pend;
+  document.getElementById('kpi-iniciado').textContent = inici;
+  document.getElementById('kpi-realizado').textContent = conc;
+
+  // Urgentes
+  const urgent = tasks.filter(t => t.priority === 'alta' && t.status !== 'Realizado').slice(0, 3);
+  const urgentEl = document.getElementById('urgent-list');
+  urgentEl.innerHTML = urgent.length ? urgent.map(t => taskCardMini(t)).join('') : 
+    '<div class="empty-state"><p>Nenhuma tarefa urgente 🎉</p></div>';
+
+  // Próximos
+  const upcoming = scheds.slice(0, 3).map(s => {
+    const t = tasks.find(x => x.id === s.taskId);
+    return `<div class="task-card" style="margin-bottom:8px" onclick="openDetail(${t ? t.id : 0})">
+      <div class="task-card-header"><div><strong>${s.title || (t ? t.local : 'Serviço')}</strong><br><span style="font-size:12px;color:#64748B">${fmtDate(s.date)}</span></div></div>
+    </div>`;
+  }).join('');
+  document.getElementById('upcoming-timeline').innerHTML = upcoming || '<div class="empty-state"><p>Nenhum agendamento próximo.</p></div>';
+}
+
+function taskCardMini(t) {
+  return `<div class="task-card" onclick="openDetail(${t.id})">
+    <div class="task-card-header">
+      <div class="task-priority priority-${t.priority}"></div>
+      <div class="task-main">
+        <div class="task-title">${t.local}</div>
+        <div class="task-meta">
+          <span>${t.cat}</span>
+          <span class="task-status status-${t.status.toLowerCase()}">${t.status}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ==================== KANBAN (Monday.com style) ====================
+function renderKanban() {
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = '';
+
+  const columns = [
+    { status: 'Pendente', color: '#F59E0B', icon: '⏳' },
+    { status: 'Iniciado', color: '#3B82F6', icon: '🔧' },
+    { status: 'Realizado', color: '#10B981', icon: '✅' },
+    { status: 'Cancelado', color: '#EF4444', icon: '🚫' }
+  ];
+
+  columns.forEach(col => {
+    const colEl = document.createElement('div');
+    colEl.className = 'kanban-column';
+    colEl.innerHTML = `
+      <div class="kanban-column-header" style="color:${col.color}">
+        <div>${col.icon} ${col.status}</div>
+        <div class="count">${tasks.filter(t => t.status === col.status).length}</div>
+      </div>
+      <div class="kanban-list" data-status="${col.status}" ondrop="dropTask(event)" ondragover="allowDrop(event)"></div>
+    `;
+    board.appendChild(colEl);
+
+    const list = colEl.querySelector('.kanban-list');
+    tasks.filter(t => t.status === col.status).forEach(task => {
+      const card = createKanbanCard(task);
+      list.appendChild(card);
+    });
+  });
+}
+
+function createKanbanCard(task) {
+  const card = document.createElement('div');
+  card.className = 'kanban-card';
+  card.draggable = true;
+  card.dataset.id = task.id;
+  card.ondragstart = dragTask;
+  card.onclick = () => openDetail(task.id);
+
+  card.innerHTML = `
+    <div class="title">${task.local}</div>
+    <div class="meta">
+      <span>${task.cat}</span>
+      <span style="margin-left:auto; font-weight:700; color:#64748B;">${task.priority}</span>
+    </div>
+    ${task.resp ? `<div style="font-size:11px; margin-top:6px; color:#64748B;">👤 ${task.resp}</div>` : ''}
+  `;
+  return card;
+}
+
+function dragTask(ev) {
+  ev.dataTransfer.setData('text/plain', ev.currentTarget.dataset.id);
+}
+
+function allowDrop(ev) { ev.preventDefault(); }
+
+function dropTask(ev) {
+  ev.preventDefault();
+  const taskId = parseInt(ev.dataTransfer.getData('text/plain'));
+  const newStatus = ev.currentTarget.dataset.status;
+
+  const task = tasks.find(t => t.id === taskId);
+  if (task && task.status !== newStatus) {
+    const oldStatus = task.status;
+    task.status = newStatus;
+    if (newStatus === 'Realizado') task.doneDate = new Date().toISOString().slice(0,10);
+    
+    saveTasks();
+    showToast(`Tarefa movida: ${oldStatus} → ${newStatus}`);
+    renderKanban();
+    renderDashboard();
+    renderTaskList();
+  }
+}
+
+// ==================== TASK LIST ====================
+function renderTaskList(filter = 'all', search = '') {
+  const container = document.getElementById('task-list-manut');
+  let filtered = tasks;
+
+  if (filter !== 'all') filtered = filtered.filter(t => t.status === filter);
+  if (search) filtered = filtered.filter(t => 
+    (t.local || '').toLowerCase().includes(search.toLowerCase()) || 
+    (t.desc || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  container.innerHTML = filtered.length ? filtered.map(t => `
+    <div class="task-card" onclick="openDetail(${t.id})">
+      <div class="task-card-header">
+        <div class="task-priority priority-${t.priority}"></div>
+        <div class="task-main">
+          <div class="task-title">${t.local}</div>
+          <div class="task-meta">
+            <span>${t.cat} • ${fmtDate(t.prazo || t.date)}</span>
+            <span class="task-status status-${t.status.toLowerCase()}">${t.status}</span>
+          </div>
+          ${t.resp ? `<div style="font-size:12px; margin-top:4px; color:#64748B;">Responsável: ${t.resp}</div>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('') : '<div class="empty-state"><p>Nenhuma tarefa encontrada.</p></div>';
+}
+
+function filterTasks(status = 'all') {
+  const search = document.getElementById('search-manut')?.value || '';
+  renderTaskList(status, search);
+}
+
+// ==================== GANTT / CRONOGRAMA ====================
+function renderGantt() {
+  const container = document.getElementById('gantt-container');
+  if (!scheds.length) {
+    container.innerHTML = `<div class="empty-state"><p>Nenhum agendamento. Clique em "+ Agendar".</p></div>`;
+    return;
+  }
+
+  const sorted = [...scheds].sort((a,b) => (a.date || '').localeCompare(b.date || ''));
+  let html = '';
+
+  sorted.forEach(s => {
+    const task = tasks.find(t => t.id === s.taskId);
+    const start = s.date;
+    const end = s.endDate || s.date;
+    const progress = task && task.status === 'Realizado' ? 100 : (task && task.status === 'Iniciado' ? 60 : 20);
+    
+    html += `
+      <div class="gantt-row" onclick="openSchedDetail(${s.id})">
+        <div class="gantt-label">
+          <strong>${task ? task.local : s.title}</strong><br>
+          <span style="font-size:11px; color:#64748B;">${s.resp || '—'}</span>
+        </div>
+        <div class="gantt-bar-container">
+          <div class="gantt-bar ${task ? task.status.toLowerCase() : 'pendente'}" 
+               style="left: 5%; width: ${progress}%; background: ${task && task.status === 'Realizado' ? '#10B981' : '#3B82F6'}">
+            ${fmtDate(start)} → ${fmtDate(end)}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function openNewSched() {
+  const modal = document.createElement('div');
+  modal.className = 'modal open';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Novo Agendamento</div>
+        <button onclick="this.closest('.modal').remove()" style="font-size:28px; background:none; border:none;">×</button>
+      </div>
+      <div style="padding:24px;">
+        <div class="form-group">
+          <label class="form-label">Ligado a qual manutenção?</label>
+          <select id="sched-task" class="form-select">
+            <option value="">Sem ligação</option>
+            ${tasks.map(t => `<option value="${t.id}">${t.local} - ${t.desc ? t.desc.substring(0,40) : ''}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Título / Serviço</label>
+          <input id="sched-title" class="form-input" placeholder="Troca de lâmpadas">
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label class="form-label">Data início</label>
+            <input id="sched-date" type="date" class="form-input" value="${new Date().toISOString().slice(0,10)}">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Previsão fim</label>
+            <input id="sched-end" type="date" class="form-input" value="${new Date(Date.now()+7*86400000).toISOString().slice(0,10)}">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Responsável</label>
+          <input id="sched-resp" class="form-input" placeholder="Nome">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Itens que precisam ser utilizados / comprados</label>
+          <textarea id="sched-items" class="form-textarea" rows="3" 
+                    placeholder="Ex: Lâmpada LED 9W - 4 unidades&#10;Fita isolante - 1 rolo&#10;Parafuso 3/8 - 12 unidades"></textarea>
+          <div style="font-size:11px; color:#64748B; margin-top:4px;">
+            Isso ajuda a verificar se tem no estoque ou precisa comprar
+          </div>
+        </div>
+        
+        <button class="btn btn-primary" onclick="saveNewSched(this)">Salvar Agendamento</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function saveNewSched(btn) {
+  const taskId = parseInt(document.getElementById('sched-task').value) || null;
+  const title = document.getElementById('sched-title').value || 'Serviço';
+  const date = document.getElementById('sched-date').value;
+  const end = document.getElementById('sched-end').value;
+  const resp = document.getElementById('sched-resp').value;
+
+  if (!date) { showToast('Informe a data'); return; }
+
+  const newSched = {
+    id: Date.now(),
+    taskId,
+    title,
+    date,
+    endDate: end,
+    resp,
+    status: 'Pendente',
+    items: document.getElementById('sched-items')?.value.trim() || ''
+  };
+  scheds.push(newSched);
+  saveScheds();
+
+  if (taskId) {
+    const t = tasks.find(x => x.id === taskId);
+    if (t) {
+      t.prazo = date;
+      t.resp = resp || t.resp;
+      if (t.status === 'Pendente') t.status = 'Iniciado';
+      saveTasks();
+    }
+  }
+
+  btn.closest('.modal').remove();
+  showToast('Agendamento criado!');
+  renderGantt();
+  renderDashboard();
+}
+
+function openSchedDetail(id) {
+  const s = scheds.find(x => x.id === id);
+  if (!s) return;
+  const t = s.taskId ? tasks.find(x => x.id === s.taskId) : null;
+
+  const html = `
+    <div class="modal-header">
+      <div class="modal-title">${s.title}</div>
+      <button onclick="closeModal('modal-detail')" style="font-size:24px;">×</button>
+    </div>
+    <div style="padding:20px;">
+      <div style="margin-bottom:16px;">
+        <strong>Data:</strong> ${fmtDate(s.date)} até ${fmtDate(s.endDate || s.date)}<br>
+        <strong>Responsável:</strong> ${s.resp || 'Não definido'}<br>
+        ${t ? `<strong>Manutenção:</strong> ${t.local}` : ''}
+        ${s.items ? `<br><strong>Itens necessários:</strong><br><span style="white-space:pre-line; color:#475569;">${s.items}</span>` : ''}
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="editSched(${id}); closeModal('modal-detail')">Editar</button>
+        <button class="btn" style="background:#FEE2E2; color:#DC2626;" onclick="deleteSched(${id}); closeModal('modal-detail')">Excluir</button>
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-content').innerHTML = html;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function deleteSched(id) {
+  if (!confirm('Excluir este agendamento?')) return;
+  scheds = scheds.filter(s => s.id !== id);
+  saveScheds();
+  renderGantt();
+  showToast('Agendamento removido');
+}
+
+function editSched(id) {
+  // Simple edit - open new modal with prefilled (simplified for brevity)
+  showToast('Edição em desenvolvimento - use o formulário de novo agendamento por enquanto');
+}
+
+// ==================== TASK DETAIL ====================
+function openDetail(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+
+  const html = `
+    <div class="modal-header" style="background:#1E3A8A; color:white;">
+      <div>
+        <div class="modal-title" style="color:white;">${t.local}</div>
+        <div style="font-size:12px; opacity:0.8;">${t.cat} • Prioridade: ${t.priority}</div>
+      </div>
+      <button onclick="closeModal('modal-detail')" style="color:white; font-size:26px; background:none; border:none;">×</button>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="margin-bottom:16px;">
+        <strong>Descrição:</strong><br>
+        <span style="color:#475569;">${t.desc || 'Sem descrição adicional.'}</span>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+        <div><strong>Status</strong><br><span class="task-status status-${t.status.toLowerCase()}" style="font-size:13px;">${t.status}</span></div>
+        <div><strong>Responsável</strong><br>${t.resp || '—'}</div>
+        <div><strong>Data Prevista</strong><br>${fmtDate(t.prazo || t.date)}</div>
+        <div><strong>Criado em</strong><br>${fmtDate(t.created)}</div>
+      </div>
+
+      <div style="margin:16px 0;">
+        <strong>Atualizar Status</strong>
+        <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap;">
+          ${['Pendente','Iniciado','Realizado','Cancelado'].map(st => 
+            `<button class="btn" style="padding:8px 14px; font-size:12px; background:${t.status===st ? '#1E3A8A' : '#F1F5F9'}; color:${t.status===st ? 'white' : '#475569'};" onclick="updateTaskStatus(${t.id}, '${st}')">${st}</button>`
+          ).join('')}
+        </div>
+      </div>
+
+      <div style="margin-top:24px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-secondary" onclick="closeModal('modal-detail'); editTask(${t.id})">Editar</button>
+        <button class="btn" style="background:#FEE2E2; color:#DC2626; flex:1;" onclick="deleteTask(${t.id})">Excluir</button>
+        
+        ${t.status === 'Pendente' ? 
+          `<button class="btn btn-primary" style="flex:1; background:#1E3A8A;" onclick="convertToTask(${t.id})">Transformar em Tarefa</button>` : ''}
+      </div>
+    </div>
+  `;
+  document.getElementById('detail-content').innerHTML = html;
+  document.getElementById('modal-detail').classList.add('open');
+}
+
+function updateTaskStatus(id, newStatus) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  t.status = newStatus;
+  if (newStatus === 'Realizado') t.doneDate = new Date().toISOString().slice(0,10);
+  saveTasks();
+  closeModal('modal-detail');
+  showToast(`Status atualizado para ${newStatus}`);
+  renderDashboard();
+  renderKanban();
+  renderTaskList();
+}
+
+function deleteTask(id) {
+  if (!confirm('Excluir esta tarefa permanentemente?')) return;
+  tasks = tasks.filter(t => t.id !== id);
+  scheds = scheds.filter(s => s.taskId !== id);
+  saveTasks();
+  saveScheds();
+  closeModal('modal-detail');
+  showToast('Tarefa excluída');
+  renderDashboard();
+  renderKanban();
+  renderTaskList();
+}
+
+function editTask(id) {
+  // For simplicity, open new task modal prefilled (advanced version would have full edit form)
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  closeModal('modal-detail');
+  openNewTask(t);
+}
+
+// ==================== NEW TASK ====================
+function openNewTask(prefill = null) {
+  const modal = document.getElementById('modal-new-task');
+  modal.style.display = 'flex';
+
+  if (prefill) {
+    document.getElementById('task-local').value = prefill.local || '';
+    document.getElementById('task-desc').value = prefill.desc || '';
+    document.getElementById('task-priority').value = prefill.priority || 'media';
+    document.getElementById('task-resp').value = prefill.resp || '';
+    document.getElementById('task-date').value = prefill.prazo || prefill.date || '';
+    document.getElementById('task-cat').value = prefill.cat || 'Elétrica';
+    modal.dataset.editId = prefill.id;
+  } else {
+    modal.dataset.editId = '';
+    // Clear form
+    document.querySelectorAll('#modal-new-task input, #modal-new-task textarea, #modal-new-task select').forEach(el => el.value = '');
+    document.getElementById('task-date').value = new Date().toISOString().slice(0,10);
+  }
+}
+
+function saveNewTask() {
+  const modal = document.getElementById('modal-new-task');
+  const editId = modal.dataset.editId;
+
+  const newTask = {
+    id: editId ? parseInt(editId) : Date.now(),
+    local: document.getElementById('task-local').value || 'Sem local',
+    desc: document.getElementById('task-desc').value,
+    priority: document.getElementById('task-priority').value,
+    resp: document.getElementById('task-resp').value,
+    prazo: document.getElementById('task-date').value,
+    cat: document.getElementById('task-cat').value,
+    status: editId ? (tasks.find(t => t.id === parseInt(editId)).status || 'Pendente') : 'Pendente',
+    created: editId ? tasks.find(t => t.id === parseInt(editId)).created : new Date().toISOString().slice(0,10)
+  };
+
+  if (editId) {
+    const idx = tasks.findIndex(t => t.id === parseInt(editId));
+    if (idx > -1) tasks[idx] = newTask;
+    showToast('Tarefa atualizada!');
+  } else {
+    tasks.unshift(newTask);
+    showToast('Nova manutenção criada!');
+  }
+
+  saveTasks();
+  modal.style.display = 'none';
+  renderDashboard();
+  renderKanban();
+  renderTaskList();
+}
+
+// ==================== PRODUCTS ====================
+function renderProducts() {
+  const container = document.getElementById('product-list');
+  if (!products.length) {
+    container.innerHTML = `<div class="card" style="padding:20px; text-align:center;">Nenhum item em estoque.<br><button class="btn btn-primary" style="margin-top:12px;" onclick="openNewProduct()">Cadastrar primeiro item</button></div>`;
+    return;
+  }
+  container.innerHTML = products.map(p => `
+    <div class="card" style="margin-bottom:10px; padding:14px 16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>${p.name}</strong><br>
+          <span style="font-size:12px; color:#64748B;">${p.qty} unidades • ${p.location || 'Estoque'}</span>
+        </div>
+        <div style="text-align:right;">
+          ${p.qty < 5 ? '<span style="background:#FEE2E2; color:#DC2626; padding:2px 8px; border-radius:999px; font-size:10px;">BAIXO</span>' : ''}
+          <div style="font-size:13px; font-weight:600; margin-top:4px;">R$ ${p.price || '—'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openNewProduct() {
+  const name = prompt('Nome do item:');
+  if (!name) return;
+  const qty = parseInt(prompt('Quantidade atual:', '10')) || 0;
+  products.push({ id: Date.now(), name, qty, location: 'Almoxarifado', price: 0 });
+  saveProducts();
+  renderProducts();
+  showToast('Item adicionado ao estoque');
+}
+
+function showNotifications() {
+  showToast('Você tem 3 alertas de manutenção vencida.');
+}
+
+function openSettings() {
+  const modal = document.createElement('div');
+  modal.className = 'modal open';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header"><div class="modal-title">Configurações</div></div>
+      <div style="padding:24px; line-height:1.6;">
+        <p><strong>Versão 2.1</strong> • App de Manutenção CCB Torrinha</p>
+        
+        <div style="margin:20px 0; padding:16px; background:#fefce8; border-radius:12px; border:1px solid #fde047;">
+          <strong>⚠️ Atenção - Armazenamento Atual:</strong><br>
+          Os dados estão salvos apenas <strong>no seu celular/computador</strong> (localStorage).<br>
+          Se outra pessoa usar o app, ela verá dados diferentes.
+        </div>
+
+        <h4 style="margin-top:20px;">Opções de Armazenamento:</h4>
+        
+        <div style="margin:12px 0;">
+          <button class="btn btn-secondary" style="width:100%; margin-bottom:8px;" onclick="exportAllData()">
+            📤 Exportar todos os dados (JSON)
+          </button>
+          <button class="btn btn-secondary" style="width:100%;" onclick="importAllData()">
+            📥 Importar dados de outro dispositivo
+          </button>
+        </div>
+
+        <div style="margin-top:24px; font-size:13px; color:#64748B;">
+          <strong>Supabase configurado!</strong><br>
+          Sincronização em tempo real entre todos os membros.
+        </div>
+        
+        <button class="btn btn-primary" style="margin-top:8px; width:100%; background:#16a34a;" onclick="syncWithSupabase()">
+          🔄 Sincronizar agora com Supabase
+        </button>
+
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="this.closest('.modal').remove(); safeStorage.clear(); location.reload();">
+          Limpar todos os dados (reset)
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function exportAllData() {
+  const data = {
+    tasks: tasks,
+    scheds: scheds,
+    products: products,
+    users: users,
+    chatMessages: chatMessages,
+    exportDate: new Date().toISOString(),
+    version: "2.1"
+  };
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ccb-manutencao-torrinha-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  
+  showToast('✅ Dados exportados! Compartilhe este arquivo.');
+}
+
+function showGoogleSheetsConfig() {
+  const modal = document.createElement('div');
+  modal.className = 'modal open';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Google Sheets (Grátis)</div>
+        <button onclick="this.closest('.modal').remove()" style="font-size:24px;">×</button>
+      </div>
+      <div style="padding:24px;">
+        <p><strong>Como configurar (passo a passo):</strong></p>
+        
+        <ol style="padding-left:20px; line-height:1.7;">
+          <li>Crie uma nova planilha no <a href="https://sheets.google.com" target="_blank">Google Sheets</a></li>
+          <li>Crie 4 abas com os nomes exatos: <strong>Manutencoes</strong>, <strong>Cronograma</strong>, <strong>Estoque</strong>, <strong>Usuarios</strong></li>
+          <li>Copie o código abaixo e cole no <strong>Extensões → Apps Script</strong></li>
+          <li>Clique em "Implantar" → "Nova implantação" → "Aplicativo da Web"</li>
+          <li>Copie a URL gerada e cole abaixo</li>
+        </ol>
+        
+        <div style="background:#f1f5f9; padding:12px; border-radius:8px; margin:16px 0; font-size:12px; font-family:monospace; overflow:auto;">
+          // Código para colar no Apps Script (fornecido pelo desenvolvedor)
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">URL do Google Apps Script</label>
+          <input id="gs-url" class="form-input" placeholder="https://script.google.com/macros/s/..." value="${safeStorage.get('gs_url', 'https://script.google.com/macros/s/AKfycbwWnlJ-S4ZUi7cURl3eZFQ8E9AhYFdVOwANpGPU-FY-an_89l8tIt7BDlTXZA0DosoYPA/exec')}">
+        </div>
+        
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button class="btn btn-secondary" style="flex:1;" onclick="this.closest('.modal').remove()">Cancelar</button>
+          <button class="btn btn-primary" style="flex:1;" onclick="saveGoogleSheetsConfig()">Salvar e Testar</button>
+        </div>
+        
+        <div style="margin-top:20px; font-size:12px; color:#64748B;">
+          Após configurar, use o botão "Sincronizar" no menu principal para atualizar os dados.
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function saveGoogleSheetsConfig() {
+  const url = document.getElementById('gs-url').value.trim();
+  if (!url) {
+    showToast('Por favor, cole a URL do Google Apps Script');
+    return;
+  }
+  
+  safeStorage.set('gs_url', url);
+  showToast('✅ Configuração salva! Agora você pode sincronizar.');
+  
+  // Fechar modal
+  document.querySelectorAll('.modal').forEach(m => m.remove());
+  
+  // Oferecer sincronizar agora
+  setTimeout(() => {
+    if (confirm('Deseja sincronizar os dados agora com o Google Sheets?')) {
+      syncWithGoogleSheets();
+    }
+  }, 800);
+}
+
+// ==================== SUPABASE SYNC ====================
+async function syncWithSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    showToast('Supabase não está configurado corretamente');
+    return;
+  }
+
+  showToast('Sincronizando com Supabase...');
+
+  try {
+    const headers = {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+
+    // Sincronizar Manutenções
+    const tasksResponse = await fetch(`${SUPABASE_URL}/rest/v1/manutencoes`, {
+      method: 'GET',
+      headers
+    });
+
+    if (tasksResponse.ok) {
+      const remoteTasks = await tasksResponse.json();
+      if (remoteTasks && remoteTasks.length > 0) {
+        tasks = remoteTasks;
+        saveTasks();
+      }
+    }
+
+    // Sincronizar Cronograma
+    const schedsResponse = await fetch(`${SUPABASE_URL}/rest/v1/cronograma`, {
+      method: 'GET',
+      headers
+    });
+
+    if (schedsResponse.ok) {
+      const remoteScheds = await schedsResponse.json();
+      if (remoteScheds && remoteScheds.length > 0) {
+        scheds = remoteScheds;
+        saveScheds();
+      }
+    }
+
+    // Sincronizar Estoque
+    const productsResponse = await fetch(`${SUPABASE_URL}/rest/v1/estoque`, {
+      method: 'GET',
+      headers
+    });
+
+    if (productsResponse.ok) {
+      const remoteProducts = await productsResponse.json();
+      if (remoteProducts && remoteProducts.length > 0) {
+        products = remoteProducts;
+        saveProducts();
+      }
+    }
+
+    showToast('✅ Sincronização com Supabase concluída!');
+    location.reload();
+
+  } catch (error) {
+    console.error('Erro ao sincronizar com Supabase:', error);
+    showToast('❌ Erro ao sincronizar. Verifique sua conexão e as credenciais do Supabase.');
+  }
+}
+
+// Função antiga mantida para compatibilidade (redireciona para Supabase)
+async function syncWithGoogleSheets() {
+  await syncWithSupabase();
+}
+
+function importAllData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  
+  input.onchange = function(e) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(ev) {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        
+        if (imported.tasks) tasks = imported.tasks;
+        if (imported.scheds) scheds = imported.scheds;
+        if (imported.products) products = imported.products;
+        if (imported.users) users = imported.users;
+        if (imported.chatMessages) chatMessages = imported.chatMessages;
+        
+        saveTasks();
+        saveScheds();
+        saveProducts();
+        safeStorage.set('ccb_chat_messages', JSON.stringify(chatMessages));
+        
+        showToast('✅ Dados importados com sucesso!');
+        location.reload();
+      } catch (err) {
+        showToast('❌ Erro ao importar arquivo. Verifique se é um JSON válido.');
+      }
+    };
+    
+    reader.readAsText(file);
+  };
+  
+  input.click();
+}
+
+// ==================== UTILS ====================
+function fmtDate(d) {
+  if (!d) return '—';
+  try { return new Date(d + 'T00:00:00').toLocaleDateString('pt-BR', {day:'2-digit', month:'short'}).replace('.',''); } 
+  catch(e) { return d; }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  if (id === 'modal-new-task') document.getElementById(id).style.display = 'none';
+}
+
+function generateReport() {
+  showToast('Relatório gerado! (simulado - em produção geraria PDF)');
+}
+
+function exportCronograma() {
+  const data = JSON.stringify(scheds, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'cronograma-ccb-torrinha.json';
+  a.click();
+  showToast('Cronograma exportado');
+}
+
+// ==================== CHAT (WhatsApp style) ====================
+let chatMessages = JSON.parse(safeStorage.get('ccb_chat_messages', '[]'));
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+function renderChat() {
+  const container = document.getElementById('chat-list');
+  if (!container) return;
+
+  if (!chatMessages.length) {
+    container.innerHTML = `
+      <div style="text-align:center; padding:60px 20px; color:#666;">
+        <div style="font-size:48px; margin-bottom:12px;">💬</div>
+        <div style="font-weight:600; margin-bottom:8px;">Bem-vindo ao Chat da Manutenção</div>
+        <div style="font-size:13px;">Envie mensagens, áudios ou stickers para a equipe.</div>
+      </div>
+    `;
+    return;
+  }
+
+  const currentUser = users[0]?.name || 'Você';
+
+  container.innerHTML = chatMessages.map(msg => {
+    const isMine = msg.sender === currentUser;
+    const time = new Date(msg.timestamp).toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+    
+    let content = '';
+    if (msg.type === 'sticker') {
+      content = `<div style="font-size:42px; line-height:1;">${msg.text}</div>`;
+    } else if (msg.type === 'voice') {
+      content = `<audio controls style="width:220px; height:34px;" src="${msg.audio}"></audio>`;
+    } else {
+      // Highlight mentions
+      let highlightedText = msg.text.replace(/@([\wÀ-ÿ\s]+)/g, (match, name) => {
+        return `<span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:999px; font-weight:700;">${match}</span>`;
+      });
+      content = `<div style="white-space:pre-wrap; word-break:break-word;">${highlightedText}</div>`;
+    }
+
+    return `
+      <div style="display:flex; justify-content:${isMine ? 'flex-end' : 'flex-start'}; margin-bottom:10px;">
+        <div style="max-width:78%; background:${isMine ? '#DCF8C6' : 'white'}; 
+                    padding:10px 14px; border-radius:18px; border-bottom-${isMine ? 'right' : 'left'}-radius:4px;
+                    box-shadow:0 1px 2px rgba(0,0,0,0.1); position:relative;">
+          ${!isMine ? `<div style="font-size:11px; font-weight:700; color:#128C7E; margin-bottom:3px;">${msg.sender}</div>` : ''}
+          ${content}
+          ${msg.mentions && msg.mentions.length > 0 ? 
+            `<div style="margin-top:6px; font-size:10px; color:#92400E; display:flex; align-items:center; gap:4px;">
+              <span>👤</span> 
+              <span>Mencionado: <strong>${msg.mentions.join(', ')}</strong></span>
+            </div>` : ''}
+          <div style="font-size:10px; color:#999; text-align:right; margin-top:4px;">${time}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Scroll to bottom
+  setTimeout(() => {
+    container.scrollTop = container.scrollHeight;
+  }, 50);
+}
+
+function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const currentUser = users[0]?.name || 'Você';
+
+  // Detect mentions (@Nome)
+  const mentions = [];
+  const mentionRegex = /@([\wÀ-ÿ\s]+)/g;
+  let match;
+  while ((match = mentionRegex.exec(text)) !== null) {
+    const mentionedName = match[1].trim();
+    const userExists = users.find(u => u.name.toLowerCase() === mentionedName.toLowerCase());
+    if (userExists) {
+      mentions.push(userExists.name);
+    }
+  }
+
+  chatMessages.push({
+    id: Date.now(),
+    sender: currentUser,
+    text: text,
+    type: 'text',
+    timestamp: new Date().toISOString(),
+    mentions: mentions.length > 0 ? mentions : undefined
+  });
+
+  safeStorage.set('ccb_chat_messages', JSON.stringify(chatMessages));
+
+  // Real Push Notification + Sound
+  if (mentions.length > 0) {
+    playNotificationSound();
+
+    mentions.forEach((name, index) => {
+      setTimeout(() => {
+        // Toast interno
+        showToast(`🔔 ${name} foi notificado(a)`);
+
+        // Notificação Push real do navegador
+        sendPushNotification(
+          "CCB Manutenção - Torrinha",
+          `${currentUser} mencionou você no chat: "${text.substring(0, 60)}${text.length > 60 ? '...' : ''}"`
+        );
+      }, 250 + (index * 300));
+    });
+  }
+
+  input.value = '';
+  renderChat();
+}
+
+function requestNotificationPermission() {
+  if (!("Notification" in window)) {
+    showToast("Seu navegador não suporta notificações push");
+    return;
+  }
+
+  if (Notification.permission === "granted") {
+    return Promise.resolve(true);
+  }
+
+  if (Notification.permission === "denied") {
+    showToast("Notificações bloqueadas. Ative nas configurações do navegador.");
+    return Promise.resolve(false);
+  }
+
+  return Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      showToast("✅ Notificações push ativadas!");
+      return true;
+    } else {
+      showToast("Notificações não ativadas.");
+      return false;
+    }
+  });
+}
+
+function sendPushNotification(title, body, icon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231E3A8A'/%3E%3Ctext x='50' y='62' font-family='Arial' font-size='42' font-weight='bold' fill='white' text-anchor='middle'%3ECCB%3C/text%3E%3C/svg%3E") {
+  if (!("Notification" in window) || Notification.permission !== "granted") {
+    return;
+  }
+
+  try {
+    const notification = new Notification(title, {
+      body: body,
+      icon: icon,
+      badge: icon,
+      tag: "ccb-manutencao",
+      renotify: true,
+      requireInteraction: false
+    });
+
+    // Auto close after 6 seconds
+    setTimeout(() => notification.close(), 6000);
+
+    // Optional: focus app when clicking notification
+    notification.onclick = () => {
+      window.focus();
+      showTab('chat');
+      notification.close();
+    };
+  } catch (e) {
+    console.log("Erro ao enviar notificação push:", e);
+  }
+}
+
+function playNotificationSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = 880; // nota musical clara
+    gain.gain.value = 0.3;
+    
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1200;
+    
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    oscillator.start();
+    
+    setTimeout(() => {
+      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+      setTimeout(() => oscillator.stop(), 500);
+    }, 120);
+  } catch (e) {
+    // Silenciosamente ignora se não conseguir tocar som
+  }
+}
+
+function showMentionList(inputElement) {
+  // Remove existing mention list if any
+  const existing = document.getElementById('mention-list');
+  if (existing) existing.remove();
+
+  if (!users || users.length === 0) return;
+
+  const list = document.createElement('div');
+  list.id = 'mention-list';
+  list.style.cssText = `
+    position: absolute; 
+    bottom: 58px; 
+    left: 12px; 
+    background: white; 
+    border: 1px solid #ddd; 
+    border-radius: 12px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+    max-height: 160px; 
+    overflow-y: auto; 
+    z-index: 600; 
+    min-width: 180px;
+    font-size: 14px;
+  `;
+
+  users.forEach(user => {
+    const item = document.createElement('div');
+    item.style.cssText = 'padding: 10px 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;';
+    item.innerHTML = `
+      <div style="width:28px; height:28px; background:#1E3A8A; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;">
+        ${user.name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+      </div>
+      <div>
+        <div style="font-weight:600;">${user.name}</div>
+        <div style="font-size:11px; color:#64748B;">${user.role || 'Irmão(ã)'}</div>
+      </div>
+    `;
+    item.onclick = () => {
+      const currentVal = inputElement.value;
+      // Replace last @word with @FullName
+      const newVal = currentVal.replace(/@[\wÀ-ÿ\s]*$/, `@${user.name} `);
+      inputElement.value = newVal;
+      list.remove();
+      inputElement.focus();
+    };
+    list.appendChild(item);
+  });
+
+  // Position it above the input
+  const inputContainer = inputElement.parentElement;
+  inputContainer.style.position = 'relative';
+  inputContainer.appendChild(list);
+
+  // Close when clicking outside
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!list.contains(e.target) && e.target !== inputElement) {
+        list.remove();
+        document.removeEventListener('click', handler);
+      }
+    }, { once: true });
+  }, 100);
+}
+
+function showStickerPicker() {
+  const stickers = ['🙏','🔧','✅','📦','🧾','⚠️','👍','🙌','🕊️','💡','❤️','🔥'];
+  const picker = document.createElement('div');
+  picker.style.cssText = 'position:fixed;bottom:130px;left:50%;transform:translateX(-50%);background:white;border-radius:16px;padding:12px;box-shadow:0 4px 20px rgba(0,0,0,0.2);display:flex;gap:8px;flex-wrap:wrap;max-width:280px;z-index:500;';
+  
+  stickers.forEach(st => {
+    const btn = document.createElement('button');
+    btn.textContent = st;
+    btn.style.cssText = 'font-size:28px;padding:8px 12px;border:none;background:none;cursor:pointer;';
+    btn.onclick = () => {
+      const currentUser = users[0]?.name || 'Você';
+      chatMessages.push({
+        id: Date.now(),
+        sender: currentUser,
+        text: st,
+        type: 'sticker',
+        timestamp: new Date().toISOString()
+      });
+      safeStorage.set('ccb_chat_messages', JSON.stringify(chatMessages));
+      picker.remove();
+      renderChat();
+    };
+    picker.appendChild(btn);
+  });
+  
+  document.body.appendChild(picker);
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!picker.contains(e.target)) {
+        picker.remove();
+        document.removeEventListener('click', handler);
+      }
+    }, {once: true});
+  }, 100);
+}
+
+let recordingStartTime = null;
+let recordingInterval = null;
+
+async function toggleVoiceRecording() {
+  const btn = document.getElementById('voice-btn');
+  const indicator = document.getElementById('recording-indicator');
+  const currentUser = users[0]?.name || 'Você';
+
+  if (!isRecording) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      recordingStartTime = Date.now();
+
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onload = () => {
+          chatMessages.push({
+            id: Date.now(),
+            sender: currentUser,
+            audio: reader.result,
+            type: 'voice',
+            timestamp: new Date().toISOString()
+          });
+          safeStorage.set('ccb_chat_messages', JSON.stringify(chatMessages));
+          renderChat();
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Limpar indicadores
+        if (recordingInterval) clearInterval(recordingInterval);
+        indicator.style.display = 'none';
+        btn.style.background = '#25D366';
+        btn.innerHTML = '🎤';
+      };
+
+      mediaRecorder.start();
+      isRecording = true;
+      
+      // Feedback visual
+      btn.style.background = '#DC2626';
+      btn.innerHTML = '⏹️';
+      indicator.style.display = 'block';
+      
+      showToast('🎙️ Gravando... toque no botão vermelho para parar');
+
+      // Mostrar tempo de gravação
+      recordingInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - recordingStartTime) / 1000);
+        if (elapsed > 60) { // limite de 60 segundos
+          toggleVoiceRecording();
+        }
+      }, 1000);
+
+    } catch (err) {
+      showToast('Não foi possível acessar o microfone. Verifique as permissões.');
+    }
+  } else {
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+      mediaRecorder.stop();
+    }
+    isRecording = false;
+    if (recordingInterval) clearInterval(recordingInterval);
+    indicator.style.display = 'none';
+  }
+}
+
+let simpleMediaFile = null;
+
+function openSimpleNewMaintenance() {
+  const modal = document.getElementById('modal-simple-new');
+  modal.style.display = 'flex';
+  
+  // Preencher data com hoje
+  const dateInput = document.getElementById('simple-date');
+  dateInput.value = new Date().toISOString().slice(0, 10);
+  
+  // Limpar preview
+  document.getElementById('simple-media-preview').innerHTML = '';
+  document.getElementById('simple-media-preview').style.display = 'none';
+  simpleMediaFile = null;
+}
+
+function previewSimpleMedia(input) {
+  const preview = document.getElementById('simple-media-preview');
+  preview.innerHTML = '';
+  preview.style.display = 'block';
+  
+  if (input.files && input.files[0]) {
+    simpleMediaFile = input.files[0];
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      if (simpleMediaFile.type.startsWith('image/')) {
+        preview.innerHTML = `<img src="${e.target.result}" style="max-width:100%; max-height:180px; border-radius:8px;">`;
+      } else {
+        preview.innerHTML = `<video src="${e.target.result}" controls style="max-width:100%; max-height:180px; border-radius:8px;"></video>`;
+      }
+    };
+    reader.readAsDataURL(simpleMediaFile);
+  }
+}
+
+function convertToTask(id) {
+  const t = tasks.find(x => x.id === id);
+  if (!t) return;
+  
+  closeModal('modal-detail');
+  
+  // Abre o formulário completo de edição (já existente)
+  setTimeout(() => {
+    editTask(id);
+    showToast('Agora você pode atribuir responsável, prazo e categoria.');
+  }, 300);
+}
+
+function saveSimpleMaintenance() {
+  const local = document.getElementById('simple-local').value.trim();
+  const desc = document.getElementById('simple-desc').value.trim();
+  const date = document.getElementById('simple-date').value;
+
+  if (!local || !desc) {
+    showToast('Por favor, preencha Local e Descrição');
+    return;
+  }
+
+  const newTask = {
+    id: Date.now(),
+    local: local,
+    desc: desc,
+    prazo: date,
+    status: 'Pendente',
+    priority: 'media',
+    cat: 'Outro',
+    created: new Date().toISOString().slice(0, 10),
+    createdBy: 'Membro da Igreja',
+    media: simpleMediaFile ? URL.createObjectURL(simpleMediaFile) : null
+  };
+
+  tasks.unshift(newTask);
+  saveTasks();
+
+  document.getElementById('modal-simple-new').style.display = 'none';
+  showToast('✅ Manutenção enviada com sucesso!');
+
+  // Atualizar telas
+  renderDashboard();
+  renderTaskList();
+  renderKanban();
+}
+
+function openChat() {
+  showTab('chat');
+  setTimeout(() => {
+    renderChat();
+    const input = document.getElementById('chat-input');
+    if (input) input.focus();
+
+    // Pedir permissão de notificação push na primeira vez
+    if (!safeStorage.get('ccb_push_permission_asked')) {
+      setTimeout(() => {
+        requestNotificationPermission().then(granted => {
+          if (granted) {
+            safeStorage.set('ccb_push_permission_asked', 'true');
+          }
+        });
+      }, 1800);
+    }
+  }, 100);
+}
+
+// ==================== INIT ====================
+function init() {
+  // Seed demo data if empty
+  if (!tasks.length) {
+    tasks = [
+      {id: Date.now()-100, local: "Salão Principal", desc: "Lâmpada queimada no teto", priority: "alta", status: "Pendente", cat: "Elétrica", resp: "Irmão Carlos", prazo: "2026-05-28", created: "2026-05-20"},
+      {id: Date.now()-200, local: "Banheiro dos Homens", desc: "Vazamento na torneira", priority: "media", status: "Iniciado", cat: "Hidráulica", resp: "Irmão Pedro", prazo: "2026-05-27", created: "2026-05-18"},
+      {id: Date.now()-300, local: "Cozinha", desc: "Porta emperrando", priority: "baixa", status: "Realizado", cat: "Civil", resp: "Irmã Ana", prazo: "2026-05-15", created: "2026-05-10", doneDate: "2026-05-22"}
+    ];
+    saveTasks();
+  }
+  if (!scheds.length) {
+    scheds = [{id: Date.now(), taskId: tasks[0].id, title: "Troca de lâmpadas", date: "2026-05-28", endDate: "2026-05-29", resp: "Carlos", status: "Pendente"}];
+    saveScheds();
+  }
+  if (!products.length) {
+    products = [{id:1, name:"Lâmpada LED 9W", qty:42, location:"Almoxarifado", price:8.5}, {id:2, name:"Fita Isolante 19mm", qty:3, location:"Almoxarifado", price:4.2}];
+    saveProducts();
+  }
+
+  // Initial render
+  renderDashboard();
+  renderKanban();
+  renderTaskList();
+  renderGantt();
+  renderProducts();
+
+  // Make bottom nav functional
+  document.querySelectorAll('.bottom-nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (tab) showTab(tab, btn);
+    });
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+      e.preventDefault();
+      const search = document.getElementById('search-manut');
+      if (search) { showTab('manutencao'); search.focus(); }
+    }
+  });
+
+  // Show welcome toast once
+  if (!safeStorage.get('ccb_welcome_shown')) {
+    setTimeout(() => {
+      showToast('Bem-vindo ao app de Manutenção CCB Torrinha!');
+      safeStorage.set('ccb_welcome_shown', '1');
+    }, 1200);
+  }
+
+  // Make sure first tab is active
+  showTab('inicio');
+
+  // Register Service Worker (PWA) - safe version
+  if ('serviceWorker' in navigator && !isSandboxed) {
+    try {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(registration => {
+          console.log('Service Worker registrado com sucesso!');
+        })
+        .catch(error => {
+          console.log('Falha ao registrar Service Worker:', error);
+        });
+    } catch (e) {
+      // Silently ignore in sandboxed environments
+    }
+  }
+}
+
+// Boot
+window.onload = init;
+</script>
+</body>
+</html>
