@@ -595,6 +595,16 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
   box-shadow:0 6px 18px rgba(45,82,153,.25);
 }
 
+
+.chat-icon-clear{font-size:26px!important;line-height:1!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;filter:drop-shadow(0 1px 1px rgba(0,0,0,.22));}
+#tab-chat .ti{font-size:27px!important;}
+.header-actions button[onclick="showTab('chat')"]{width:46px!important;height:46px!important;font-size:25px!important;}
+.add-maintenance-bar{position:sticky;top:122px;z-index:180;background:var(--bg);padding:6px 0 12px;margin-bottom:8px;}
+.add-maintenance-btn{width:100%!important;min-height:52px!important;border-radius:16px!important;font-size:15px!important;font-weight:800!important;box-shadow:0 8px 22px rgba(45,82,153,.30)!important;}
+.fab-maintenance{position:fixed;right:18px;bottom:22px;z-index:260;width:58px;height:58px;border-radius:999px;border:none;background:linear-gradient(135deg,var(--blue2),var(--blue3));color:#fff;font-size:28px;font-weight:900;box-shadow:0 10px 28px rgba(30,58,130,.45);display:none;align-items:center;justify-content:center;}
+.fab-maintenance.show{display:flex;}
+.permission-note{font-size:11px;color:var(--text3);margin-top:6px;line-height:1.4;}
+
 </style>
 </head>
 <body>
@@ -629,7 +639,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
       </div>
       <input type="text" id="reg-role" placeholder="Cargo/função" required>
       <select id="reg-city" required onchange="populateRegisterHouses()"><option value="">Selecione a cidade</option></select>
-      <select id="reg-house" required><option value="">Selecione a casa de oração</option></select>
+      <select id="reg-house" required><option value="">Selecione a casa de oração</option></select><div class="permission-note" id="permission-note-register">Por padrão, este usuário verá somente os dados da casa de oração escolhida.</div>
       <button type="submit">Registrar</button>
       <a onclick="switchToLogin()">Já tem conta? Entrar</a>
     </form>
@@ -650,7 +660,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     </div>
     <div class="header-actions">
       <button class="hbtn" id="btn-admin" onclick="showTab('admin')" title="Admin" style="display:none;">⚙️</button>
-      <button class="hbtn" onclick="showTab('chat')"><span class="chat-icon-clear">🗨️</span><span class="badge-num" id="badge-chat">0</span></button>
+      <button class="hbtn" onclick="showTab('chat')"><span class="chat-icon-clear">📨</span><span class="badge-num" id="badge-chat">0</span></button>
       <button class="hbtn" onclick="logout()" title="Sair">🚪</button>
     </div>
   </div>
@@ -666,7 +676,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     <button class="tab-btn" id="tab-stock" onclick="showTab('stock')"><span class="ti">📦</span>Estoque<span class="tab-badge" id="badge-stock" style="display:none">0</span></button>
     <button class="tab-btn" id="tab-notif" onclick="showTab('notif')"><span class="ti">🔔</span>Alertas<span class="tab-badge" id="badge-notif" style="display:none">0</span></button>
 
-    <button class="tab-btn" id="tab-chat" onclick="showTab('chat')"><span class="ti chat-icon-clear">🗨️</span>Chat<span class="tab-badge" id="badge-chat-tab" style="display:none">0</span></button>
+    <button class="tab-btn" id="tab-chat" onclick="showTab('chat')"><span class="ti chat-icon-clear">📨</span>Chat<span class="tab-badge" id="badge-chat-tab" style="display:none">0</span></button>
     <button class="tab-btn" id="tab-admin" onclick="showTab('admin')" style="display:none;"><span class="ti">⚙️</span>Admin</button>
   </div>
 </div>
@@ -1010,6 +1020,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 
 
 
+<button class="fab-maintenance" id="fab-maintenance" onclick="openTaskModal()" type="button" title="Adicionar manutenção">＋</button>
 <div id="toast"></div>
 
 <script>
@@ -1033,7 +1044,7 @@ function save(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
 // USERS & AUTH
 // ═══════════════════════════════════════════
 let users = load('ccb_users',[
-  {id:1,name:'Admin',username:'admin',password:'admin123',role:'Administrador',isAdmin:true,city:'TORRINHA SP',house:'Vila Balbina',canViewAllCities:true,created:today()}
+  {id:1,name:'Admin',username:'admin',password:'admin123',role:'Administrador',isAdmin:true,city:'TORRINHA SP',house:'Vila Balbina',canViewAllCities:true,scope:'all',created:today()}
 ]);
 let currentUser = null;
 let msgs = load('ccb_messages',[]);
@@ -1089,7 +1100,7 @@ function handleRegister(e){
   const newUser = {
     id: Math.max(...users.map(u=>u.id||0),0)+1,
     name,username:user,password:pass,role,
-    city:document.getElementById('reg-city')?.value||'TORRINHA SP',house:document.getElementById('reg-house')?.value||'Vila Balbina',
+    city:document.getElementById('reg-city')?.value||'TORRINHA SP',house:document.getElementById('reg-house')?.value||'Vila Balbina',scope:'house',
     isAdmin:false,created:today()
   };
   users.push(newUser);
@@ -1494,7 +1505,7 @@ handleRegister=function(e){
   const city=document.getElementById('reg-city')?.value, house=document.getElementById('reg-house')?.value;
   if(!city||!house){e.preventDefault(); showToast('⚠️ Informe cidade e casa de oração'); return;}
   __handleRegister(e);
-  if(currentUser){currentUser.city=city; currentUser.house=house; currentUser.allowedCities=[city]; currentUser.allowedHouses={[city]:[house]}; save('ccb_current_user',currentUser); users=users.map(u=>u.id===currentUser.id?currentUser:u); save('ccb_users',users);}
+  if(currentUser){currentUser.city=city; currentUser.house=house; currentUser.scope='house'; currentUser.allowedCities=[city]; currentUser.allowedHouses={[city]:[house]}; save('ccb_current_user',currentUser); users=users.map(u=>u.id===currentUser.id?currentUser:u); save('ccb_users',users);}
 };
 
 // Filtra módulos por cidade/casa, sem perder os dados originais
@@ -1517,6 +1528,16 @@ sendChat=function(){
 };
 
 try{populateRegisterCities(); setupLocationFilters();}catch(e){}
+
+
+// ==== PERMISSÕES POR LOCALIDADE ====
+// Padrão: scope='house'. Admin pode liberar: 'city' ou 'all'.
+function userScope(){return currentUser?.scope || currentUser?.user_metadata?.scope || (currentUser?.canViewAllCities?'all':'house');}
+allowedCities=function(){const s=userScope(); if(s==='all') return Object.keys(LOCALIDADES); return [appUserCity()];};
+allowedHouses=function(city){const s=userScope(); if(s==='all') return LOCALIDADES[city]||[]; if(s==='city' && city===appUserCity()) return LOCALIDADES[city]||[]; if(city===appUserCity()) return [appUserHouse()]; return [];};
+function toggleMaintenanceFab(){const f=document.getElementById('fab-maintenance'); if(f) f.classList.toggle('show', currentTab==='manut');}
+const __showTabFab = showTab;
+showTab=function(tab){__showTabFab(tab); toggleMaintenanceFab();};
 
 const saved = load('ccb_current_user', null);
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
