@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
-<title>TORRINHA SP — Gestão do Templo</title>
+<title>MANUTENÇÃO — Gestão das Casas de Oração</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -547,6 +547,17 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
   font-size:16px!important;display:flex!important;align-items:center!important;justify-content:center!important;
 }
 .login-form button:not(.pass-eye){width:100%;padding:11px;background:var(--blue2);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;}
+
+.location-filter{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin-bottom:14px;box-shadow:var(--shadow);}
+.location-filter-title{font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;}
+.location-filter-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:640px){.location-filter-row{grid-template-columns:1fr;}}
+.add-maintenance-bar{position:sticky;top:122px;z-index:120;background:var(--bg);padding:2px 0 12px;margin-bottom:4px;}
+.add-maintenance-btn{width:100%;min-height:46px;border-radius:14px;font-size:14px;font-weight:800;}
+.loc-chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text3);background:var(--bg);border-radius:99px;padding:3px 8px;margin-top:6px;}
+.pass-eye{position:absolute!important;right:10px!important;top:50%!important;transform:translateY(-50%)!important;width:28px!important;height:28px!important;min-width:28px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:transparent!important;border:none!important;color:var(--text3)!important;font-size:16px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+.login-form button:not(.pass-eye){width:100%;padding:11px;background:var(--blue2);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;}
+
 </style>
 </head>
 <body>
@@ -555,8 +566,8 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">🏛</div>
-    <div class="login-title">TORRINHA SP</div>
-    <div class="login-location">Gestão do Templo</div>
+    <div class="login-title">MANUTENÇÃO</div>
+    <div class="login-location">Gestão das Casas de Oração</div>
     
     <!-- LOGIN FORM -->
     <form class="login-form active" id="login-form" onsubmit="handleLogin(event)">
@@ -564,7 +575,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
       <input type="text" id="login-user" placeholder="Seu nome de usuário" required>
       <div class="pass-toggle">
         <input type="password" id="login-pass" placeholder="Sua senha" required>
-        <button type="button" class="pass-eye" class="pass-eye" onclick="togglePassVisibility('login-pass')">👁</button>
+        <button type="button" class="pass-eye" class="pass-eye" class="pass-eye" onclick="togglePassVisibility('login-pass')">👁</button>
       </div>
       <button type="submit">Entrar</button>
       <a onclick="switchToRegister()">Novo por aqui? Registre-se</a>
@@ -577,9 +588,11 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
       <input type="text" id="reg-user" placeholder="Nome de usuário" required>
       <div class="pass-toggle">
         <input type="password" id="reg-pass" placeholder="Crie uma senha" required>
-        <button type="button" class="pass-eye" class="pass-eye" onclick="togglePassVisibility('reg-pass')">👁</button>
+        <button type="button" class="pass-eye" class="pass-eye" class="pass-eye" onclick="togglePassVisibility('reg-pass')">👁</button>
       </div>
       <input type="text" id="reg-role" placeholder="Cargo/função" required>
+      <select id="reg-city" required onchange="populateRegisterHouses()"><option value="">Selecione a cidade</option></select>
+      <select id="reg-house" required><option value="">Selecione a casa de oração</option></select>
       <button type="submit">Registrar</button>
       <a onclick="switchToLogin()">Já tem conta? Entrar</a>
     </form>
@@ -594,7 +607,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     <div class="header-logo">
       <div class="logo-box">🏛</div>
       <div class="header-text">
-        <strong>TORRINHA SP</strong>
+        <strong>MANUTENÇÃO</strong>
         <small id="header-user">Usuário</small>
       </div>
     </div>
@@ -622,6 +635,15 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 </div>
 
 <div class="main">
+
+  <div class="location-filter" id="location-filter">
+    <div class="location-filter-title">Localidade</div>
+    <div class="location-filter-row">
+      <select class="form-input" id="filter-city" onchange="onCityChange()"><option value="">Todas as cidades autorizadas</option></select>
+      <select class="form-input" id="filter-house" onchange="applyLocationFilter()"><option value="">Todas as casas autorizadas</option></select>
+    </div>
+  </div>
+
   <!-- INÍCIO -->
   <div class="panel active" id="panel-inicio">
     <div class="summary">
@@ -974,7 +996,7 @@ function save(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
 // USERS & AUTH
 // ═══════════════════════════════════════════
 let users = load('ccb_users',[
-  {id:1,name:'Admin',username:'admin',password:'admin123',role:'Administrador',isAdmin:true,created:today()}
+  {id:1,name:'Admin',username:'admin',password:'admin123',role:'Administrador',isAdmin:true,city:'TORRINHA SP',house:'Vila Balbina',canViewAllCities:true,created:today()}
 ]);
 let currentUser = null;
 let msgs = load('ccb_messages',[]);
@@ -1030,6 +1052,7 @@ function handleRegister(e){
   const newUser = {
     id: Math.max(...users.map(u=>u.id||0),0)+1,
     name,username:user,password:pass,role,
+    city:document.getElementById('reg-city')?.value||'TORRINHA SP',house:document.getElementById('reg-house')?.value||'Vila Balbina',
     isAdmin:false,created:today()
   };
   users.push(newUser);
@@ -1044,7 +1067,7 @@ function handleRegister(e){
 function loginSuccess(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-interface').style.display='block';
-  document.getElementById('header-user').textContent=currentUser.name+' ('+currentUser.role+')';
+  document.getElementById('header-user').textContent='GESTÃO DAS CASAS DE ORAÇÃO';
   if(currentUser.isAdmin) document.getElementById('btn-admin').style.display='flex';
   showTab('inicio');
   renderInicio();
@@ -1114,10 +1137,10 @@ function renderChat(){
     const day = d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
     if(day !== lastDay){ html += `<div class="chat-day-sep"><span>${day}</span></div>`; lastDay = day; }
     
-    const mine = m.userId === currentUser.id;
+    const mine = (m.userId && currentUser && m.userId === currentUser.id) || (m.sender && m.sender === appUserName());
     const timeStr = fmtTime(m.time);
-    const sender = users.find(u=>u.id===m.userId)?.name||'Desconhecido';
-    const senderRole = users.find(u=>u.id===m.userId)?.role||'Usuário';
+    const sender = m.sender || users.find(u=>u.id===m.userId)?.name || appUserName() || 'Desconhecido';
+    const senderRole = m.senderRole || users.find(u=>u.id===m.userId)?.role || appUserRole() || 'Usuário';
     
     let bubble = '';
     if(m.type==='text'){
@@ -1403,6 +1426,60 @@ renderInicio = function(){
     updateBadges();
   }catch(e){console.warn(e);}
 };
+
+
+// ==== LOCALIDADE E CHAT POR LOGIN ====
+const LOCALIDADES = {"TORRINHA SP":["Vila Balbina"],"BROTAS SP":["Jd. Campos Eliseos","Jd. Taquaral","Jd. Bela Vista","Patrimonio"]};
+
+function appUserName(){return currentUser?.name || currentUser?.user_metadata?.name || currentUser?.username || 'Usuário';}
+function appUserRole(){return currentUser?.role || currentUser?.user_metadata?.role || 'Usuário';}
+function appUserCity(){return currentUser?.city || currentUser?.user_metadata?.city || 'TORRINHA SP';}
+function appUserHouse(){return currentUser?.house || currentUser?.user_metadata?.house || 'Vila Balbina';}
+function isAdminUser(){return !!(currentUser?.isAdmin || currentUser?.user_metadata?.isAdmin || currentUser?.canViewAllCities);}
+function allowedCities(){return isAdminUser()?Object.keys(LOCALIDADES):[appUserCity()];}
+function allowedHouses(city){return isAdminUser()?(LOCALIDADES[city]||[]): city===appUserCity()?[appUserHouse()]:[];}
+function fillSelect(el, arr, label){if(!el)return; const cur=el.value; el.innerHTML='<option value="">'+label+'</option>'+arr.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(''); if(arr.includes(cur))el.value=cur;}
+function setupLocationFilters(){fillSelect(document.getElementById('filter-city'),allowedCities(),'Todas as cidades autorizadas'); onCityChange(false);}
+function onCityChange(render=true){const c=document.getElementById('filter-city')?.value||''; fillSelect(document.getElementById('filter-house'), c?allowedHouses(c):[], 'Todas as casas autorizadas'); if(render)applyLocationFilter();}
+function currentFilterCity(){return document.getElementById('filter-city')?.value || '';}
+function currentFilterHouse(){return document.getElementById('filter-house')?.value || '';}
+function itemLocOk(x){x.city=x.city||'TORRINHA SP'; x.house=x.house||'Vila Balbina'; const c=currentFilterCity(), h=currentFilterHouse(); if(!allowedCities().includes(x.city))return false; if(c&&x.city!==c)return false; if(h&&x.house!==h)return false; return true;}
+function applyLocationFilter(){try{renderInicio()}catch(e){} try{renderManut()}catch(e){} try{renderSched()}catch(e){} try{renderRecur()}catch(e){} try{renderStock()}catch(e){} try{renderChat()}catch(e){}}
+
+function populateRegisterCities(){const c=document.getElementById('reg-city'); if(!c)return; c.innerHTML='<option value="">Selecione a cidade</option>'+Object.keys(LOCALIDADES).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join(''); populateRegisterHouses();}
+function populateRegisterHouses(){const city=document.getElementById('reg-city')?.value||''; const h=document.getElementById('reg-house'); if(!h)return; h.innerHTML='<option value="">Selecione a casa de oração</option>'+(LOCALIDADES[city]||[]).map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join('');}
+
+const __loginSuccess = loginSuccess;
+loginSuccess=function(){__loginSuccess(); document.querySelector('.header-text strong').textContent='MANUTENÇÃO'; document.getElementById('header-user').textContent='GESTÃO DAS CASAS DE ORAÇÃO'; setupLocationFilters();};
+
+const __handleRegister = handleRegister;
+handleRegister=function(e){
+  const city=document.getElementById('reg-city')?.value, house=document.getElementById('reg-house')?.value;
+  if(!city||!house){e.preventDefault(); showToast('⚠️ Informe cidade e casa de oração'); return;}
+  __handleRegister(e);
+  if(currentUser){currentUser.city=city; currentUser.house=house; currentUser.allowedCities=[city]; currentUser.allowedHouses={[city]:[house]}; save('ccb_current_user',currentUser); users=users.map(u=>u.id===currentUser.id?currentUser:u); save('ccb_users',users);}
+};
+
+// Filtra módulos por cidade/casa, sem perder os dados originais
+if(typeof renderManut==='function'){const __renderManut=renderManut; renderManut=function(){const all=tasks; tasks=all.filter(itemLocOk); __renderManut(); tasks=all;};}
+if(typeof renderSched==='function'){const __renderSched=renderSched; renderSched=function(){const all=scheds; scheds=all.filter(itemLocOk); __renderSched(); scheds=all;};}
+if(typeof renderRecur==='function'){const __renderRecur=renderRecur; renderRecur=function(){const all=recurs; recurs=all.filter(itemLocOk); __renderRecur(); recurs=all;};}
+if(typeof renderStock==='function'){const __renderStock=renderStock; renderStock=function(){const all=products; products=all.filter(itemLocOk); __renderStock(); products=all;};}
+
+// Salva localidade nos novos cadastros dos módulos
+if(typeof saveTask==='function'){const __saveTask=saveTask; saveTask=function(){const before=tasks.length; __saveTask(); const t=tasks[tasks.length-1]; if(tasks.length>=before&&t){t.city=currentFilterCity()||appUserCity(); t.house=currentFilterHouse()||appUserHouse(); save('ccb_tasks',tasks);}};}
+if(typeof saveSched==='function'){const __saveSched=saveSched; saveSched=function(){const before=scheds.length; __saveSched(); const x=scheds[scheds.length-1]; if(scheds.length>=before&&x){x.city=currentFilterCity()||appUserCity(); x.house=currentFilterHouse()||appUserHouse(); save('ccb_scheds',scheds);}};}
+if(typeof saveRecur==='function'){const __saveRecur=saveRecur; saveRecur=function(){const before=recurs.length; __saveRecur(); const x=recurs[recurs.length-1]; if(recurs.length>=before&&x){x.city=currentFilterCity()||appUserCity(); x.house=currentFilterHouse()||appUserHouse(); save('ccb_recurs',recurs);}};}
+if(typeof saveProduct==='function'){const __saveProduct=saveProduct; saveProduct=function(){const before=products.length; __saveProduct(); const x=products[products.length-1]; if(products.length>=before&&x){x.city=currentFilterCity()||appUserCity(); x.house=currentFilterHouse()||appUserHouse(); save('ccb_products',products);}};}
+
+// Chat: grava e exibe nome real de quem fez login
+sendChat=function(){
+  const inp=document.getElementById('chat-input'); const text=(inp.value||'').trim(); if(!text)return;
+  msgs.push({id:uid(),userId:currentUser?.id||null,sender:appUserName(),senderRole:appUserRole(),type:'text',content:text,text:text,city:currentFilterCity()||appUserCity(),house:currentFilterHouse()||appUserHouse(),time:Date.now()});
+  save('ccb_messages',msgs); save('ccb_msgs',msgs); inp.value=''; renderChat();
+};
+
+try{populateRegisterCities(); setupLocationFilters();}catch(e){}
 
 const saved = load('ccb_current_user', null);
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
