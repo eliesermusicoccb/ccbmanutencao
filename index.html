@@ -1539,6 +1539,47 @@ function toggleMaintenanceFab(){const f=document.getElementById('fab-maintenance
 const __showTabFab = showTab;
 showTab=function(tab){__showTabFab(tab); toggleMaintenanceFab();};
 
+
+// ==== CORREÇÃO: ITEM DE MANUTENÇÃO APARECER APÓS SALVAR ====
+// A causa era o filtro por cidade/casa rodar antes do item receber localidade.
+if(typeof saveTask === 'function'){
+  const __saveTaskShowFix = saveTask;
+  saveTask = function(){
+    const beforeIds = new Set((tasks || []).map(t => String(t.id)));
+    const selectedCity = (typeof currentFilterCity === 'function' && currentFilterCity()) || (typeof appUserCity === 'function' && appUserCity()) || 'TORRINHA SP';
+    const selectedHouse = (typeof currentFilterHouse === 'function' && currentFilterHouse()) || (typeof appUserHouse === 'function' && appUserHouse()) || 'Vila Balbina';
+
+    __saveTaskShowFix();
+
+    let changed = false;
+    (tasks || []).forEach(t => {
+      if(!beforeIds.has(String(t.id)) || !t.city || !t.house){
+        t.city = t.city || selectedCity;
+        t.house = t.house || selectedHouse;
+        changed = true;
+      }
+    });
+
+    if(changed){
+      save('ccb_tasks', tasks);
+    }
+
+    try{ renderManut(); }catch(e){}
+    try{ renderInicio(); }catch(e){}
+    try{ updateBadges(); }catch(e){}
+  };
+}
+
+// Também garante que itens antigos sem localidade apareçam na localidade padrão do usuário.
+if(Array.isArray(tasks)){
+  let normalizedTasks = false;
+  tasks.forEach(t => {
+    if(!t.city){ t.city = (typeof appUserCity === 'function' && appUserCity()) || 'TORRINHA SP'; normalizedTasks = true; }
+    if(!t.house){ t.house = (typeof appUserHouse === 'function' && appUserHouse()) || 'Vila Balbina'; normalizedTasks = true; }
+  });
+  if(normalizedTasks) save('ccb_tasks', tasks);
+}
+
 const saved = load('ccb_current_user', null);
 document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
 try{updateBadges();}catch(e){}
