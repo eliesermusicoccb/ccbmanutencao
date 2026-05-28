@@ -558,6 +558,43 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 .pass-eye{position:absolute!important;right:10px!important;top:50%!important;transform:translateY(-50%)!important;width:28px!important;height:28px!important;min-width:28px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:transparent!important;border:none!important;color:var(--text3)!important;font-size:16px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
 .login-form button:not(.pass-eye){width:100%;padding:11px;background:var(--blue2);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;}
 
+
+/* Chat mais nítido e maior */
+.chat-icon-clear{
+  font-size:24px!important;
+  line-height:1!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.18));
+}
+#tab-chat .ti{
+  font-size:25px!important;
+}
+.header-actions button[onclick="showTab('chat')"]{
+  width:44px!important;
+  height:44px!important;
+  font-size:24px!important;
+}
+
+/* Botão forte para adicionar manutenção */
+.add-maintenance-bar{
+  position:sticky;
+  top:122px;
+  z-index:120;
+  background:var(--bg);
+  padding:4px 0 12px;
+  margin-bottom:6px;
+}
+.add-maintenance-btn{
+  width:100%;
+  min-height:50px;
+  border-radius:16px;
+  font-size:15px;
+  font-weight:800;
+  box-shadow:0 6px 18px rgba(45,82,153,.25);
+}
+
 </style>
 </head>
 <body>
@@ -613,7 +650,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     </div>
     <div class="header-actions">
       <button class="hbtn" id="btn-admin" onclick="showTab('admin')" title="Admin" style="display:none;">⚙️</button>
-      <button class="hbtn" onclick="showTab('chat')">💬<span class="badge-num" id="badge-chat">0</span></button>
+      <button class="hbtn" onclick="showTab('chat')"><span class="chat-icon-clear">🗨️</span><span class="badge-num" id="badge-chat">0</span></button>
       <button class="hbtn" onclick="logout()" title="Sair">🚪</button>
     </div>
   </div>
@@ -629,7 +666,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     <button class="tab-btn" id="tab-stock" onclick="showTab('stock')"><span class="ti">📦</span>Estoque<span class="tab-badge" id="badge-stock" style="display:none">0</span></button>
     <button class="tab-btn" id="tab-notif" onclick="showTab('notif')"><span class="ti">🔔</span>Alertas<span class="tab-badge" id="badge-notif" style="display:none">0</span></button>
 
-    <button class="tab-btn" id="tab-chat" onclick="showTab('chat')"><span class="ti">💬</span>Chat<span class="tab-badge" id="badge-chat-tab" style="display:none">0</span></button>
+    <button class="tab-btn" id="tab-chat" onclick="showTab('chat')"><span class="ti chat-icon-clear">🗨️</span>Chat<span class="tab-badge" id="badge-chat-tab" style="display:none">0</span></button>
     <button class="tab-btn" id="tab-admin" onclick="showTab('admin')" style="display:none;"><span class="ti">⚙️</span>Admin</button>
   </div>
 </div>
