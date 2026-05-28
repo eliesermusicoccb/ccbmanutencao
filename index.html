@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#1a1a2e">
-<title>Gestão do Templo</title>
+<title>TORRINHA SP — Gestão do Templo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
@@ -98,26 +98,20 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 /* ─── LOGIN ─── */
 .login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f1f4a 0%,#1e3a6e 100%);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn 0.3s;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.login-box{background:#fff;border-radius:20px;padding:34px 30px;box-shadow:0 10px 40px rgba(0,0,0,0.25);width:90%;max-width:360px;text-align:center;}
+.login-box{background:#fff;border-radius:20px;padding:40px 30px;box-shadow:0 10px 40px rgba(0,0,0,0.25);width:90%;max-width:320px;text-align:center;}
 .login-logo{width:60px;height:60px;margin:0 auto 20px;border-radius:15px;background:linear-gradient(135deg,#0f1f4a,#1e3a6e);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Lora',serif;font-size:20px;font-weight:700;}
 .login-title{font-family:'Lora',serif;font-size:22px;font-weight:700;margin-bottom:4px;}
 .login-location{font-size:12px;color:var(--text3);margin-bottom:20px;letter-spacing:0.5px;text-transform:uppercase;font-weight:600;}
 .login-sub{font-size:13px;color:var(--text2);margin-bottom:20px;}
 .login-form{display:none;}
 .login-form.active{display:block;}
-.login-form input,.login-form select{width:100%;padding:11px 14px;border:1.5px solid var(--border2);border-radius:var(--r-sm);margin-bottom:12px;font-size:14px;font-family:'Sora',sans-serif;background:#fff;color:var(--text);}
-.login-form input:focus,.login-form select:focus{outline:none;border-color:var(--blue3);}
+.login-form input{width:100%;padding:11px 14px;border:1.5px solid var(--border2);border-radius:var(--r-sm);margin-bottom:12px;font-size:14px;font-family:'Sora',sans-serif;}
+.login-form input:focus{outline:none;border-color:var(--blue3);}
 .pass-toggle{position:relative;margin-bottom:12px;}
-.pass-toggle input{padding-right:44px;width:100%;}
-.pass-toggle .eye-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;padding:0;margin:0;background:transparent!important;border:none!important;box-shadow:none!important;border-radius:50%;cursor:pointer;color:var(--text3);font-size:14px;display:flex;align-items:center;justify-content:center;line-height:1;}
-.login-form button:not(.eye-btn){width:100%;padding:11px;background:var(--blue2);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;}
+.pass-toggle input{padding-right:38px;width:100%;}
+.pass-toggle button{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;}
+.login-form button{width:100%;padding:11px;background:var(--blue2);color:#fff;border:none;border-radius:var(--r-sm);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;}
 .login-form button:active{opacity:0.88;}
-.filter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:14px;box-shadow:var(--shadow);}
-.filter-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.filter-grid select{width:100%;padding:10px 12px;border:1.5px solid var(--border2);border-radius:var(--r-sm);font-family:'Sora',sans-serif;background:#fff;color:var(--text);font-size:13px;}
-.user-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.tag{display:inline-flex;align-items:center;padding:3px 7px;border-radius:99px;background:var(--blue-light);color:var(--blue2);font-size:10px;font-weight:700;margin:5px 4px 0 0;}
-@media(max-width:520px){.filter-grid{grid-template-columns:1fr;}}
 .login-form a{display:block;font-size:12px;color:var(--blue2);text-decoration:none;cursor:pointer;margin-top:12px;font-weight:600;}
 
 /* ─── CHAT ─── */
@@ -167,8 +161,8 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 <div class="login-screen" id="login-screen">
   <div class="login-box">
     <div class="login-logo">🏛</div>
-    <div class="login-title">Gestão do Templo</div>
-    <div class="login-location">Cidade e Casa de Oração</div>
+    <div class="login-title">TORRINHA SP</div>
+    <div class="login-location">Gestão do Templo</div>
     
     <!-- LOGIN FORM -->
     <form class="login-form active" id="login-form" onsubmit="handleLogin(event)">
@@ -176,7 +170,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
       <input type="text" id="login-user" placeholder="Seu nome de usuário" required>
       <div class="pass-toggle">
         <input type="password" id="login-pass" placeholder="Sua senha" required>
-        <button class="eye-btn" type="button" onclick="togglePassVisibility('login-pass')" aria-label="Mostrar senha">👁</button>
+        <button type="button" onclick="togglePassVisibility('login-pass')">👁</button>
       </div>
       <button type="submit">Entrar</button>
       <a onclick="switchToRegister()">Novo por aqui? Registre-se</a>
@@ -189,15 +183,9 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
       <input type="text" id="reg-user" placeholder="Nome de usuário" required>
       <div class="pass-toggle">
         <input type="password" id="reg-pass" placeholder="Crie uma senha" required>
-        <button class="eye-btn" type="button" onclick="togglePassVisibility('reg-pass')" aria-label="Mostrar senha">👁</button>
+        <button type="button" onclick="togglePassVisibility('reg-pass')">👁</button>
       </div>
       <input type="text" id="reg-role" placeholder="Cargo/função" required>
-      <select id="reg-city" required onchange="populateHouseSelect('reg-city','reg-house')">
-        <option value="">Selecione a cidade</option>
-      </select>
-      <select id="reg-house" required>
-        <option value="">Selecione a casa de oração</option>
-      </select>
       <button type="submit">Registrar</button>
       <a onclick="switchToLogin()">Já tem conta? Entrar</a>
     </form>
@@ -212,7 +200,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
     <div class="header-logo">
       <div class="logo-box">🏛</div>
       <div class="header-text">
-        <strong id="header-title">Gestão do Templo</strong>
+        <strong>TORRINHA SP</strong>
         <small id="header-user">Usuário</small>
       </div>
     </div>
@@ -236,13 +224,6 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 <div class="main">
   <!-- INÍCIO -->
   <div class="panel active" id="panel-inicio">
-    <div class="filter-card">
-      <div class="sec-head" style="margin-top:0"><span class="sec-title">Filtro de visualização</span></div>
-      <div class="filter-grid">
-        <select id="filter-city" onchange="onFilterCityChange()"><option value="">Todas as cidades liberadas</option></select>
-        <select id="filter-house" onchange="applyFilters()"><option value="">Todas as casas liberadas</option></select>
-      </div>
-    </div>
     <div class="summary">
       <div class="sum-card"><div class="sum-num" id="sum-obras">0</div><div class="sum-label">Obras</div></div>
       <div class="sum-card"><div class="sum-num" id="sum-users">0</div><div class="sum-label">Usuários</div></div>
@@ -274,8 +255,7 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
   <!-- ADMIN -->
   <div class="panel" id="panel-admin">
     <div style="padding:16px;">
-      <div class="sec-head"><span class="sec-title">Gerenciar Usuários e Acessos</span></div>
-      <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5;">O administrador define se o usuário vê apenas sua casa, toda a cidade ou várias cidades/casas.</p>
+      <div class="sec-head"><span class="sec-title">Gerenciar Usuários</span></div>
       <div id="users-list" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
   </div>
@@ -285,93 +265,11 @@ textarea.form-input{resize:vertical;min-height:80px;line-height:1.5;}
 
 <div id="toast"></div>
 
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ═══════════════════════════════════════════
-// CONFIGURAÇÃO SUPABASE
-// ═══════════════════════════════════════════
-const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 const esc = s => String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const usernameEmail = username => `${String(username).trim().toLowerCase()}@torrinha.local`;
+const uid = () => Date.now() + Math.floor(Math.random()*9999);
+const today = () => new Date().toISOString().split('T')[0];
 const fmtTime = d => new Date(d).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-
-// Cadastre aqui novas cidades e casas de oração. Depois podemos levar isso para tabelas no Supabase.
-const LOCATIONS = {
-  'Torrinha SP': ['Casa de Oração Central', 'Casa de Oração Jardim Paulista', 'Casa de Oração Vila Nova'],
-  'Brotas SP': ['Casa de Oração Central'],
-  'Dois Córregos SP': ['Casa de Oração Central']
-};
-let activeCity = '';
-let activeHouse = '';
-let visibleUsers = [];
-let visibleMsgs = [];
-let visibleObras = [];
-
-function normalizeList(v){ return Array.isArray(v) ? v : (v ? [v] : []); }
-function userScope(u){ return u.scope_type || (u.is_admin ? 'all' : 'house'); }
-function canSeeCity(city){
-  if(!currentUser || !city) return false;
-  if(currentUser.is_admin || userScope(currentUser)==='all') return true;
-  if(userScope(currentUser)==='city') return normalizeList(currentUser.allowed_cities).includes(city) || currentUser.city===city;
-  return currentUser.city===city || normalizeList(currentUser.allowed_cities).includes(city);
-}
-function canSeeHouse(city, house){
-  if(!currentUser) return false;
-  if(currentUser.is_admin || userScope(currentUser)==='all') return true;
-  if(userScope(currentUser)==='city') return canSeeCity(city);
-  return (currentUser.city===city && currentUser.prayer_house===house) || normalizeList(currentUser.allowed_houses).includes(`${city}|${house}`);
-}
-function rowCity(row){ return row.city || row.profile_city || ''; }
-function rowHouse(row){ return row.prayer_house || row.house || row.profile_house || ''; }
-function applyVisibility(){
-  visibleUsers = users.filter(u => canSeeHouse(u.city, u.prayer_house) || canSeeCity(u.city));
-  visibleMsgs = msgs.filter(m => { const u = users.find(x=>x.id===m.user_id); return !u || canSeeHouse(u.city,u.prayer_house) || canSeeCity(u.city); });
-  visibleObras = obras.filter(o => canSeeHouse(rowCity(o), rowHouse(o)) || canSeeCity(rowCity(o)));
-  if(activeCity) {
-    visibleUsers = visibleUsers.filter(u=>u.city===activeCity);
-    visibleMsgs = visibleMsgs.filter(m=>{const u=users.find(x=>x.id===m.user_id); return !u || u.city===activeCity;});
-    visibleObras = visibleObras.filter(o=>rowCity(o)===activeCity);
-  }
-  if(activeHouse) {
-    visibleUsers = visibleUsers.filter(u=>u.prayer_house===activeHouse);
-    visibleMsgs = visibleMsgs.filter(m=>{const u=users.find(x=>x.id===m.user_id); return !u || u.prayer_house===activeHouse;});
-    visibleObras = visibleObras.filter(o=>rowHouse(o)===activeHouse);
-  }
-}
-function populateHouseSelect(cityId, houseId){
-  const city = document.getElementById(cityId)?.value || '';
-  const houseEl = document.getElementById(houseId);
-  if(!houseEl) return;
-  const houses = city ? (LOCATIONS[city]||[]) : [];
-  houseEl.innerHTML = '<option value="">Selecione a casa de oração</option>' + houses.map(h=>`<option value="${esc(h)}">${esc(h)}</option>`).join('');
-}
-function populateLocationSelects(){
-  const regCity = document.getElementById('reg-city');
-  if(regCity && regCity.options.length<=1){
-    regCity.innerHTML = '<option value="">Selecione a cidade</option>' + Object.keys(LOCATIONS).map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  }
-  const fc = document.getElementById('filter-city');
-  if(!fc || !currentUser) return;
-  const allowedCities = Object.keys(LOCATIONS).filter(c=>canSeeCity(c));
-  fc.innerHTML = '<option value="">Todas as cidades liberadas</option>' + allowedCities.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  fc.value = activeCity;
-  updateHouseFilter();
-}
-function updateHouseFilter(){
-  const fh = document.getElementById('filter-house');
-  if(!fh) return;
-  const cities = activeCity ? [activeCity] : Object.keys(LOCATIONS).filter(c=>canSeeCity(c));
-  const houses = [];
-  cities.forEach(c => (LOCATIONS[c]||[]).forEach(h => { if(canSeeHouse(c,h)) houses.push({city:c,house:h}); }));
-  fh.innerHTML = '<option value="">Todas as casas liberadas</option>' + houses.map(x=>`<option value="${esc(x.house)}">${esc(activeCity ? x.house : x.city + ' - ' + x.house)}</option>`).join('');
-  fh.value = activeHouse;
-}
-function onFilterCityChange(){ activeCity = document.getElementById('filter-city').value; activeHouse = ''; updateHouseFilter(); applyFilters(); }
-function applyFilters(){ activeHouse = document.getElementById('filter-house')?.value || ''; applyVisibility(); renderInicio(); if(currentTab==='chat') renderChat(); if(currentTab==='admin') renderAdmin(); }
 
 let toastTimer;
 function showToast(msg, dur=3000) {
@@ -381,123 +279,105 @@ function showToast(msg, dur=3000) {
   toastTimer=setTimeout(()=>t.classList.remove('show'), dur);
 }
 
+function load(key,def){ try{ return JSON.parse(localStorage.getItem(key)||JSON.stringify(def)); }catch(e){ return def; } }
+function save(key,val){ localStorage.setItem(key,JSON.stringify(val)); }
+
+// ═══════════════════════════════════════════
+// USERS & AUTH
+// ═══════════════════════════════════════════
+let users = load('ccb_users',[
+  {id:1,name:'Admin',username:'admin',password:'admin123',role:'Administrador',isAdmin:true,created:today()}
+]);
 let currentUser = null;
-let users = [];
-let msgs = [];
-let obras = [];
+let msgs = load('ccb_messages',[]);
+let obras = load('ccb_obras',[]);
 let audioChunks = [];
 let mediaRecorder = null;
 let isRecording = false;
-let currentTab = 'inicio';
-let msgChannel = null;
 
 function togglePassVisibility(inputId){
   const inp = document.getElementById(inputId);
-  inp.type = inp.type === 'password' ? 'text' : 'password';
+  if(inp.type === 'password'){
+    inp.type = 'text';
+  } else {
+    inp.type = 'password';
+  }
 }
+
 function switchToLogin(){
   document.getElementById('login-form').classList.add('active');
   document.getElementById('register-form').classList.remove('active');
 }
+
 function switchToRegister(){
   document.getElementById('login-form').classList.remove('active');
   document.getElementById('register-form').classList.add('active');
 }
 
-async function refreshData(){
-  const [profilesRes, msgsRes, obrasRes] = await Promise.all([
-    sb.from('profiles').select('*').order('name'),
-    sb.from('messages').select('*').order('created_at', {ascending:true}),
-    sb.from('obras').select('*').order('created_at', {ascending:false})
-  ]);
-  if(profilesRes.error) throw profilesRes.error;
-  if(msgsRes.error) throw msgsRes.error;
-  if(obrasRes.error) throw obrasRes.error;
-  users = profilesRes.data || [];
-  msgs = msgsRes.data || [];
-  obras = obrasRes.data || [];
-  applyVisibility();
-}
-
-async function loadCurrentProfile(sessionUser){
-  const { data, error } = await sb.from('profiles').select('*').eq('id', sessionUser.id).single();
-  if(error) throw error;
-  currentUser = data;
-}
-
-async function handleLogin(e){
+function handleLogin(e){
   e.preventDefault();
-  const user = document.getElementById('login-user').value.trim().toLowerCase();
+  const user = document.getElementById('login-user').value.trim();
   const pass = document.getElementById('login-pass').value.trim();
+  
   if(!user || !pass){ showToast('⚠️ Preencha todos os campos'); return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email: usernameEmail(user), password: pass });
-  if(error){ showToast('❌ Usuário ou senha incorretos'); return; }
-  await loadCurrentProfile(data.user);
-  await loginSuccess();
+  
+  const found = users.find(u=>u.username===user&&u.password===pass);
+  if(!found){ showToast('❌ Usuário ou senha incorretos'); return; }
+  
+  currentUser = found;
+  save('ccb_current_user', currentUser);
+  loginSuccess();
 }
 
-async function handleRegister(e){
+function handleRegister(e){
   e.preventDefault();
   const name = document.getElementById('reg-name').value.trim();
-  const user = document.getElementById('reg-user').value.trim().toLowerCase();
+  const user = document.getElementById('reg-user').value.trim();
   const pass = document.getElementById('reg-pass').value.trim();
   const role = document.getElementById('reg-role').value.trim();
-  const city = document.getElementById('reg-city').value;
-  const prayer_house = document.getElementById('reg-house').value;
-  if(!name||!user||!pass||!role||!city||!prayer_house){ showToast('⚠️ Preencha todos os campos'); return; }
-  if(!/^[a-z0-9._-]{3,30}$/.test(user)){ showToast('⚠️ Use usuário com 3 a 30 letras/números'); return; }
-  const { data, error } = await sb.auth.signUp({
-    email: usernameEmail(user),
-    password: pass,
-    options: { data: { name, username:user, role, city, prayer_house } }
-  });
-  if(error){ showToast('❌ Não foi possível criar usuário'); return; }
-  const { error: profileError } = await sb.from('profiles').insert({
-    id: data.user.id,
-    name,
-    username:user,
-    role,
-    city,
-    prayer_house,
-    scope_type:'house',
-    allowed_cities:[city],
-    allowed_houses:[`${city}|${prayer_house}`],
-    can_edit_locations:false,
-    is_admin:false
-  });
-  if(profileError){ showToast('❌ Usuário criado, mas perfil não gravou'); return; }
-  currentUser = { id:data.user.id, name, username:user, role, city, prayer_house, scope_type:'house', allowed_cities:[city], allowed_houses:[`${city}|${prayer_house}`], can_edit_locations:false, is_admin:false };
+  
+  if(!name||!user||!pass||!role){ showToast('⚠️ Preencha todos os campos'); return; }
+  if(users.find(u=>u.username===user)){ showToast('❌ Este usuário já existe'); return; }
+  
+  const newUser = {
+    id: Math.max(...users.map(u=>u.id||0),0)+1,
+    name,username:user,password:pass,role,
+    isAdmin:false,created:today()
+  };
+  users.push(newUser);
+  save('ccb_users',users);
+  
+  currentUser = newUser;
+  save('ccb_current_user', currentUser);
   showToast('✅ Usuário criado com sucesso!');
-  await loginSuccess();
+  loginSuccess();
 }
 
-async function loginSuccess(){
-  await refreshData();
+function loginSuccess(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-interface').style.display='block';
-  document.getElementById('header-user').textContent=currentUser.name+' · '+(currentUser.city||'')+' · '+(currentUser.prayer_house||currentUser.role||'');
-  document.getElementById('header-title').textContent = activeCity || currentUser.city || 'Gestão do Templo';
-  populateLocationSelects();
-  document.getElementById('btn-admin').style.display=currentUser.is_admin?'flex':'none';
-  document.getElementById('tab-admin').style.display=currentUser.is_admin?'flex':'none';
-  setupRealtime();
+  document.getElementById('header-user').textContent=currentUser.name+' ('+currentUser.role+')';
+  if(currentUser.isAdmin) document.getElementById('btn-admin').style.display='flex';
   showTab('inicio');
+  renderInicio();
 }
 
-async function logout(){
+function logout(){
   if(!confirm('Sair da conta?')) return;
-  await sb.auth.signOut();
   currentUser = null;
-  if(msgChannel) sb.removeChannel(msgChannel);
+  localStorage.removeItem('ccb_current_user');
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app-interface').style.display='none';
   document.getElementById('login-user').value='';
   document.getElementById('login-pass').value='';
   document.getElementById('btn-admin').style.display='none';
-  document.getElementById('tab-admin').style.display='none';
   showToast('👋 Desconectado');
 }
 
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+let currentTab = 'inicio';
 function showTab(tab) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
@@ -511,160 +391,219 @@ function showTab(tab) {
   if(tab==='admin') renderAdmin();
 }
 
+// ═══════════════════════════════════════════
+// INÍCIO
+// ═══════════════════════════════════════════
 function renderInicio(){
-  applyVisibility();
-  populateLocationSelects();
-  document.getElementById('header-title').textContent = activeCity || currentUser.city || 'Gestão do Templo';
-  document.getElementById('sum-obras').textContent = visibleObras.length;
-  document.getElementById('sum-users').textContent = visibleUsers.length;
-  document.getElementById('sum-msgs').textContent = visibleMsgs.length;
-  document.getElementById('home-content').innerHTML = `👋 Bem-vindo(a), <strong>${esc(currentUser.name)}</strong>!<br>
+  document.getElementById('sum-obras').textContent = obras.length;
+  document.getElementById('sum-users').textContent = users.length;
+  document.getElementById('sum-msgs').textContent = msgs.length;
+  
+  const welcome = `👋 Bem-vindo(a), <strong>${esc(currentUser.name)}</strong>!<br>
     <small style="color:var(--text3);display:block;margin-top:8px;">Você está logado como <strong>${esc(currentUser.role)}</strong><br>
-    Cidade: <strong>${esc(currentUser.city||'-')}</strong><br>Casa de oração: <strong>${esc(currentUser.prayer_house||'-')}</strong><br>
-    Dados filtrados conforme sua autorização</small>`;
+    Última atualização: ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</small>`;
+  document.getElementById('home-content').innerHTML = welcome;
 }
 
+// ═══════════════════════════════════════════
+// CHAT
+// ═══════════════════════════════════════════
 function renderChat(){
   const el = document.getElementById('chat-messages');
   if(!el) return;
-  applyVisibility();
-  const sorted = [...visibleMsgs].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  
+  const sorted = [...msgs].sort((a,b)=>a.time-b.time);
   let lastDay = '', html = '';
+  
   sorted.forEach(m=>{
-    const d = new Date(m.created_at);
+    const d = new Date(m.time);
     const day = d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'short'});
     if(day !== lastDay){ html += `<div class="chat-day-sep"><span>${day}</span></div>`; lastDay = day; }
-    const mine = m.user_id === currentUser.id;
-    const timeStr = fmtTime(m.created_at);
-    const sender = users.find(u=>u.id===m.user_id)?.name||'Desconhecido';
+    
+    const mine = m.userId === currentUser.id;
+    const timeStr = fmtTime(m.time);
+    const sender = users.find(u=>u.id===m.userId)?.name||'Desconhecido';
+    
     let bubble = '';
     if(m.type==='text'){
-      bubble = `<div class="chat-bubble">${!mine?`<div class="chat-sender">${esc(sender)}</div>`:''}<div class="chat-text">${esc(m.content)}</div><div class="chat-time">${timeStr}</div></div>`;
-    } else {
-      bubble = `<div class="chat-bubble">${!mine?`<div class="chat-sender">${esc(sender)}</div>`:''}<div class="audio-msg"><button class="audio-play" onclick="playAudio('${m.id}')" type="button">▶</button><div class="audio-info"><div style="font-size:11px;font-weight:700;">🎙 Áudio</div><div class="audio-duration">${esc(m.duration||'0:00')}</div></div></div><div class="chat-time">${timeStr}</div></div>`;
+      bubble = `<div class="chat-bubble">
+        ${!mine?`<div class="chat-sender">${esc(sender)}</div>`:''}
+        <div class="chat-text">${esc(m.content)}</div>
+        <div class="chat-time">${timeStr}</div>
+      </div>`;
+    } else if(m.type==='audio'){
+      const duration = m.duration||'0:00';
+      bubble = `<div class="chat-bubble">
+        ${!mine?`<div class="chat-sender">${esc(sender)}</div>`:''}
+        <div class="audio-msg">
+          <button class="audio-play" onclick="playAudio('${m.audioId}')" type="button">▶</button>
+          <div class="audio-info">
+            <div style="font-size:11px;font-weight:700;">🎙 Áudio</div>
+            <div class="audio-duration">${duration}</div>
+          </div>
+        </div>
+        <div class="chat-time">${timeStr}</div>
+      </div>`;
     }
-    html += `<div class="chat-msg ${mine?'mine':''}">${!mine?`<div class="chat-avatar">${esc(sender[0]?.toUpperCase()||'?')}</div>`:''}${bubble}</div>`;
+    
+    html += `<div class="chat-msg ${mine?'mine':''}">
+      ${!mine?`<div class="chat-avatar">${sender[0]?.toUpperCase()}</div>`:''}
+      ${bubble}
+    </div>`;
   });
+  
   el.innerHTML = html || '<div class="empty" style="padding:30px"><p>Nenhuma mensagem ainda.</p></div>';
   setTimeout(()=>el.scrollTop=el.scrollHeight, 50);
 }
 
-async function sendChat(){
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
+function sendChat(){
+  const text = document.getElementById('chat-input').value.trim();
   if(!text) return;
-  const { error } = await sb.from('messages').insert({ user_id:currentUser.id, type:'text', content:text, city:currentUser.city, prayer_house:currentUser.prayer_house });
-  if(error){ showToast('❌ Erro ao enviar'); return; }
-  input.value='';
-  await refreshData();
+  
+  msgs.push({
+    id:uid(),
+    userId:currentUser.id,
+    type:'text',
+    content:text,
+    time:Date.now()
+  });
+  
+  save('ccb_messages',msgs);
+  document.getElementById('chat-input').value='';
   renderChat();
-  renderInicio();
 }
 
-function setupRealtime(){
-  if(msgChannel) sb.removeChannel(msgChannel);
-  msgChannel = sb.channel('torrinha_realtime')
-    .on('postgres_changes', { event:'*', schema:'public', table:'messages' }, async () => { await refreshData(); if(currentTab==='chat') renderChat(); renderInicio(); })
-    .on('postgres_changes', { event:'*', schema:'public', table:'profiles' }, async () => { await refreshData(); if(currentTab==='admin') renderAdmin(); renderInicio(); })
-    .subscribe();
-}
-
+// ─── AUDIO RECORDING ───
 function toggleAudioRecord(){
   const btn = document.getElementById('audio-btn');
-  if(!isRecording){ startAudioRecord(); btn.classList.add('recording'); btn.textContent='⏹'; }
-  else { stopAudioRecord(); btn.classList.remove('recording'); btn.textContent='🎤'; }
+  
+  if(!isRecording){
+    startAudioRecord();
+    btn.classList.add('recording');
+    btn.textContent = '⏹';
+  } else {
+    stopAudioRecord();
+    btn.classList.remove('recording');
+    btn.textContent = '🎤';
+  }
 }
+
 async function startAudioRecord(){
   try {
     const stream = await navigator.mediaDevices.getUserMedia({audio:true});
     mediaRecorder = new MediaRecorder(stream);
     audioChunks = [];
+    
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.onstop = () => finishAudioRecord(stream);
+    
     mediaRecorder.start();
     isRecording = true;
     showToast('🎙 Gravando...');
-  } catch(err){ showToast('❌ Microfone não disponível'); }
+  } catch(err){
+    showToast('❌ Microfone não disponível');
+  }
 }
-function stopAudioRecord(){ if(mediaRecorder) mediaRecorder.stop(); isRecording = false; }
+
+function stopAudioRecord(){
+  if(mediaRecorder) mediaRecorder.stop();
+  isRecording = false;
+}
+
 function finishAudioRecord(stream){
   stream.getTracks().forEach(t=>t.stop());
-  const blob = new Blob(audioChunks, {type:'audio/webm'});
+  
+  const blob = new Blob(audioChunks, {type:'audio/wav'});
   const reader = new FileReader();
-  reader.onload = async e => {
+  
+  reader.onload = e => {
+    const audioData = e.target.result;
     const duration = '0:' + Math.ceil(audioChunks.length/10).toString().padStart(2,'0');
-    const { error } = await sb.from('messages').insert({ user_id:currentUser.id, type:'audio', audio_data:e.target.result, duration, city:currentUser.city, prayer_house:currentUser.prayer_house });
-    if(error){ showToast('❌ Erro ao salvar áudio'); return; }
-    await refreshData(); renderChat(); renderInicio(); showToast('✅ Áudio enviado');
+    
+    msgs.push({
+      id:uid(),
+      userId:currentUser.id,
+      type:'audio',
+      audioId:'audio_'+uid(),
+      audioData,
+      duration,
+      time:Date.now()
+    });
+    
+    save('ccb_messages',msgs);
+    renderChat();
+    showToast('✅ Áudio enviado');
   };
+  
   reader.readAsDataURL(blob);
 }
-function playAudio(id){
-  const msg = msgs.find(m=>m.id===id);
-  if(!msg || !msg.audio_data) return;
-  new Audio(msg.audio_data).play().catch(e=>console.error('Erro ao reproduzir:',e));
+
+function playAudio(audioId){
+  const msg = msgs.find(m=>m.audioId===audioId);
+  if(!msg || !msg.audioData) return;
+  
+  const audio = new Audio(msg.audioData);
+  audio.play().catch(e=>console.error('Erro ao reproduzir:',e));
 }
 
+// ═══════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════
 function renderAdmin(){
-  if(!currentUser.is_admin && !currentUser.can_edit_locations){ showToast('❌ Acesso negado'); showTab('inicio'); return; }
-  applyVisibility();
+  if(!currentUser.isAdmin){ showToast('❌ Acesso negado'); showTab('inicio'); return; }
+  
   const el = document.getElementById('users-list');
-  const list = currentUser.is_admin ? users : visibleUsers;
-  el.innerHTML = list.map(u=>`
-    <div class="user-card">
+  el.innerHTML = users.map(u=>`
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;">
       <div style="flex:1;">
-        <div style="font-size:14px;font-weight:700;">${esc(u.name)} ${u.is_admin?'👑':''}</div>
-        <div style="font-size:12px;color:var(--text3);margin-top:3px;">@${esc(u.username)} · ${esc(u.role)}</div>
-        <div class="tag">${esc(u.city||'Sem cidade')}</div><div class="tag">${esc(u.prayer_house||'Sem casa')}</div><div class="tag">Acesso: ${esc(userScope(u))}</div>
+        <div style="font-size:14px;font-weight:700;">${esc(u.name)}</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:3px;">@${esc(u.username)} · ${esc(u.role)} ${u.isAdmin?'👑':''}</div>
       </div>
       <div style="display:flex;gap:6px;">
-        <button class="btn btn-secondary btn-sm" onclick="editUser('${u.id}')" type="button">✏️</button>
-        ${u.id!==currentUser.id && currentUser.is_admin?`<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')" type="button">🗑️</button>`:''}
+        <button class="btn btn-secondary btn-sm" onclick="editUser(${u.id})" type="button">✏️</button>
+        ${u.id!==currentUser.id?`<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})" type="button">🗑️</button>`:''}
       </div>
-    </div>`).join('');
-}
-async function editUser(id){
-  const u = users.find(x=>x.id===id); if(!u) return;
-  const newRole = prompt('Cargo/função:', u.role || '') || u.role;
-  const city = prompt('Cidade principal:', u.city || currentUser.city || 'Torrinha SP') || u.city;
-  const prayer_house = prompt('Casa de oração principal:', u.prayer_house || '') || u.prayer_house;
-  const scope = prompt('Nível de acesso: house = só casa | city = cidade | multi = várias cidades/casas | all = tudo', userScope(u)) || userScope(u);
-  let allowed_cities = normalizeList(u.allowed_cities);
-  let allowed_houses = normalizeList(u.allowed_houses);
-  if(scope === 'house') { allowed_cities = [city]; allowed_houses = [`${city}|${prayer_house}`]; }
-  if(scope === 'city') { allowed_cities = [city]; allowed_houses = []; }
-  if(scope === 'multi') {
-    const citiesTxt = prompt('Cidades liberadas, separadas por vírgula:', allowed_cities.join(', ') || city) || city;
-    allowed_cities = citiesTxt.split(',').map(s=>s.trim()).filter(Boolean);
-    const housesTxt = prompt('Casas liberadas no formato Cidade|Casa, separadas por vírgula:', allowed_houses.join(', ')) || '';
-    allowed_houses = housesTxt.split(',').map(s=>s.trim()).filter(Boolean);
-  }
-  if(scope === 'all') { allowed_cities = Object.keys(LOCATIONS); allowed_houses = []; }
-  const makeAdmin = currentUser.is_admin ? confirm('Este usuário deve ser administrador? OK = sim / Cancelar = não') : !!u.is_admin;
-  const canEdit = currentUser.is_admin ? confirm('Pode editar cidade/casa/acessos? OK = sim / Cancelar = não') : !!u.can_edit_locations;
-  const { error } = await sb.from('profiles').update({ role:newRole, city, prayer_house, scope_type:scope, allowed_cities, allowed_houses, is_admin:makeAdmin, can_edit_locations:canEdit }).eq('id', id);
-  if(error){ showToast('❌ Erro ao atualizar. Verifique se rodou o SQL novo.'); return; }
-  await refreshData(); populateLocationSelects(); renderAdmin(); renderInicio(); showToast('✅ Usuário atualizado');
-}
-async function deleteUser(id){
-  if(!confirm('Remover este usuário do app?')) return;
-  const { error } = await sb.from('profiles').delete().eq('id', id);
-  if(error){ showToast('❌ Erro ao remover'); return; }
-  await refreshData(); renderAdmin(); renderInicio(); showToast('🗑️ Usuário removido');
+    </div>
+  `).join('');
 }
 
-(async function init(){
-  populateLocationSelects();
-  if(SUPABASE_URL.includes('COLE_AQUI') || SUPABASE_ANON_KEY.includes('COLE_AQUI')){
-    showToast('⚠️ Configure Supabase URL e anon key no index.html', 6000);
-    return;
-  }
-  const { data } = await sb.auth.getSession();
-  if(data.session?.user){
-    try { await loadCurrentProfile(data.session.user); await loginSuccess(); }
-    catch(e){ console.error(e); await sb.auth.signOut(); }
-  }
-})();
+function editUser(id){
+  const u = users.find(x=>x.id===id);
+  if(!u) return;
+  
+  const newRole = prompt('Novo cargo:', u.role);
+  if(!newRole) return;
+  
+  u.role = newRole;
+  save('ccb_users',users);
+  renderAdmin();
+  showToast('✅ Usuário atualizado');
+}
+
+function deleteUser(id){
+  if(!confirm('Remover este usuário?')) return;
+  users = users.filter(u=>u.id!==id);
+  save('ccb_users',users);
+  renderAdmin();
+  showToast('🗑️ Usuário removido');
+}
+
+// ─── INIT ───
+const saved = load('ccb_current_user', null);
+if(saved){
+  currentUser = saved;
+  loginSuccess();
+}
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+console.log('Supabase conectado');
+</script>
+
 </body>
 </html>
