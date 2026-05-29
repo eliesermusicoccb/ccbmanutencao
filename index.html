@@ -6,14 +6,10 @@
     <title>Manutenção CCB</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --primary: #2c3e50;
-            --accent: #25D366; /* verde WhatsApp */
+            --accent: #25D366;
             --danger: #e74c3c;
             --success: #2ecc71;
             --bg: #f0f2f5;
@@ -24,192 +20,78 @@
             --shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
             padding-bottom: 70px;
         }
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+        .container { max-width: 700px; margin: 0 auto; padding: 16px; }
         .bottom-menu {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--white);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 0;
-            border-top: 1px solid var(--border);
-            z-index: 1000;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--white); display: flex; justify-content: space-around;
+            padding: 8px 0; border-top: 1px solid var(--border); z-index: 1000;
         }
         .menu-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: none;
-            border: none;
-            font-size: 12px;
-            color: #666;
-            cursor: pointer;
-            gap: 4px;
+            display: flex; flex-direction: column; align-items: center;
+            background: none; border: none; font-size: 12px; color: #666;
+            cursor: pointer; gap: 4px;
         }
-        .menu-item.active {
-            color: var(--accent);
-            font-weight: bold;
-        }
-        .menu-item span:first-child {
-            font-size: 24px;
-        }
+        .menu-item.active { color: var(--accent); font-weight: bold; }
+        .menu-item span:first-child { font-size: 24px; }
         .card {
-            background: var(--white);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
+            background: var(--white); border-radius: var(--radius);
+            padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
         }
         .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 30px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: 0.2s;
+            display: inline-block; padding: 10px 20px; border: none;
+            border-radius: 30px; font-size: 14px; cursor: pointer;
         }
-        .btn-primary {
-            background: var(--accent);
-            color: white;
-        }
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-        .btn-outline {
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
         input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
+            width: 100%; padding: 12px; margin: 8px 0 16px;
+            border: 1px solid var(--border); border-radius: 8px; font-size: 16px;
         }
-        label {
-            font-weight: 600;
-            display: block;
-            margin-top: 12px;
-        }
-        .hidden {
-            display: none !important;
-        }
+        label { font-weight: 600; display: block; margin-top: 12px; }
+        .hidden { display: none !important; }
         #login-screen {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: var(--bg);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; background: var(--bg);
         }
         .login-box {
-            background: white;
-            padding: 32px;
-            border-radius: var(--radius);
-            width: 100%;
-            max-width: 380px;
-            box-shadow: var(--shadow);
+            background: white; padding: 32px; border-radius: var(--radius);
+            width: 100%; max-width: 380px; box-shadow: var(--shadow);
         }
         .toast {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 30px;
-            z-index: 2000;
-            font-size: 14px;
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px;
+            border-radius: 30px; z-index: 2000; font-size: 14px;
         }
-        /* Chat */
         .chat-messages {
-            height: 60vh;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 8px;
-            background: #e5ddd5;
-            border-radius: 12px;
+            height: 60vh; overflow-y: auto; display: flex; flex-direction: column;
+            gap: 8px; padding: 8px; background: #e5ddd5; border-radius: 12px;
         }
         .message {
-            max-width: 80%;
-            padding: 8px 12px;
-            border-radius: 18px;
-            position: relative;
-            word-wrap: break-word;
+            max-width: 80%; padding: 8px 12px; border-radius: 18px;
+            position: relative; word-wrap: break-word;
         }
-        .message-sent {
-            background: #dcf8c5;
-            align-self: flex-end;
-        }
-        .message-received {
-            background: white;
-            align-self: flex-start;
-        }
+        .message-sent { background: #dcf8c5; align-self: flex-end; }
+        .message-received { background: white; align-self: flex-start; }
         .message-info {
-            font-size: 10px;
-            color: #666;
-            display: flex;
-            justify-content: space-between;
-            margin-top: 4px;
-            gap: 12px;
+            font-size: 10px; color: #666; display: flex;
+            justify-content: space-between; margin-top: 4px; gap: 12px;
         }
-        .message-media {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 12px;
-            margin-top: 4px;
-        }
-        .delete-msg {
-            font-size: 10px;
-            color: red;
-            cursor: pointer;
-            margin-left: 8px;
-        }
+        .message-media { max-width: 200px; max-height: 200px; border-radius: 12px; margin-top: 4px; }
+        .delete-msg { font-size: 10px; color: red; cursor: pointer; margin-left: 8px; }
         .chat-input-area {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            align-items: center;
-            background: white;
-            padding: 8px;
-            border-radius: 30px;
+            display: flex; gap: 8px; margin-top: 12px; align-items: center;
+            background: white; padding: 8px; border-radius: 30px;
         }
-        .chat-input-area input {
-            flex: 1;
-            margin: 0;
-            border: none;
-            outline: none;
-        }
-        .file-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        .file-buttons button {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-        }
-        @media (max-width: 600px) {
-            .message { max-width: 90%; }
-        }
+        .chat-input-area input { flex: 1; margin: 0; border: none; outline: none; }
+        .file-buttons { display: flex; gap: 8px; }
+        .file-buttons button { background: none; border: none; font-size: 24px; cursor: pointer; }
+        @media (max-width: 600px) { .message { max-width: 90%; } }
     </style>
 </head>
 <body>
@@ -219,7 +101,7 @@
         <h1>🔧 Manutenção CCB</h1>
         <form id="login-form">
             <label>Usuário</label>
-            <input type="text" id="username" placeholder="ex: elieser" required>
+            <input type="text" id="username" placeholder="ex: admin" required>
             <div style="font-size:12px; color:#888;">@ccbtorrinha.com.br será adicionado</div>
             <label>Senha</label>
             <input type="password" id="password" required>
@@ -246,9 +128,9 @@
     const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
     const DOMAIN = '@ccbtorrinha.com.br';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;      // perfil do usuário logado
+    let currentUser = null;
     let currentPage = 'dashboard';
     let chatSubscription = null;
 
@@ -260,7 +142,6 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
-
     function formatDateTime(date) {
         return new Date(date).toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short' });
     }
@@ -268,21 +149,19 @@
     // ==================== AUTENTICAÇÃO ====================
     async function login(username, password) {
         const email = username.trim().toLowerCase() + DOMAIN;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data;
     }
-
     async function logout() {
-        await supabase.auth.signOut();
+        await supabaseClient.auth.signOut();
         currentUser = null;
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('app-screen').classList.add('hidden');
         if (chatSubscription) chatSubscription.unsubscribe();
     }
-
     async function loadUserProfile(userId) {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('profiles')
             .select('*, cities(id, name), houses(id, name)')
             .eq('id', userId)
@@ -296,14 +175,13 @@
         if (!currentUser) return {};
         if (currentUser.permission_level === 'house') return { house_id: currentUser.house_id, city_id: currentUser.city_id };
         if (currentUser.permission_level === 'city') return { city_id: currentUser.city_id };
-        return {}; // all
+        return {};
     }
-
     function isAdmin() {
         return currentUser?.role === 'Administrador';
     }
 
-    // ==================== RENDERIZAÇÃO DINÂMICA ====================
+    // ==================== RENDERIZAÇÃO ====================
     async function navigateTo(page) {
         currentPage = page;
         document.querySelectorAll('.menu-item').forEach(btn => {
@@ -324,8 +202,8 @@
 
     async function renderDashboard(container) {
         const filter = getVisibilityFilter();
-        const { count: pendingIssues } = await supabase.from('issues').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
-        const { count: activeTasks } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
+        const { count: pendingIssues } = await supabaseClient.from('issues').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
+        const { count: activeTasks } = await supabaseClient.from('tasks').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
         container.innerHTML = `
             <div class="card">
                 <h2>Olá, ${currentUser.full_name || currentUser.username}</h2>
@@ -341,7 +219,7 @@
 
     async function renderIssues(container) {
         const filter = getVisibilityFilter();
-        const { data: issues } = await supabase.from('issues').select('*').match(filter).order('created_at', { ascending: false });
+        const { data: issues } = await supabaseClient.from('issues').select('*').match(filter).order('created_at', { ascending: false });
         container.innerHTML = `
             <h2>📋 Pendências</h2>
             <button class="btn btn-primary" onclick="showNewIssueForm()">+ Nova Pendência</button>
@@ -360,7 +238,6 @@
     }
 
     window.showNewIssueForm = () => {
-        const filter = getVisibilityFilter();
         const html = `
             <div class="card">
                 <h3>Nova Pendência</h3>
@@ -370,14 +247,12 @@
                     <option>baixa</option><option>média</option><option>alta</option><option>urgente</option>
                 </select>
                 <button class="btn btn-primary" onclick="createIssue()">Salvar</button>
-                <button class="btn" onclick="document.querySelector('#new-issue-form').remove()">Cancelar</button>
+                <button class="btn" onclick="this.closest('.card').remove()">Cancelar</button>
             </div>
         `;
-        const div = document.createElement('div');
-        div.id = 'new-issue-form';
-        div.innerHTML = html;
-        document.getElementById('issues-list').prepend(div);
+        document.getElementById('issues-list').prepend(createElementFromHTML(html));
     };
+    function createElementFromHTML(html) { const div = document.createElement('div'); div.innerHTML = html; return div.firstChild; }
 
     window.createIssue = async () => {
         const title = document.getElementById('issue-title').value;
@@ -385,7 +260,7 @@
         const priority = document.getElementById('issue-priority').value;
         if (!title) return showToast('Título obrigatório');
         const filter = getVisibilityFilter();
-        const { error } = await supabase.from('issues').insert({
+        const { error } = await supabaseClient.from('issues').insert({
             title, description: desc, priority,
             city_id: filter.city_id || currentUser.city_id,
             house_id: filter.house_id || currentUser.house_id,
@@ -397,10 +272,8 @@
     };
 
     window.convertToTask = async (issueId) => {
-        // Buscar issue
-        const { data: issue } = await supabase.from('issues').select('*').eq('id', issueId).single();
+        const { data: issue } = await supabaseClient.from('issues').select('*').eq('id', issueId).single();
         if(!issue) return;
-        // Formulário para criar tarefa
         const html = `
             <div class="card" id="task-form-card">
                 <h3>Criar Tarefa para: ${issue.title}</h3>
@@ -413,10 +286,9 @@
                 <button class="btn" onclick="document.getElementById('task-form-card').remove()">Cancelar</button>
             </div>
         `;
-        document.getElementById('issues-list').prepend(html);
-        // Carregar usuários da mesma cidade/casa para responsável
+        document.getElementById('issues-list').prepend(createElementFromHTML(html));
         const filter = getVisibilityFilter();
-        const { data: users } = await supabase.from('profiles').select('id, full_name').match(filter);
+        const { data: users } = await supabaseClient.from('profiles').select('id, full_name').match(filter);
         const select = document.getElementById('responsible');
         users.forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
     };
@@ -427,7 +299,7 @@
         const responsible = document.getElementById('responsible').value;
         const materialsText = document.getElementById('materials-list').value;
         const filter = getVisibilityFilter();
-        const { data: task, error } = await supabase.from('tasks').insert({
+        const { data: task, error } = await supabaseClient.from('tasks').insert({
             issue_id: issueId,
             title: `Tarefa da pendência #${issueId}`,
             start_date: start, end_date: end,
@@ -437,12 +309,11 @@
             house_id: filter.house_id || currentUser.house_id
         }).select().single();
         if (error) return showToast('Erro: '+error.message);
-        // Adicionar materiais
         const lines = materialsText.split('\n');
         for (let line of lines) {
             if (line.trim()) {
                 let [name, qty] = line.split(',');
-                await supabase.from('task_materials').insert({
+                await supabaseClient.from('task_materials').insert({
                     task_id: task.id,
                     material_name: name.trim(),
                     quantity_needed: parseFloat(qty) || 0,
@@ -456,7 +327,7 @@
 
     async function renderTasks(container) {
         const filter = getVisibilityFilter();
-        const { data: tasks } = await supabase.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
+        const { data: tasks } = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
         container.innerHTML = `<h2>📅 Cronograma de Tarefas</h2><div id="tasks-list"></div>`;
         const listDiv = document.getElementById('tasks-list');
         if (!tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
@@ -473,24 +344,24 @@
     }
 
     window.showTaskMaterials = async (taskId) => {
-        const { data: mats } = await supabase.from('task_materials').select('*').eq('task_id', taskId);
+        const { data: mats } = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
         let html = '<div class="card"><h4>Materiais Necessários</h4><ul>';
         mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
         html += '</ul><button class="btn" onclick="this.parentElement.remove()">Fechar</button></div>';
-        document.getElementById('tasks-list').prepend(html);
+        document.getElementById('tasks-list').prepend(createElementFromHTML(html));
     };
 
     window.updateTaskProgress = async (taskId) => {
         const newProgress = prompt('Novo progresso (0-100):', '50');
         if (newProgress !== null) {
-            await supabase.from('tasks').update({ progress: parseInt(newProgress), status: parseInt(newProgress) === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
+            await supabaseClient.from('tasks').update({ progress: parseInt(newProgress), status: parseInt(newProgress) === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
             navigateTo('tasks');
         }
     };
 
     async function renderStock(container) {
         const filter = getVisibilityFilter();
-        const { data: stock } = await supabase.from('stock_items').select('*').match(filter);
+        const { data: stock } = await supabaseClient.from('stock_items').select('*').match(filter);
         container.innerHTML = `<h2>📦 Estoque</h2><div id="stock-list"></div>`;
         const listDiv = document.getElementById('stock-list');
         if (!stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
@@ -505,18 +376,16 @@
 
     window.updateStock = async (id) => {
         const qty = prompt('Nova quantidade:');
-        if (qty) await supabase.from('stock_items').update({ quantity: parseFloat(qty), last_updated: new Date() }).eq('id', id);
+        if (qty) await supabaseClient.from('stock_items').update({ quantity: parseFloat(qty), last_updated: new Date() }).eq('id', id);
         navigateTo('stock');
     };
 
-    // ==================== CHAT COMPLETO ====================
+    // ==================== CHAT ====================
     async function renderChat(container) {
         container.innerHTML = `
             <div style="display:flex; justify-content:space-between;">
                 <h2>💬 Chat</h2>
-                <select id="chat-filter" style="width:auto;">
-                    <option value="all">Todas mensagens</option>
-                </select>
+                <select id="chat-filter" style="width:auto;"><option value="all">Todas mensagens</option></select>
             </div>
             <div id="chat-messages" class="chat-messages"></div>
             <div class="chat-input-area">
@@ -538,7 +407,7 @@
 
     async function loadChatMessages() {
         const filter = getVisibilityFilter();
-        let query = supabase.from('chat_messages').select('*, sender:sender_id(full_name, username)').eq('is_deleted', false);
+        let query = supabaseClient.from('chat_messages').select('*, sender:sender_id(full_name, username)').eq('is_deleted', false);
         if (filter.house_id) query = query.eq('house_id', filter.house_id);
         else if (filter.city_id) query = query.eq('city_id', filter.city_id);
         const { data } = await query.order('created_at', { ascending: true });
@@ -566,11 +435,10 @@
             container.appendChild(div);
         });
         container.scrollTop = container.scrollHeight;
-        // adicionar eventos de deletar
         document.querySelectorAll('.delete-msg').forEach(el => {
             el.addEventListener('click', async (e) => {
                 const id = el.dataset.id;
-                await supabase.from('chat_messages').update({ is_deleted: true }).eq('id', id);
+                await supabaseClient.from('chat_messages').update({ is_deleted: true }).eq('id', id);
                 loadChatMessages();
             });
         });
@@ -582,7 +450,7 @@
         let channelFilter = {};
         if (filter.house_id) channelFilter = { house_id: filter.house_id };
         else if (filter.city_id) channelFilter = { city_id: filter.city_id };
-        chatSubscription = supabase
+        chatSubscription = supabaseClient
             .channel('chat-room')
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
             .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
@@ -597,7 +465,7 @@
 
         const sendMessage = async (text, mediaUrl = null, mediaType = null) => {
             const filter = getVisibilityFilter();
-            const { error } = await supabase.from('chat_messages').insert({
+            const { error } = await supabaseClient.from('chat_messages').insert({
                 sender_id: currentUser.id,
                 city_id: filter.city_id || null,
                 house_id: filter.house_id || null,
@@ -608,28 +476,23 @@
             if (error) showToast('Erro ao enviar: '+error.message);
             else input.value = '';
         };
-
         sendBtn.onclick = () => { if (input.value.trim()) sendMessage(input.value.trim()); };
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(input.value.trim()); });
 
-        const attachFile = (accept, mediaType) => {
-            fileInput.accept = accept;
-            currentMediaType = mediaType;
-            fileInput.click();
-        };
-        document.getElementById('attach-image').onclick = () => attachFile('image/*', 'image');
-        document.getElementById('attach-video').onclick = () => attachFile('video/*', 'video');
-        document.getElementById('attach-audio').onclick = () => attachFile('audio/*', 'audio');
-        document.getElementById('attach-pdf').onclick = () => attachFile('application/pdf', 'pdf');
+        const attach = (accept, type) => { fileInput.accept = accept; currentMediaType = type; fileInput.click(); };
+        document.getElementById('attach-image').onclick = () => attach('image/*', 'image');
+        document.getElementById('attach-video').onclick = () => attach('video/*', 'video');
+        document.getElementById('attach-audio').onclick = () => attach('audio/*', 'audio');
+        document.getElementById('attach-pdf').onclick = () => attach('application/pdf', 'pdf');
 
         fileInput.onchange = async () => {
             const file = fileInput.files[0];
             if (!file) return;
             const ext = file.name.split('.').pop();
             const filePath = `chat/${currentUser.id}_${Date.now()}.${ext}`;
-            const { error: uploadError } = await supabase.storage.from('chat_media').upload(filePath, file);
+            const { error: uploadError } = await supabaseClient.storage.from('chat_media').upload(filePath, file);
             if (uploadError) return showToast('Erro upload: '+uploadError.message);
-            const { data: { publicUrl } } = supabase.storage.from('chat_media').getPublicUrl(filePath);
+            const { data: { publicUrl } } = supabaseClient.storage.from('chat_media').getPublicUrl(filePath);
             sendMessage(null, publicUrl, currentMediaType);
             fileInput.value = '';
         };
@@ -637,9 +500,9 @@
 
     // ==================== ADMIN ====================
     async function renderAdmin(container) {
-        const { data: cities } = await supabase.from('cities').select('*');
-        const { data: houses } = await supabase.from('houses').select('*, cities(name)');
-        const { data: users } = await supabase.from('profiles').select('*');
+        const { data: cities } = await supabaseClient.from('cities').select('*');
+        const { data: houses } = await supabaseClient.from('houses').select('*, cities(name)');
+        const { data: users } = await supabaseClient.from('profiles').select('*');
         container.innerHTML = `
             <h2>⚙️ Administração</h2>
             <div class="card">
@@ -668,9 +531,9 @@
         const houseId = document.getElementById('new-house').value ? parseInt(document.getElementById('new-house').value) : null;
         if (!username || !password) return showToast('Usuário e senha obrigatórios');
         const email = username + DOMAIN;
-        const { data: user, error } = await supabase.auth.signUp({ email, password });
+        const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
         if (error) return showToast('Erro: '+error.message);
-        await supabase.from('profiles').insert({
+        await supabaseClient.from('profiles').insert({
             id: user.user.id, username, full_name: fullname, role, permission_level: perm,
             city_id: cityId, house_id: houseId
         });
@@ -680,15 +543,15 @@
 
     window.deleteUser = async (id) => {
         if(confirm('Deletar usuário?')) {
-            await supabase.auth.admin.deleteUser(id);
-            await supabase.from('profiles').delete().eq('id', id);
+            await supabaseClient.auth.admin.deleteUser(id);
+            await supabaseClient.from('profiles').delete().eq('id', id);
             navigateTo('admin');
         }
     };
 
     // ==================== INICIALIZAÇÃO ====================
     async function init() {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             currentUser = await loadUserProfile(session.user.id);
             document.getElementById('login-screen').classList.add('hidden');
@@ -700,12 +563,12 @@
             e.preventDefault();
             try {
                 await login(document.getElementById('username').value, document.getElementById('password').value);
-                init(); // recarrega
+                init();
             } catch (err) {
                 document.getElementById('login-error').innerText = 'Credenciais inválidas';
             }
         });
-        supabase.auth.onAuthStateChange(async (event, session) => {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_OUT') logout();
             else if (session) init();
         });
