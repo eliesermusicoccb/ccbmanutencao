@@ -3,445 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Manutenção · Casas de Oração</title>
+    <title>Manutenção CCB</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         :root {
-            --primary: #2c3e50; --accent: #3498db; --danger: #e74c3c; --success: #2ecc71;
-            --bg: #f5f7fa; --text: #333; --white: #fff; --border: #dcdde1;
-            --radius: 12px; --shadow: 0 2px 10px rgba(0,0,0,0.05);
+            --primary: #2c3e50;
+            --accent: #25D366; /* verde WhatsApp */
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --bg: #f0f2f5;
+            --white: #fff;
+            --text: #111;
+            --border: #e0e0e0;
+            --radius: 12px;
+            --shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg); color: var(--text); padding-bottom: 70px; overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 70px;
         }
-        .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; }
-        h2 { margin-bottom: 16px; font-size: 1.4rem; }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 16px;
+        }
         .bottom-menu {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--white); border-top: 1px solid var(--border);
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 10px 0; z-index: 1000; box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
         }
         .menu-item {
-            display: flex; flex-direction: column; align-items: center;
-            font-size: 0.7rem; color: var(--text); cursor: pointer; border: none; background: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            gap: 4px;
         }
-        .menu-item.active { color: var(--accent); font-weight: bold; }
+        .menu-item.active {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .menu-item span:first-child {
+            font-size: 24px;
+        }
         .card {
-            background: var(--white); border-radius: var(--radius);
-            padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
         }
         .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 12px 24px; border: none; border-radius: 30px;
-            font-size: 1rem; cursor: pointer; transition: 0.2s; margin: 4px;
+            display: inline-block;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        .btn-primary { background: var(--accent); color: #fff; }
-        .btn-danger { background: var(--danger); color: #fff; }
-        .btn-success { background: var(--success); color: #fff; }
-        .btn-small { padding: 6px 12px; font-size: 0.85rem; }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+        }
         input, select, textarea {
-            width: 100%; padding: 12px; margin: 8px 0 16px;
-            border: 1px solid var(--border); border-radius: 8px; font-size: 1rem;
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
         }
-        label { font-weight: 500; display: block; margin-top: 12px; }
-        #login-screen { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 12px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        #login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--bg);
+        }
         .login-box {
-            background: white; padding: 30px; border-radius: var(--radius);
-            box-shadow: var(--shadow); width: 100%; max-width: 380px;
+            background: white;
+            padding: 32px;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 380px;
+            box-shadow: var(--shadow);
         }
-        .login-box h1 { text-align: center; margin-bottom: 20px; }
-        .domain-hint { font-size: 0.9rem; color: #888; margin-bottom: 20px; }
         .toast {
-            position: fixed; top: 20px; right: 20px; z-index: 2000;
-            padding: 12px 24px; border-radius: 30px; color: white; font-weight: 500;
-            animation: slideIn 0.3s ease;
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            z-index: 2000;
+            font-size: 14px;
         }
-        .toast-info { background: var(--accent); }
-        .toast-success { background: var(--success); }
-        .toast-error { background: var(--danger); }
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        .hidden { display: none !important; }
-        .mt-2 { margin-top: 16px; }
-        img.preview { max-width: 120px; border-radius: 8px; margin-top: 8px; }
-        @media (min-width: 768px) { .container { max-width: 800px; } }
+        /* Chat */
+        .chat-messages {
+            height: 60vh;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px;
+            background: #e5ddd5;
+            border-radius: 12px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            position: relative;
+            word-wrap: break-word;
+        }
+        .message-sent {
+            background: #dcf8c5;
+            align-self: flex-end;
+        }
+        .message-received {
+            background: white;
+            align-self: flex-start;
+        }
+        .message-info {
+            font-size: 10px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            gap: 12px;
+        }
+        .message-media {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 4px;
+        }
+        .delete-msg {
+            font-size: 10px;
+            color: red;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            align-items: center;
+            background: white;
+            padding: 8px;
+            border-radius: 30px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            margin: 0;
+            border: none;
+            outline: none;
+        }
+        .file-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .file-buttons button {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        @media (max-width: 600px) {
+            .message { max-width: 90%; }
+        }
     </style>
 </head>
 <body>
-    <div id="login-screen">
-        <div class="login-box">
-            <h1>🔑 Acesso</h1>
-            <form id="login-form">
-                <label for="username">Nome de usuário</label>
-                <input type="text" id="username" placeholder="ex: eliesermusicoccb" required autocomplete="username">
-                <div class="domain-hint">@ccbtorrinha.com.br adicionado automaticamente</div>
-                <label for="password">Senha</label>
-                <input type="password" id="password" required autocomplete="current-password">
-                <button type="submit" class="btn btn-primary" style="width:100%">Entrar</button>
-            </form>
-            <p id="login-error" style="color:red; margin-top:12px;"></p>
-        </div>
+
+<div id="login-screen">
+    <div class="login-box">
+        <h1>🔧 Manutenção CCB</h1>
+        <form id="login-form">
+            <label>Usuário</label>
+            <input type="text" id="username" placeholder="ex: elieser" required>
+            <div style="font-size:12px; color:#888;">@ccbtorrinha.com.br será adicionado</div>
+            <label>Senha</label>
+            <input type="password" id="password" required>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:16px;">Entrar</button>
+        </form>
+        <p id="login-error" style="color:red; margin-top:12px;"></p>
     </div>
+</div>
 
-    <div id="app-screen" class="hidden">
-        <div class="container" id="app-content"></div>
-        <nav class="bottom-menu" id="bottom-menu">
-            <button class="menu-item" data-page="dashboard">🏠 Início</button>
-            <button class="menu-item" data-page="ocorrencias">⚠️ Ocorrências</button>
-            <button class="menu-item" data-page="manutencao">🔧 Manutenção</button>
-            <button class="menu-item" data-page="chat">💬 Chat</button>
-            <button class="menu-item hidden admin-only" data-page="admin">⚙️ Admin</button>
-        </nav>
-    </div>
+<div id="app-screen" class="hidden">
+    <div class="container" id="app-content"></div>
+    <nav class="bottom-menu" id="bottom-menu">
+        <button class="menu-item" data-page="dashboard">🏠 Início</button>
+        <button class="menu-item" data-page="issues">📋 Pendências</button>
+        <button class="menu-item" data-page="tasks">📅 Cronograma</button>
+        <button class="menu-item" data-page="stock">📦 Estoque</button>
+        <button class="menu-item" data-page="chat">💬 Chat</button>
+        <button class="menu-item admin-only hidden" data-page="admin">⚙️ Admin</button>
+    </nav>
+</div>
 
-    <script>
-        // =====================================================
-        // CONFIGURAÇÃO DO SUPABASE
-        // =====================================================
-        const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
-        const DOMINIO_EMAIL = '@ccbtorrinha.com.br';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+    // ==================== CONFIG SUPABASE ====================
+    const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
+    const DOMAIN = '@ccbtorrinha.com.br';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // =====================================================
-        // ESTADO GLOBAL
-        // =====================================================
-        let session = null;
-        let profile = null;
-        let currentPage = 'dashboard';
+    let currentUser = null;      // perfil do usuário logado
+    let currentPage = 'dashboard';
+    let chatSubscription = null;
 
-        // =====================================================
-        // UTILITÁRIOS
-        // =====================================================
-        function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleDateString('pt-BR') : ''; }
-        function formatDateTime(dateStr) { return dateStr ? new Date(dateStr).toLocaleString('pt-BR') : ''; }
-        function showToast(msg, type = 'info') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.textContent = msg;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+    // ==================== UTILITÁRIOS ====================
+    function showToast(msg, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function formatDateTime(date) {
+        return new Date(date).toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short' });
+    }
+
+    // ==================== AUTENTICAÇÃO ====================
+    async function login(username, password) {
+        const email = username.trim().toLowerCase() + DOMAIN;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        return data;
+    }
+
+    async function logout() {
+        await supabase.auth.signOut();
+        currentUser = null;
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app-screen').classList.add('hidden');
+        if (chatSubscription) chatSubscription.unsubscribe();
+    }
+
+    async function loadUserProfile(userId) {
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*, cities(id, name), houses(id, name)')
+            .eq('id', userId)
+            .single();
+        if (error) throw error;
+        return data;
+    }
+
+    // ==================== PERMISSÕES ====================
+    function getVisibilityFilter() {
+        if (!currentUser) return {};
+        if (currentUser.permission_level === 'house') return { house_id: currentUser.house_id, city_id: currentUser.city_id };
+        if (currentUser.permission_level === 'city') return { city_id: currentUser.city_id };
+        return {}; // all
+    }
+
+    function isAdmin() {
+        return currentUser?.role === 'Administrador';
+    }
+
+    // ==================== RENDERIZAÇÃO DINÂMICA ====================
+    async function navigateTo(page) {
+        currentPage = page;
+        document.querySelectorAll('.menu-item').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.page === page);
+        });
+        const container = document.getElementById('app-content');
+        container.innerHTML = '<div style="text-align:center;">Carregando...</div>';
+        switch(page) {
+            case 'dashboard': await renderDashboard(container); break;
+            case 'issues': await renderIssues(container); break;
+            case 'tasks': await renderTasks(container); break;
+            case 'stock': await renderStock(container); break;
+            case 'chat': await renderChat(container); break;
+            case 'admin': if(isAdmin()) await renderAdmin(container); else navigateTo('dashboard'); break;
+            default: await renderDashboard(container);
         }
+    }
 
-        // =====================================================
-        // AUTENTICAÇÃO
-        // =====================================================
-        async function login(username, password) {
-            const email = username.trim().toLowerCase() + DOMINIO_EMAIL;
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
-            return data;
-        }
-        async function logout() {
-            await supabase.auth.signOut();
-            session = null; profile = null;
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('app-screen').classList.add('hidden');
-        }
-        async function loadSession() {
-            const { data } = await supabase.auth.getSession();
-            session = data.session;
-            if (session) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('app-screen').classList.remove('hidden');
-                await loadProfile();
-                renderBottomMenu();
-                navigateTo('dashboard');
+    async function renderDashboard(container) {
+        const filter = getVisibilityFilter();
+        const { count: pendingIssues } = await supabase.from('issues').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
+        const { count: activeTasks } = await supabase.from('tasks').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
+        container.innerHTML = `
+            <div class="card">
+                <h2>Olá, ${currentUser.full_name || currentUser.username}</h2>
+                <p>🏠 Casa: ${currentUser.houses?.name || 'N/A'}</p>
+                <p>📋 Pendências ativas: ${pendingIssues || 0}</p>
+                <p>🔄 Tarefas em andamento: ${activeTasks || 0}</p>
+                <button class="btn btn-outline" onclick="navigateTo('issues')">Ver Pendências</button>
+                <button class="btn btn-primary" onclick="navigateTo('tasks')">Cronograma</button>
+                <button class="btn btn-danger" onclick="logout()" style="margin-top:16px;">Sair</button>
+            </div>
+        `;
+    }
+
+    async function renderIssues(container) {
+        const filter = getVisibilityFilter();
+        const { data: issues } = await supabase.from('issues').select('*').match(filter).order('created_at', { ascending: false });
+        container.innerHTML = `
+            <h2>📋 Pendências</h2>
+            <button class="btn btn-primary" onclick="showNewIssueForm()">+ Nova Pendência</button>
+            <div id="issues-list"></div>
+        `;
+        const listDiv = document.getElementById('issues-list');
+        if (!issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
+        listDiv.innerHTML = issues.map(issue => `
+            <div class="card">
+                <strong>${issue.title}</strong><br>
+                <small>Prioridade: ${issue.priority} | Status: ${issue.status}</small>
+                <p>${issue.description || ''}</p>
+                ${isAdmin() ? `<button class="btn btn-small" onclick="convertToTask(${issue.id})">Criar Tarefa</button>` : ''}
+            </div>
+        `).join('');
+    }
+
+    window.showNewIssueForm = () => {
+        const filter = getVisibilityFilter();
+        const html = `
+            <div class="card">
+                <h3>Nova Pendência</h3>
+                <input id="issue-title" placeholder="Título">
+                <textarea id="issue-desc" placeholder="Descrição"></textarea>
+                <select id="issue-priority">
+                    <option>baixa</option><option>média</option><option>alta</option><option>urgente</option>
+                </select>
+                <button class="btn btn-primary" onclick="createIssue()">Salvar</button>
+                <button class="btn" onclick="document.querySelector('#new-issue-form').remove()">Cancelar</button>
+            </div>
+        `;
+        const div = document.createElement('div');
+        div.id = 'new-issue-form';
+        div.innerHTML = html;
+        document.getElementById('issues-list').prepend(div);
+    };
+
+    window.createIssue = async () => {
+        const title = document.getElementById('issue-title').value;
+        const desc = document.getElementById('issue-desc').value;
+        const priority = document.getElementById('issue-priority').value;
+        if (!title) return showToast('Título obrigatório');
+        const filter = getVisibilityFilter();
+        const { error } = await supabase.from('issues').insert({
+            title, description: desc, priority,
+            city_id: filter.city_id || currentUser.city_id,
+            house_id: filter.house_id || currentUser.house_id,
+            created_by: currentUser.id,
+            status: 'pendente'
+        });
+        if (error) showToast('Erro: '+error.message, 'error');
+        else { showToast('Pendência criada'); navigateTo('issues'); }
+    };
+
+    window.convertToTask = async (issueId) => {
+        // Buscar issue
+        const { data: issue } = await supabase.from('issues').select('*').eq('id', issueId).single();
+        if(!issue) return;
+        // Formulário para criar tarefa
+        const html = `
+            <div class="card" id="task-form-card">
+                <h3>Criar Tarefa para: ${issue.title}</h3>
+                <label>Data início</label><input type="date" id="start-date">
+                <label>Data fim</label><input type="date" id="end-date">
+                <label>Responsável</label><select id="responsible"></select>
+                <label>Checklist de Materiais (um por linha, ex: "Cimento, 5 sacos")</label>
+                <textarea id="materials-list" placeholder="Cimento, 5kg\nAreia, 3m³"></textarea>
+                <button class="btn btn-primary" onclick="saveTask(${issue.id})">Criar Tarefa</button>
+                <button class="btn" onclick="document.getElementById('task-form-card').remove()">Cancelar</button>
+            </div>
+        `;
+        document.getElementById('issues-list').prepend(html);
+        // Carregar usuários da mesma cidade/casa para responsável
+        const filter = getVisibilityFilter();
+        const { data: users } = await supabase.from('profiles').select('id, full_name').match(filter);
+        const select = document.getElementById('responsible');
+        users.forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
+    };
+
+    window.saveTask = async (issueId) => {
+        const start = document.getElementById('start-date').value;
+        const end = document.getElementById('end-date').value;
+        const responsible = document.getElementById('responsible').value;
+        const materialsText = document.getElementById('materials-list').value;
+        const filter = getVisibilityFilter();
+        const { data: task, error } = await supabase.from('tasks').insert({
+            issue_id: issueId,
+            title: `Tarefa da pendência #${issueId}`,
+            start_date: start, end_date: end,
+            responsible_id: responsible || null,
+            status: 'planejada',
+            city_id: filter.city_id || currentUser.city_id,
+            house_id: filter.house_id || currentUser.house_id
+        }).select().single();
+        if (error) return showToast('Erro: '+error.message);
+        // Adicionar materiais
+        const lines = materialsText.split('\n');
+        for (let line of lines) {
+            if (line.trim()) {
+                let [name, qty] = line.split(',');
+                await supabase.from('task_materials').insert({
+                    task_id: task.id,
+                    material_name: name.trim(),
+                    quantity_needed: parseFloat(qty) || 0,
+                    unit: 'un'
+                });
             }
         }
-        async function loadProfile() {
-            if (!session) return;
-            const { data, error } = await supabase
-                .from('profiles').select('*, cities(name), houses(name)').eq('id', session.user.id).single();
-            if (error) throw error;
-            profile = data;
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', profile.role !== 'Administrador'));
-        }
-        function isAdmin() { return profile?.role === 'Administrador'; }
-        function isGestorOuAdmin() { return profile?.role === 'Gestor da Manutenção' || isAdmin(); }
-        function getVisibilityFilter() {
-            if (!profile) return {};
-            if (profile.permission_level === 'house') return { house_id: profile.house_id, city_id: profile.city_id };
-            if (profile.permission_level === 'city') return { city_id: profile.city_id };
-            return {};
-        }
+        showToast('Tarefa criada com checklist!');
+        navigateTo('tasks');
+    };
 
-        // =====================================================
-        // NAVEGAÇÃO SPA
-        // =====================================================
-        function navigateTo(page) {
-            currentPage = page;
-            document.querySelectorAll('.menu-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
-            renderPage(page);
+    async function renderTasks(container) {
+        const filter = getVisibilityFilter();
+        const { data: tasks } = await supabase.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
+        container.innerHTML = `<h2>📅 Cronograma de Tarefas</h2><div id="tasks-list"></div>`;
+        const listDiv = document.getElementById('tasks-list');
+        if (!tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
+        listDiv.innerHTML = tasks.map(task => `
+            <div class="card">
+                <strong>${task.title}</strong>
+                <p>📅 ${task.start_date || '?'} → ${task.end_date || '?'}</p>
+                <p>👤 Responsável: ${task.responsible?.full_name || 'Não definido'}</p>
+                <p>✅ Progresso: ${task.progress}%</p>
+                <button class="btn btn-small" onclick="showTaskMaterials(${task.id})">Ver Checklist</button>
+                ${isAdmin() ? `<button class="btn btn-small btn-primary" onclick="updateTaskProgress(${task.id})">Atualizar Progresso</button>` : ''}
+            </div>
+        `).join('');
+    }
+
+    window.showTaskMaterials = async (taskId) => {
+        const { data: mats } = await supabase.from('task_materials').select('*').eq('task_id', taskId);
+        let html = '<div class="card"><h4>Materiais Necessários</h4><ul>';
+        mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
+        html += '</ul><button class="btn" onclick="this.parentElement.remove()">Fechar</button></div>';
+        document.getElementById('tasks-list').prepend(html);
+    };
+
+    window.updateTaskProgress = async (taskId) => {
+        const newProgress = prompt('Novo progresso (0-100):', '50');
+        if (newProgress !== null) {
+            await supabase.from('tasks').update({ progress: parseInt(newProgress), status: parseInt(newProgress) === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
+            navigateTo('tasks');
         }
-        async function renderPage(page) {
-            const appContent = document.getElementById('app-content');
-            if (!profile) await loadProfile();
-            switch (page) {
-                case 'dashboard': renderDashboard(appContent); break;
-                case 'ocorrencias': renderOcorrencias(appContent); break;
-                case 'manutencao': renderManutencao(appContent); break;
-                case 'cronograma': renderCronograma(appContent); break;
-                case 'tarefas': renderTarefas(appContent); break;
-                case 'estoque': renderEstoque(appContent); break;
-                case 'chat': renderChat(appContent); break;
-                case 'admin': if (isAdmin()) renderAdmin(appContent); else navigateTo('dashboard'); break;
-                default: renderDashboard(appContent);
+    };
+
+    async function renderStock(container) {
+        const filter = getVisibilityFilter();
+        const { data: stock } = await supabase.from('stock_items').select('*').match(filter);
+        container.innerHTML = `<h2>📦 Estoque</h2><div id="stock-list"></div>`;
+        const listDiv = document.getElementById('stock-list');
+        if (!stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
+        listDiv.innerHTML = stock.map(item => `
+            <div class="card">
+                <strong>${item.name}</strong> - ${item.quantity} ${item.unit || ''}
+                <br><small>Mínimo: ${item.min_stock}</small>
+                ${isAdmin() ? `<button class="btn btn-small" onclick="updateStock(${item.id})">Atualizar</button>` : ''}
+            </div>
+        `).join('');
+    }
+
+    window.updateStock = async (id) => {
+        const qty = prompt('Nova quantidade:');
+        if (qty) await supabase.from('stock_items').update({ quantity: parseFloat(qty), last_updated: new Date() }).eq('id', id);
+        navigateTo('stock');
+    };
+
+    // ==================== CHAT COMPLETO ====================
+    async function renderChat(container) {
+        container.innerHTML = `
+            <div style="display:flex; justify-content:space-between;">
+                <h2>💬 Chat</h2>
+                <select id="chat-filter" style="width:auto;">
+                    <option value="all">Todas mensagens</option>
+                </select>
+            </div>
+            <div id="chat-messages" class="chat-messages"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
+                <div class="file-buttons">
+                    <button id="attach-image">📷</button>
+                    <button id="attach-video">🎥</button>
+                    <button id="attach-audio">🎤</button>
+                    <button id="attach-pdf">📄</button>
+                </div>
+                <button id="send-msg" class="btn btn-primary">➤</button>
+            </div>
+            <input type="file" id="file-input" accept="image/*,video/*,audio/*,application/pdf" style="display:none">
+        `;
+        await loadChatMessages();
+        setupChatRealtime();
+        setupChatEventListeners();
+    }
+
+    async function loadChatMessages() {
+        const filter = getVisibilityFilter();
+        let query = supabase.from('chat_messages').select('*, sender:sender_id(full_name, username)').eq('is_deleted', false);
+        if (filter.house_id) query = query.eq('house_id', filter.house_id);
+        else if (filter.city_id) query = query.eq('city_id', filter.city_id);
+        const { data } = await query.order('created_at', { ascending: true });
+        const container = document.getElementById('chat-messages');
+        if (!container) return;
+        container.innerHTML = '';
+        data.forEach(msg => {
+            const isOwn = msg.sender_id === currentUser.id;
+            const div = document.createElement('div');
+            div.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
+            let mediaHtml = '';
+            if (msg.media_url && msg.media_type) {
+                if (msg.media_type === 'image') mediaHtml = `<img src="${msg.media_url}" class="message-media">`;
+                else if (msg.media_type === 'video') mediaHtml = `<video src="${msg.media_url}" controls class="message-media"></video>`;
+                else if (msg.media_type === 'audio') mediaHtml = `<audio src="${msg.media_url}" controls></audio>`;
+                else if (msg.media_type === 'pdf') mediaHtml = `<a href="${msg.media_url}" target="_blank">📄 Ver PDF</a>`;
             }
-        }
-
-        function renderBottomMenu() {
-            document.querySelectorAll('.menu-item').forEach(btn => {
-                btn.addEventListener('click', () => navigateTo(btn.dataset.page));
-            });
-        }
-
-        // =====================================================
-        // PÁGINAS
-        // =====================================================
-        function renderDashboard(container) {
-            container.innerHTML = `<h2>Bem-vindo(a) ${profile.full_name}</h2>
-                <div class="card">
-                    <p>🏠 <strong>${profile.houses?.name || 'Casa não definida'}</strong></p>
-                    <p>📋 Ocorrências ativas: <span id="count-ocorrencias">...</span></p>
-                    <p>📦 Estoque baixo: <span id="count-stock">...</span></p>
-                </div>`;
-            carregarResumo();
-        }
-        async function carregarResumo() {
-            const filter = getVisibilityFilter();
-            const { count: occCount } = await supabase.from('occurrences').select('*', { count: 'exact', head: true }).match(filter).not('status', 'in', '("CONCLUIDA","CANCELADA")');
-            document.getElementById('count-ocorrencias').textContent = occCount || 0;
-            const { data: stock } = await supabase.from('stock_items').select('*').match(filter);
-            const low = stock?.filter(i => i.quantity <= i.min_stock).length || 0;
-            document.getElementById('count-stock').textContent = low;
-        }
-
-        const LOCAIS_COM_LADO = ['Corredor','Sanitários','Vestiários','Marquise'];
-        function renderOcorrencias(container) {
-            container.innerHTML = `<h2>📌 Registrar Ocorrência</h2>
-                <form id="form-ocorrencia">
-                    <label>Data</label><input type="date" id="data-oc" disabled>
-                    <label>Local</label><select id="local-oc" required><option value="">Selecione...</option>
-                        <option>Tanque de batismo</option><option>Púlpito</option><option>Nave</option>
-                        <option>Marquise</option><option>Entrada principal</option><option>Porão</option>
-                        <option>Fundos</option><option>Sanitários</option><option>Vestiários</option>
-                        <option>Corredor</option><option>Sala administrativa</option><option>Sala da piedade</option>
-                        <option>Escadas</option><option>Outros</option></select>
-                    <div id="lado-group" style="display:none"><label>Lado</label><select id="lado-oc">
-                        <option value="Lado dos irmãos">Lado dos irmãos</option>
-                        <option value="Lado das irmãs">Lado das irmãs</option></select></div>
-                    <label>Descrição do problema</label><textarea id="descricao-oc" rows="3" required></textarea>
-                    <label>Foto/Vídeo</label><input type="file" id="arquivo-oc" accept="image/*,video/*">
-                    <button type="submit" class="btn btn-primary">Registrar</button>
-                </form>
-                <hr class="mt-2"><h2>📋 Ocorrências Registradas</h2><div id="lista-ocorrencias">Carregando...</div>`;
-            document.getElementById('data-oc').value = new Date().toISOString().split('T')[0];
-            document.getElementById('local-oc').addEventListener('change', e => {
-                document.getElementById('lado-group').style.display = LOCAIS_COM_LADO.includes(e.target.value) ? 'block' : 'none';
-            });
-            document.getElementById('form-ocorrencia').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const local = document.getElementById('local-oc').value;
-                const lado = LOCAIS_COM_LADO.includes(local) ? document.getElementById('lado-oc').value : null;
-                const descricao = document.getElementById('descricao-oc').value;
-                const arquivo = document.getElementById('arquivo-oc').files[0];
-                let attachment_url = null;
-                if (arquivo) {
-                    const fileName = `ocorrencias/${profile.house_id}_${Date.now()}`;
-                    const { error: upErr } = await supabase.storage.from('occurrences').upload(fileName, arquivo);
-                    if (upErr) return showToast('Erro upload: ' + upErr.message, 'error');
-                    attachment_url = supabase.storage.from('occurrences').getPublicUrl(fileName).data.publicUrl;
-                }
-                const { error } = await supabase.from('occurrences').insert({
-                    city_id: profile.city_id, house_id: profile.house_id,
-                    location: local, side: lado, description: descricao,
-                    attachment_url, created_by: profile.id
-                });
-                if (error) showToast('Erro: ' + error.message, 'error');
-                else {
-                    showToast('Ocorrência registrada!', 'success');
-                    document.getElementById('form-ocorrencia').reset();
-                    document.getElementById('data-oc').value = new Date().toISOString().split('T')[0];
-                    carregarListaOcorrencias();
-                }
-            });
-            carregarListaOcorrencias();
-        }
-        async function carregarListaOcorrencias() {
-            const filter = getVisibilityFilter();
-            const { data, error } = await supabase.from('occurrences').select('*').match(filter).order('created_at', { ascending: false });
-            const container = document.getElementById('lista-ocorrencias');
-            if (error) { container.innerHTML = '<p>Erro ao carregar.</p>'; return; }
-            if (!data.length) { container.innerHTML = '<p>Nenhuma ocorrência.</p>'; return; }
-            container.innerHTML = data.map(occ => `
-                <div class="card">
-                    <p><strong>${formatDateTime(occ.created_at)}</strong></p>
-                    <p>📍 ${occ.location}${occ.side ? ' - '+occ.side : ''}</p>
-                    <p>${occ.description}</p>
-                    ${occ.attachment_url ? `<img src="${occ.attachment_url}" class="preview">` : ''}
-                    <p><small>Status: ${occ.status}</small></p>
-                </div>`).join('');
-        }
-
-        function renderManutencao(container) {
-            if (!isGestorOuAdmin()) { container.innerHTML = '<p>Sem permissão.</p>'; return; }
-            container.innerHTML = `<h2>🔧 Gestão de Manutenção</h2><div id="manut-ocorrencias"></div>`;
-            carregarOcorrenciasParaManutencao();
-        }
-        async function carregarOcorrenciasParaManutencao() {
-            const filter = getVisibilityFilter();
-            const { data } = await supabase.from('occurrences').select('*').match(filter).neq('status', 'CONCLUIDA').order('created_at', { ascending: false });
-            const container = document.getElementById('manut-ocorrencias');
-            if (!data.length) { container.innerHTML = '<p>Nenhuma pendente.</p>'; return; }
-            container.innerHTML = data.map(occ => `
-                <div class="card" style="cursor:pointer" onclick="abrirManutencao(${occ.id})">
-                    <p><strong>${formatDate(occ.created_at)}</strong> - ${occ.location}</p>
-                    <p>${occ.description.substring(0,60)}...</p><small>Status: ${occ.status}</small>
-                </div>`).join('');
-        }
-        window.abrirManutencao = async function(occId) {
-            const { data: occ } = await supabase.from('occurrences').select('*').eq('id', occId).single();
-            const modal = document.createElement('div');
-            modal.innerHTML = `<div class="modal-content card" style="max-height:90vh;overflow-y:auto;">
-                <h3>Ocorrência #${occ.id}</h3><p><strong>Local:</strong> ${occ.location} ${occ.side||''}</p><p>${occ.description}</p>
-                <form id="form-manutencao">
-                    <label>Categoria</label><input id="cat-manut">
-                    <label>Prioridade</label><select id="prio-manut"><option>baixa</option><option>média</option><option>alta</option><option>urgente</option></select>
-                    <label>Responsável</label><select id="resp-manut"></select>
-                    <label>Fornecedor</label><input id="forn-manut">
-                    <label>Data prevista</label><input type="date" id="data-prev">
-                    <label>Data execução</label><input type="date" id="data-exec">
-                    <label>Custo previsto</label><input type="number" step="0.01" id="custo-prev">
-                    <label>Custo realizado</label><input type="number" step="0.01" id="custo-real">
-                    <label>Progresso (%)</label><input type="number" min="0" max="100" id="prog-manut" value="0">
-                    <label>Observações</label><textarea id="obs-manut" rows="2"></textarea>
-                    <button type="submit" class="btn btn-primary">Salvar Plano</button>
-                </form>
-                <button class="btn btn-small mt-2" onclick="this.parentElement.parentElement.remove()">Fechar</button>
-            </div>`;
-            document.body.appendChild(modal);
-            const { data: users } = await supabase.from('profiles').select('id, full_name');
-            const selectResp = modal.querySelector('#resp-manut');
-            users.forEach(u => selectResp.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
-            modal.querySelector('#form-manutencao').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const f = e.target;
-                const { error } = await supabase.from('maintenance_plans').insert({
-                    occurrence_id: occ.id, category: f['cat-manut'].value, priority: f['prio-manut'].value,
-                    responsible: f['resp-manut'].value || null, supplier: f['forn-manut'].value,
-                    planned_date: f['data-prev'].value || null, execution_date: f['data-exec'].value || null,
-                    estimated_cost: parseFloat(f['custo-prev'].value) || 0, actual_cost: parseFloat(f['custo-real'].value) || 0,
-                    progress: parseInt(f['prog-manut'].value) || 0, notes: f['obs-manut'].value,
-                    status: 'EM_ANALISE', city_id: occ.city_id, house_id: occ.house_id
-                });
-                if (error) showToast('Erro: ' + error.message, 'error');
-                else { showToast('Plano criado!', 'success'); modal.remove(); carregarOcorrenciasParaManutencao(); }
-            });
-        };
-
-        function renderChat(container) {
-            container.innerHTML = `<h2>💬 Chat da Casa</h2>
-                <div id="chat-messages" class="card" style="max-height:50vh;overflow-y:auto;min-height:200px;"></div>
-                <form id="form-chat" class="mt-2"><input id="msg-input" placeholder="Mensagem..." required><button class="btn btn-primary">Enviar</button></form>`;
-            carregarMensagens();
-            configurarChatRealtime();
-            document.getElementById('form-chat').addEventListener('submit', enviarMensagem);
-        }
-        async function carregarMensagens() {
-            const filter = getVisibilityFilter();
-            let q = supabase.from('chat_messages').select('*, sender:profiles(full_name, role)');
-            if (filter.house_id) q = q.eq('house_id', filter.house_id); else if (filter.city_id) q = q.eq('city_id', filter.city_id);
-            const { data } = await q.order('created_at', { ascending: true });
-            const c = document.getElementById('chat-messages');
-            if (!data) return;
-            c.innerHTML = data.map(m => `<p><strong>${m.sender?.full_name||'?'}</strong> (${m.sender?.role||''}): ${m.message} <small>${formatDateTime(m.created_at)}</small></p>`).join('');
-            c.scrollTop = c.scrollHeight;
-        }
-        function configurarChatRealtime() {
-            const filter = getVisibilityFilter();
-            supabase.channel('chat-channel')
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: filter.house_id ? `house_id=eq.${filter.house_id}` : filter.city_id ? `city_id=eq.${filter.city_id}` : undefined }, () => carregarMensagens())
-                .subscribe();
-        }
-        async function enviarMensagem(e) {
-            e.preventDefault();
-            const input = document.getElementById('msg-input'); const msg = input.value.trim(); if (!msg) return;
-            const filter = getVisibilityFilter();
-            await supabase.from('chat_messages').insert({ sender_id: profile.id, city_id: filter.city_id || null, house_id: filter.house_id || null, message: msg });
-            input.value = ''; carregarMensagens();
-        }
-
-        function renderAdmin(container) {
-            container.innerHTML = `<h2>⚙️ Administração</h2>
-                <button class="btn btn-small" onclick="adminUsuarios()">👥 Usuários</button>
-                <button class="btn btn-small" onclick="adminCidades()">🏙️ Cidades</button>
-                <button class="btn btn-small" onclick="adminCasas()">🏠 Casas</button>
-                <div id="admin-content" class="mt-2"></div>`;
-        }
-        window.adminUsuarios = async function() {
-            const { data: users } = await supabase.from('profiles').select('*');
-            const container = document.getElementById('admin-content');
-            container.innerHTML = `<h3>Usuários</h3>` + users.map(u => `
-                <div class="card">
-                    <p>${u.full_name} (@${u.username}) - ${u.role}</p>
-                    <select onchange="updateUser('${u.id}','role',this.value)">
-                        <option ${u.role==='Usuário'?'selected':''}>Usuário</option>
-                        <option ${u.role==='Cooperador'?'selected':''}>Cooperador</option>
-                        <option ${u.role==='Diácono'?'selected':''}>Diácono</option>
-                        <option ${u.role==='Ancião'?'selected':''}>Ancião</option>
-                        <option ${u.role==='Gestor da Manutenção'?'selected':''}>Gestor da Manutenção</option>
-                        <option ${u.role==='Administrador'?'selected':''}>Administrador</option>
-                    </select>
-                    <select onchange="updateUser('${u.id}','permission_level',this.value)">
-                        <option value="house" ${u.permission_level==='house'?'selected':''}>House</option>
-                        <option value="city" ${u.permission_level==='city'?'selected':''}>City</option>
-                        <option value="all" ${u.permission_level==='all'?'selected':''}>All</option>
-                    </select>
-                    <button class="btn btn-small btn-danger" onclick="deleteUser('${u.id}')">🗑️</button>
-                </div>`).join('');
-        };
-        window.updateUser = async (id, field, value) => { await supabase.from('profiles').update({ [field]: value }).eq('id', id); showToast('Atualizado!', 'success'); adminUsuarios(); };
-        window.deleteUser = async (id) => { if (confirm('Excluir?')) { await supabase.from('profiles').delete().eq('id', id); showToast('Removido.'); adminUsuarios(); } };
-        window.adminCidades = async function() {
-            const { data: cities } = await supabase.from('cities').select('*');
-            document.getElementById('admin-content').innerHTML = `<h3>Cidades</h3><input id="nova-cidade" placeholder="Nova cidade"><button class="btn btn-small" onclick="addCidade()">Adicionar</button><hr>` + cities.map(c => `<p>${c.name} <button class="btn btn-small btn-danger" onclick="delCidade(${c.id})">X</button></p>`).join('');
-        };
-        window.addCidade = async () => { const n = document.getElementById('nova-cidade').value.trim(); if(n) { await supabase.from('cities').insert({ name: n }); adminCidades(); } };
-        window.delCidade = async (id) => { await supabase.from('cities').delete().eq('id',id); adminCidades(); };
-        window.adminCasas = async function() {
-            const { data: houses } = await supabase.from('houses').select('*, cities(name)');
-            const { data: cities } = await supabase.from('cities').select('*');
-            document.getElementById('admin-content').innerHTML = `<h3>Casas</h3><select id="cidade-casa">` + cities.map(c => `<option value="${c.id}">${c.name}</option>`).join('') + `</select><input id="nova-casa" placeholder="Nome"><button class="btn btn-small" onclick="addCasa()">Adicionar</button><hr>` + houses.map(h => `<p>${h.name} (${h.cities?.name}) <button class="btn btn-small btn-danger" onclick="delCasa(${h.id})">X</button></p>`).join('');
-        };
-        window.addCasa = async () => { const n = document.getElementById('nova-casa').value.trim(); const cid = parseInt(document.getElementById('cidade-casa').value); if(n) { await supabase.from('houses').insert({ name: n, city_id: cid }); adminCasas(); } };
-        window.delCasa = async (id) => { await supabase.from('houses').delete().eq('id',id); adminCasas(); };
-
-        function renderCronograma(c) { c.innerHTML = '<h2>📅 Cronograma</h2><p>Em desenvolvimento.</p>'; }
-        function renderTarefas(c) { c.innerHTML = '<h2>🔄 Tarefas Periódicas</h2><p>Em desenvolvimento.</p>'; }
-        function renderEstoque(c) { c.innerHTML = '<h2>📦 Estoque</h2><p>Em desenvolvimento.</p>'; }
-
-        // =====================================================
-        // INICIALIZAÇÃO
-        // =====================================================
-        window.addEventListener('DOMContentLoaded', async () => {
-            await loadSession();
-            supabase.auth.onAuthStateChange((event, newSession) => {
-                if (event === 'SIGNED_OUT') logout();
-                else if (newSession) { session = newSession; loadProfile().then(() => {
-                    document.getElementById('login-screen').classList.add('hidden');
-                    document.getElementById('app-screen').classList.remove('hidden');
-                    navigateTo('dashboard');
-                });}
-            });
-            document.getElementById('login-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                try { await login(document.getElementById('username').value, document.getElementById('password').value); }
-                catch { document.getElementById('login-error').textContent = 'Credenciais inválidas.'; }
+            div.innerHTML = `
+                <div><strong>${msg.sender?.full_name || msg.sender?.username}</strong> ${mediaHtml}<br>${msg.message || ''}</div>
+                <div class="message-info">
+                    <span>${formatDateTime(msg.created_at)}</span>
+                    ${isOwn ? `<span class="delete-msg" data-id="${msg.id}">🗑️ Apagar</span>` : ''}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
+        // adicionar eventos de deletar
+        document.querySelectorAll('.delete-msg').forEach(el => {
+            el.addEventListener('click', async (e) => {
+                const id = el.dataset.id;
+                await supabase.from('chat_messages').update({ is_deleted: true }).eq('id', id);
+                loadChatMessages();
             });
         });
-    </script>
+    }
+
+    function setupChatRealtime() {
+        if (chatSubscription) chatSubscription.unsubscribe();
+        const filter = getVisibilityFilter();
+        let channelFilter = {};
+        if (filter.house_id) channelFilter = { house_id: filter.house_id };
+        else if (filter.city_id) channelFilter = { city_id: filter.city_id };
+        chatSubscription = supabase
+            .channel('chat-room')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
+            .subscribe();
+    }
+
+    function setupChatEventListeners() {
+        const sendBtn = document.getElementById('send-msg');
+        const input = document.getElementById('chat-input');
+        const fileInput = document.getElementById('file-input');
+        let currentMediaType = null;
+
+        const sendMessage = async (text, mediaUrl = null, mediaType = null) => {
+            const filter = getVisibilityFilter();
+            const { error } = await supabase.from('chat_messages').insert({
+                sender_id: currentUser.id,
+                city_id: filter.city_id || null,
+                house_id: filter.house_id || null,
+                message: text || null,
+                media_url: mediaUrl,
+                media_type: mediaType
+            });
+            if (error) showToast('Erro ao enviar: '+error.message);
+            else input.value = '';
+        };
+
+        sendBtn.onclick = () => { if (input.value.trim()) sendMessage(input.value.trim()); };
+        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(input.value.trim()); });
+
+        const attachFile = (accept, mediaType) => {
+            fileInput.accept = accept;
+            currentMediaType = mediaType;
+            fileInput.click();
+        };
+        document.getElementById('attach-image').onclick = () => attachFile('image/*', 'image');
+        document.getElementById('attach-video').onclick = () => attachFile('video/*', 'video');
+        document.getElementById('attach-audio').onclick = () => attachFile('audio/*', 'audio');
+        document.getElementById('attach-pdf').onclick = () => attachFile('application/pdf', 'pdf');
+
+        fileInput.onchange = async () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop();
+            const filePath = `chat/${currentUser.id}_${Date.now()}.${ext}`;
+            const { error: uploadError } = await supabase.storage.from('chat_media').upload(filePath, file);
+            if (uploadError) return showToast('Erro upload: '+uploadError.message);
+            const { data: { publicUrl } } = supabase.storage.from('chat_media').getPublicUrl(filePath);
+            sendMessage(null, publicUrl, currentMediaType);
+            fileInput.value = '';
+        };
+    }
+
+    // ==================== ADMIN ====================
+    async function renderAdmin(container) {
+        const { data: cities } = await supabase.from('cities').select('*');
+        const { data: houses } = await supabase.from('houses').select('*, cities(name)');
+        const { data: users } = await supabase.from('profiles').select('*');
+        container.innerHTML = `
+            <h2>⚙️ Administração</h2>
+            <div class="card">
+                <h3>Novo Usuário</h3>
+                <input id="new-username" placeholder="username">
+                <input id="new-fullname" placeholder="Nome completo">
+                <input id="new-password" type="password" placeholder="Senha">
+                <select id="new-role"><option>Usuário</option><option>Gestor da Manutenção</option><option>Administrador</option></select>
+                <select id="new-permission"><option value="house">Apenas sua casa</option><option value="city">Apenas sua cidade</option><option value="all">Todas cidades</option></select>
+                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`)}</select>
+                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name})</option>`)}</select>
+                <button class="btn btn-primary" onclick="createUser()">Criar Usuário</button>
+            </div>
+            <h3>Usuários Existentes</h3>
+            <div id="user-list">${users.map(u => `<div>${u.full_name} (${u.role}) - ${u.permission_level} <button onclick="deleteUser('${u.id}')">🗑️</button></div>`).join('')}</div>
+        `;
+    }
+
+    window.createUser = async () => {
+        const username = document.getElementById('new-username').value;
+        const fullname = document.getElementById('new-fullname').value;
+        const password = document.getElementById('new-password').value;
+        const role = document.getElementById('new-role').value;
+        const perm = document.getElementById('new-permission').value;
+        const cityId = document.getElementById('new-city').value ? parseInt(document.getElementById('new-city').value) : null;
+        const houseId = document.getElementById('new-house').value ? parseInt(document.getElementById('new-house').value) : null;
+        if (!username || !password) return showToast('Usuário e senha obrigatórios');
+        const email = username + DOMAIN;
+        const { data: user, error } = await supabase.auth.signUp({ email, password });
+        if (error) return showToast('Erro: '+error.message);
+        await supabase.from('profiles').insert({
+            id: user.user.id, username, full_name: fullname, role, permission_level: perm,
+            city_id: cityId, house_id: houseId
+        });
+        showToast('Usuário criado');
+        navigateTo('admin');
+    };
+
+    window.deleteUser = async (id) => {
+        if(confirm('Deletar usuário?')) {
+            await supabase.auth.admin.deleteUser(id);
+            await supabase.from('profiles').delete().eq('id', id);
+            navigateTo('admin');
+        }
+    };
+
+    // ==================== INICIALIZAÇÃO ====================
+    async function init() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+            currentUser = await loadUserProfile(session.user.id);
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('app-screen').classList.remove('hidden');
+            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
+            navigateTo('dashboard');
+        }
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try {
+                await login(document.getElementById('username').value, document.getElementById('password').value);
+                init(); // recarrega
+            } catch (err) {
+                document.getElementById('login-error').innerText = 'Credenciais inválidas';
+            }
+        });
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') logout();
+            else if (session) init();
+        });
+    }
+    init();
+</script>
 </body>
 </html>
