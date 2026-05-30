@@ -68,11 +68,6 @@
             background: rgba(0,0,0,0.8); color: white; padding: 8px 16px;
             border-radius: 30px; z-index: 2000; font-size: 14px;
         }
-        .error-box {
-            background: #fff3f3; color: #8a1f1f; border: 1px solid #ffd0d0;
-            border-radius: 10px; padding: 12px; margin-top: 12px; font-size: 14px;
-            white-space: pre-wrap;
-        }
         .chat-messages {
             height: 60vh; overflow-y: auto; display: flex; flex-direction: column;
             gap: 8px; padding: 8px; background: #e5ddd5; border-radius: 12px;
@@ -97,6 +92,10 @@
         .file-buttons { display: flex; gap: 8px; }
         .file-buttons button { background: none; border: none; font-size: 24px; cursor: pointer; }
         @media (max-width: 600px) { .message { max-width: 90%; } }
+    
+        .debug-box { margin-top:12px; padding:12px; background:#fff3cd; border:1px solid #ffe69c; color:#664d03; border-radius:8px; font-size:13px; line-height:1.4; white-space:pre-wrap; }
+        .btn-secondary { background:#34495e; color:white; }
+        .muted { color:#777; font-size:12px; line-height:1.4; }
     </style>
 </head>
 <body>
@@ -112,8 +111,10 @@
             <input type="password" id="password" autocomplete="current-password" required>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:16px;">Entrar</button>
         </form>
-        <p id="login-error" style="color:red; margin-top:12px; white-space:pre-wrap;"></p>
-        <p style="font-size:12px; color:#666; margin-top:10px;">Pode digitar só o usuário ou o e-mail completo cadastrado.</p>
+        <button type="button" id="local-access-btn" class="btn btn-secondary" style="width:100%; margin-top:10px;">Entrar em modo teste/local</button>
+        <p class="muted" style="margin-top:10px;">Use o modo teste se o Supabase estiver bloqueando o login. Depois ajustamos usuário, senha, tabela profiles ou RLS.</p>
+        <p id="login-error" style="color:red; margin-top:12px;"></p>
+        <div id="debug-box" class="debug-box hidden"></div>
     </div>
 </div>
 
@@ -134,32 +135,7 @@
     const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
     const DOMAIN = '@ccbtorrinha.com.br';
-    let supabaseClient = null;
-    let appStarted = false;
-    let authListenerReady = false;
-
-    function showStartupError(message) {
-        const loginBox = document.querySelector('.login-box');
-        if (!loginBox) return;
-        const existing = document.getElementById('startup-error');
-        if (existing) existing.remove();
-        const div = document.createElement('div');
-        div.id = 'startup-error';
-        div.className = 'error-box';
-        div.innerText = message;
-        loginBox.appendChild(div);
-    }
-
-    function startSupabase() {
-        if (!window.supabase) {
-            showStartupError('Erro: a biblioteca Supabase não carregou. Verifique a internet, o link CDN ou rode este arquivo por um servidor local/hosting.');
-            return false;
-        }
-        if (!supabaseClient) {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-        return true;
-    }
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let currentPage = 'dashboard';
@@ -178,39 +154,60 @@
     }
 
     // ==================== AUTENTICAÇÃO ====================
+    const LOCAL_MODE_KEY = 'ccb_local_mode';
 
-    function traduzirErroLogin(msg) {
-        const texto = String(msg || '');
-        if (texto.includes('Invalid login credentials')) {
-            return 'Usuário ou senha incorretos. Dica: digite apenas o usuário antes do @ ou o e-mail completo cadastrado no Supabase.';
-        }
-        if (texto.includes('Email not confirmed')) {
-            return 'Este usuário existe, mas o e-mail ainda não foi confirmado no Supabase. No painel do Supabase, confirme o usuário ou desative a confirmação de e-mail.';
-        }
-        if (texto.includes('Failed to fetch') || texto.includes('NetworkError')) {
-            return 'Não foi possível conectar ao Supabase. Verifique internet, bloqueio do navegador ou se o arquivo está sendo aberto corretamente.';
-        }
-        if (texto.includes('profiles')) {
-            return 'Login aceito, mas falhou ao carregar o cadastro na tabela profiles: ' + texto;
-        }
-        return 'Erro ao entrar: ' + texto;
+    function showDebug(message, details = '') {
+        const box = document.getElementById('debug-box');
+        if (!box) return;
+        box.classList.remove('hidden');
+        box.textContent = details ? `${message}\n\nDetalhes técnicos:\n${details}` : message;
+    }
+
+    function buildEmail(username) {
+        const value = (username || '').trim().toLowerCase();
+        if (value.includes('@')) return value;
+        return value + DOMAIN;
+    }
+
+    function setLocalUser() {
+        currentUser = {
+            id: 'local-user',
+            username: 'teste',
+            full_name: 'Usuário Teste',
+            role: 'Administrador',
+            permission_level: 'all',
+            city_id: null,
+            house_id: null,
+            cities: { id: null, name: 'Modo local' },
+            houses: { id: null, name: 'Modo local' }
+        };
+        localStorage.setItem(LOCAL_MODE_KEY, 'true');
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
+        navigateTo('dashboard');
+        showToast('Entrou em modo teste/local');
     }
 
     async function login(username, password) {
-        const raw = username.trim().toLowerCase();
-        const email = raw.includes('@') ? raw : raw + DOMAIN;
-        console.log('Tentando login com:', email);
+        if (!window.supabase || !supabaseClient) {
+            throw new Error('Biblioteca Supabase não carregou. Verifique internet, CDN ou bloqueio do navegador.');
+        }
+        const email = buildEmail(username);
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data;
     }
+
     async function logout() {
-        await supabaseClient.auth.signOut();
+        localStorage.removeItem(LOCAL_MODE_KEY);
+        try { await supabaseClient.auth.signOut(); } catch(e) {}
         currentUser = null;
         document.getElementById('login-screen').classList.remove('hidden');
         document.getElementById('app-screen').classList.add('hidden');
         if (chatSubscription) chatSubscription.unsubscribe();
     }
+
     async function loadUserProfile(userId) {
         const { data, error } = await supabaseClient
             .from('profiles')
@@ -218,7 +215,9 @@
             .eq('id', userId)
             .maybeSingle();
         if (error) throw error;
-        if (!data) throw new Error('Login feito, mas não existe cadastro deste usuário na tabela profiles. Crie o perfil deste usuário no Supabase.');
+        if (!data) {
+            throw new Error('Login aceito, mas não existe cadastro correspondente na tabela profiles para este usuário.');
+        }
         return data;
     }
 
@@ -234,6 +233,17 @@
     }
 
     // ==================== RENDERIZAÇÃO ====================
+
+    function setupBottomMenu() {
+        document.querySelectorAll('#bottom-menu .menu-item').forEach(btn => {
+            btn.onclick = () => {
+                const page = btn.dataset.page;
+                if (page) navigateTo(page);
+            };
+        });
+    }
+
+    window.navigateTo = navigateTo;
     async function navigateTo(page) {
         currentPage = page;
         document.querySelectorAll('.menu-item').forEach(btn => {
@@ -252,10 +262,24 @@
         }
     }
 
+    function isLocalMode() {
+        return currentUser?.id === 'local-user';
+    }
+
+    async function safeCount(table, filter, statusField = 'status') {
+        if (isLocalMode()) return 0;
+        const { count, error } = await supabaseClient.from(table).select('*', { count: 'exact', head: true }).match(filter).neq(statusField, 'concluida');
+        if (error) {
+            console.warn(`Erro ao contar ${table}:`, error.message);
+            return 0;
+        }
+        return count || 0;
+    }
+
     async function renderDashboard(container) {
         const filter = getVisibilityFilter();
-        const { count: pendingIssues } = await supabaseClient.from('issues').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
-        const { count: activeTasks } = await supabaseClient.from('tasks').select('*', { count: 'exact', head: true }).match(filter).neq('status', 'concluida');
+        const pendingIssues = await safeCount('issues', filter);
+        const activeTasks = await safeCount('tasks', filter);
         container.innerHTML = `
             <div class="card">
                 <h2>Olá, ${currentUser.full_name || currentUser.username}</h2>
@@ -271,14 +295,19 @@
 
     async function renderIssues(container) {
         const filter = getVisibilityFilter();
-        const { data: issues } = await supabaseClient.from('issues').select('*').match(filter).order('created_at', { ascending: false });
+        let issues = [];
+        if (!isLocalMode()) {
+            const result = await supabaseClient.from('issues').select('*').match(filter).order('created_at', { ascending: false });
+            issues = result.data || [];
+            if (result.error) showToast('Erro ao carregar pendências: ' + result.error.message);
+        }
         container.innerHTML = `
             <h2>📋 Pendências</h2>
             <button class="btn btn-primary" onclick="showNewIssueForm()">+ Nova Pendência</button>
             <div id="issues-list"></div>
         `;
         const listDiv = document.getElementById('issues-list');
-        if (!issues || !issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
+        if (!issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
         listDiv.innerHTML = issues.map(issue => `
             <div class="card">
                 <strong>${issue.title}</strong><br>
@@ -311,6 +340,7 @@
         const desc = document.getElementById('issue-desc').value;
         const priority = document.getElementById('issue-priority').value;
         if (!title) return showToast('Título obrigatório');
+        if (isLocalMode()) { showToast('Modo local: pendência simulada. Configure o Supabase para salvar.'); navigateTo('issues'); return; }
         const filter = getVisibilityFilter();
         const { error } = await supabaseClient.from('issues').insert({
             title, description: desc, priority,
@@ -342,7 +372,7 @@
         const filter = getVisibilityFilter();
         const { data: users } = await supabaseClient.from('profiles').select('id, full_name').match(filter);
         const select = document.getElementById('responsible');
-        (users || []).forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
+        users.forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
     };
 
     window.saveTask = async (issueId) => {
@@ -379,10 +409,15 @@
 
     async function renderTasks(container) {
         const filter = getVisibilityFilter();
-        const { data: tasks } = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
+        let tasks = [];
+        if (!isLocalMode()) {
+            const result = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
+            tasks = result.data || [];
+            if (result.error) showToast('Erro ao carregar tarefas: ' + result.error.message);
+        }
         container.innerHTML = `<h2>📅 Cronograma de Tarefas</h2><div id="tasks-list"></div>`;
         const listDiv = document.getElementById('tasks-list');
-        if (!tasks || !tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
+        if (!tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
         listDiv.innerHTML = tasks.map(task => `
             <div class="card">
                 <strong>${task.title}</strong>
@@ -398,7 +433,7 @@
     window.showTaskMaterials = async (taskId) => {
         const { data: mats } = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
         let html = '<div class="card"><h4>Materiais Necessários</h4><ul>';
-        (mats || []).forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
+        mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
         html += '</ul><button class="btn" onclick="this.parentElement.remove()">Fechar</button></div>';
         document.getElementById('tasks-list').prepend(createElementFromHTML(html));
     };
@@ -413,10 +448,15 @@
 
     async function renderStock(container) {
         const filter = getVisibilityFilter();
-        const { data: stock } = await supabaseClient.from('stock_items').select('*').match(filter);
+        let stock = [];
+        if (!isLocalMode()) {
+            const result = await supabaseClient.from('stock_items').select('*').match(filter);
+            stock = result.data || [];
+            if (result.error) showToast('Erro ao carregar estoque: ' + result.error.message);
+        }
         container.innerHTML = `<h2>📦 Estoque</h2><div id="stock-list"></div>`;
         const listDiv = document.getElementById('stock-list');
-        if (!stock || !stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
+        if (!stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
         listDiv.innerHTML = stock.map(item => `
             <div class="card">
                 <strong>${item.name}</strong> - ${item.quantity} ${item.unit || ''}
@@ -458,6 +498,11 @@
     }
 
     async function loadChatMessages() {
+        if (isLocalMode()) {
+            const container = document.getElementById('chat-messages');
+            if (container) container.innerHTML = '<div class="message message-received"><div><strong>Sistema</strong><br>Chat em modo local. Configure Supabase para mensagens reais.</div></div>';
+            return;
+        }
         const filter = getVisibilityFilter();
         let query = supabaseClient.from('chat_messages').select('*, sender:sender_id(full_name, username)').eq('is_deleted', false);
         if (filter.house_id) query = query.eq('house_id', filter.house_id);
@@ -466,7 +511,7 @@
         const container = document.getElementById('chat-messages');
         if (!container) return;
         container.innerHTML = '';
-        (data || []).forEach(msg => {
+        data.forEach(msg => {
             const isOwn = msg.sender_id === currentUser.id;
             const div = document.createElement('div');
             div.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
@@ -497,16 +542,17 @@
     }
 
     function setupChatRealtime() {
+        if (isLocalMode()) return;
         if (chatSubscription) chatSubscription.unsubscribe();
         const filter = getVisibilityFilter();
-        let realtimeFilter;
-        if (filter.house_id) realtimeFilter = `house_id=eq.${filter.house_id}`;
-        else if (filter.city_id) realtimeFilter = `city_id=eq.${filter.city_id}`;
-        const baseConfig = { event: '*', schema: 'public', table: 'chat_messages' };
-        if (realtimeFilter) baseConfig.filter = realtimeFilter;
+        const realtimeFilter = filter.house_id ? `house_id=eq.${filter.house_id}` : (filter.city_id ? `city_id=eq.${filter.city_id}` : undefined);
+        const insertOpts = { event: 'INSERT', schema: 'public', table: 'chat_messages' };
+        const updateOpts = { event: 'UPDATE', schema: 'public', table: 'chat_messages' };
+        if (realtimeFilter) { insertOpts.filter = realtimeFilter; updateOpts.filter = realtimeFilter; }
         chatSubscription = supabaseClient
             .channel('chat-room')
-            .on('postgres_changes', baseConfig, () => loadChatMessages())
+            .on('postgres_changes', insertOpts, () => loadChatMessages())
+            .on('postgres_changes', updateOpts, () => loadChatMessages())
             .subscribe();
     }
 
@@ -517,6 +563,7 @@
         let currentMediaType = null;
 
         const sendMessage = async (text, mediaUrl = null, mediaType = null) => {
+            if (isLocalMode()) { showToast('Modo local: mensagem não salva.'); return; }
             const filter = getVisibilityFilter();
             const { error } = await supabaseClient.from('chat_messages').insert({
                 sender_id: currentUser.id,
@@ -553,23 +600,24 @@
 
     // ==================== ADMIN ====================
     async function renderAdmin(container) {
-        const { data: citiesData } = await supabaseClient.from('cities').select('*');
-        const { data: housesData } = await supabaseClient.from('houses').select('*, cities(name)');
-        const { data: usersData } = await supabaseClient.from('profiles').select('*');
-        const cities = citiesData || [];
-        const houses = housesData || [];
-        const users = usersData || [];
+        if (isLocalMode()) {
+            container.innerHTML = '<h2>⚙️ Administração</h2><div class="card"><p>Administração em modo local.</p><p>Para criar usuários reais, entre com login Supabase funcionando.</p></div>';
+            return;
+        }
+        const { data: cities } = await supabaseClient.from('cities').select('*');
+        const { data: houses } = await supabaseClient.from('houses').select('*, cities(name)');
+        const { data: users } = await supabaseClient.from('profiles').select('*');
         container.innerHTML = `
             <h2>⚙️ Administração</h2>
             <div class="card">
                 <h3>Novo Usuário</h3>
-                <input id="new-username" placeholder="username" autocomplete="username">
+                <input id="new-username" placeholder="username">
                 <input id="new-fullname" placeholder="Nome completo">
-                <input id="new-password" type="password" placeholder="Senha" autocomplete="new-password">
+                <input id="new-password" type="password" placeholder="Senha">
                 <select id="new-role"><option>Usuário</option><option>Gestor da Manutenção</option><option>Administrador</option></select>
                 <select id="new-permission"><option value="house">Apenas sua casa</option><option value="city">Apenas sua cidade</option><option value="all">Todas cidades</option></select>
-                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
-                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name || 'Sem cidade'})</option>`).join('')}</select>
+                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`)}</select>
+                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name})</option>`)}</select>
                 <button class="btn btn-primary" onclick="createUser()">Criar Usuário</button>
             </div>
             <h3>Usuários Existentes</h3>
@@ -598,72 +646,68 @@
     };
 
     window.deleteUser = async (id) => {
-        if(confirm('Remover este usuário da lista do app? Isso apaga apenas o perfil. O usuário do Auth deve ser removido no painel do Supabase.')) {
-            const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
-            if (error) showToast('Erro ao remover perfil: ' + error.message);
-            else navigateTo('admin');
+        if(confirm('Deletar usuário?')) {
+            await supabaseClient.auth.admin.deleteUser(id);
+            await supabaseClient.from('profiles').delete().eq('id', id);
+            navigateTo('admin');
         }
     };
 
     // ==================== INICIALIZAÇÃO ====================
-    async function openApp(session) {
-        try {
-            currentUser = await loadUserProfile(session.user.id);
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-screen').classList.remove('hidden');
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
-            await navigateTo('dashboard');
-        } catch (err) {
-            await supabaseClient.auth.signOut();
-            document.getElementById('login-error').innerText = err.message || 'Erro ao carregar usuário.';
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('app-screen').classList.add('hidden');
-        }
+    let appInitialized = false;
+
+    async function enterAppWithSession(session) {
+        currentUser = await loadUserProfile(session.user.id);
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
+        navigateTo('dashboard');
     }
 
     async function init() {
-        if (!startSupabase()) return;
+        if (appInitialized) return;
+        appInitialized = true;
 
-        if (!appStarted) {
-            appStarted = true;
-            document.getElementById('login-form').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                document.getElementById('login-error').innerText = '';
-                try {
-                    const result = await login(document.getElementById('username').value, document.getElementById('password').value);
-                    if (result.session) await openApp(result.session);
-                } catch (err) {
-                    document.getElementById('login-error').innerText = traduzirErroLogin(err.message || err);
-                }
-            });
-        }
+        document.getElementById('local-access-btn').addEventListener('click', setLocalUser);
+        setupBottomMenu();
 
-        if (!authListenerReady) {
-            authListenerReady = true;
-            supabaseClient.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    document.getElementById('login-screen').classList.remove('hidden');
-                    document.getElementById('app-screen').classList.add('hidden');
-                    if (chatSubscription) chatSubscription.unsubscribe();
-                } else if (event === 'SIGNED_IN' && session) {
-                    await openApp(session);
-                }
-            });
+        if (localStorage.getItem(LOCAL_MODE_KEY) === 'true') {
+            setLocalUser();
+            return;
         }
 
         try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) await openApp(session);
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (error) throw error;
+            if (session) await enterAppWithSession(session);
         } catch (err) {
-            showStartupError('Erro ao iniciar o app: ' + (err.message || err));
+            console.error('Erro ao iniciar sessão:', err);
+            showDebug('O app abriu, mas não conseguiu validar a sessão atual.', err.message || String(err));
         }
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loginError = document.getElementById('login-error');
+            loginError.innerText = '';
+            try {
+                const result = await login(document.getElementById('username').value, document.getElementById('password').value);
+                if (!result?.session) throw new Error('Login não retornou sessão. Verifique confirmação de e-mail no Supabase.');
+                await enterAppWithSession(result.session);
+            } catch (err) {
+                console.error('Erro no login:', err);
+                loginError.innerText = 'Não entrou. Veja o motivo abaixo.';
+                showDebug('Falha no login.', err.message || String(err));
+            }
+        });
+
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_OUT') return;
+            if (event === 'SIGNED_IN' && session && !currentUser) {
+                try { await enterAppWithSession(session); }
+                catch (err) { showDebug('Login aceito, mas falhou ao carregar o perfil.', err.message || String(err)); }
+            }
+        });
     }
-
-    window.addEventListener('error', (event) => {
-        showStartupError('Erro no navegador: ' + event.message);
-    });
-
     init();
 </script>
 </body>
