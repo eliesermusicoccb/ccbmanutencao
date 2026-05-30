@@ -112,7 +112,8 @@
             <input type="password" id="password" autocomplete="current-password" required>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:16px;">Entrar</button>
         </form>
-        <p id="login-error" style="color:red; margin-top:12px;"></p>
+        <p id="login-error" style="color:red; margin-top:12px; white-space:pre-wrap;"></p>
+        <p style="font-size:12px; color:#666; margin-top:10px;">Pode digitar só o usuário ou o e-mail completo cadastrado.</p>
     </div>
 </div>
 
@@ -177,8 +178,28 @@
     }
 
     // ==================== AUTENTICAÇÃO ====================
+
+    function traduzirErroLogin(msg) {
+        const texto = String(msg || '');
+        if (texto.includes('Invalid login credentials')) {
+            return 'Usuário ou senha incorretos. Dica: digite apenas o usuário antes do @ ou o e-mail completo cadastrado no Supabase.';
+        }
+        if (texto.includes('Email not confirmed')) {
+            return 'Este usuário existe, mas o e-mail ainda não foi confirmado no Supabase. No painel do Supabase, confirme o usuário ou desative a confirmação de e-mail.';
+        }
+        if (texto.includes('Failed to fetch') || texto.includes('NetworkError')) {
+            return 'Não foi possível conectar ao Supabase. Verifique internet, bloqueio do navegador ou se o arquivo está sendo aberto corretamente.';
+        }
+        if (texto.includes('profiles')) {
+            return 'Login aceito, mas falhou ao carregar o cadastro na tabela profiles: ' + texto;
+        }
+        return 'Erro ao entrar: ' + texto;
+    }
+
     async function login(username, password) {
-        const email = username.trim().toLowerCase() + DOMAIN;
+        const raw = username.trim().toLowerCase();
+        const email = raw.includes('@') ? raw : raw + DOMAIN;
+        console.log('Tentando login com:', email);
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
         if (error) throw error;
         return data;
@@ -612,7 +633,7 @@
                     const result = await login(document.getElementById('username').value, document.getElementById('password').value);
                     if (result.session) await openApp(result.session);
                 } catch (err) {
-                    document.getElementById('login-error').innerText = 'Credenciais inválidas ou erro no Supabase: ' + (err.message || err);
+                    document.getElementById('login-error').innerText = traduzirErroLogin(err.message || err);
                 }
             });
         }
