@@ -43,6 +43,8 @@
             padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
         }
         .btn {
+            position: relative;
+            z-index: 10;
             display: inline-block; padding: 10px 20px; border: none;
             border-radius: 30px; font-size: 14px; cursor: pointer;
         }
@@ -296,18 +298,22 @@
     async function renderIssues(container) {
         const filter = getVisibilityFilter();
         let issues = [];
-        if (!isLocalMode()) {
+        if (isLocalMode()) {
+            issues = JSON.parse(localStorage.getItem('ccb_issues') || '[]');
+        } else {
             const result = await supabaseClient.from('issues').select('*').match(filter).order('created_at', { ascending: false });
             issues = result.data || [];
             if (result.error) showToast('Erro ao carregar pendências: ' + result.error.message);
         }
         container.innerHTML = `
             <h2>📋 Pendências</h2>
-            <button class="btn btn-primary" onclick="showNewIssueForm()">+ Nova Pendência</button>
+            <button type="button" id="new-issue-btn" class="btn btn-primary">+ Nova Pendência</button>
             <div id="issues-list"></div>
         `;
         const listDiv = document.getElementById('issues-list');
-        if (!issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
+        const newIssueBtn = document.getElementById('new-issue-btn');
+        if (newIssueBtn) newIssueBtn.addEventListener('click', showNewIssueForm);
+        if (!issues.length) { listDiv.innerHTML = '<p id="empty-issues-msg">Nenhuma pendência.</p>'; return; }
         listDiv.innerHTML = issues.map(issue => `
             <div class="card">
                 <strong>${issue.title}</strong><br>
@@ -319,28 +325,67 @@
     }
 
     window.showNewIssueForm = () => {
+        const list = document.getElementById('issues-list');
+        if (!list) return showToast('Área de pendências não encontrada');
+        const emptyMsg = document.getElementById('empty-issues-msg');
+        if (emptyMsg) emptyMsg.remove();
+        const oldForm = document.getElementById('new-issue-card');
+        if (oldForm) oldForm.remove();
         const html = `
-            <div class="card">
+            <div class="card" id="new-issue-card">
                 <h3>Nova Pendência</h3>
-                <input id="issue-title" placeholder="Título">
-                <textarea id="issue-desc" placeholder="Descrição"></textarea>
-                <select id="issue-priority">
-                    <option>baixa</option><option>média</option><option>alta</option><option>urgente</option>
+                <label>Local</label>
+                <select id="issue-location">
+                    <option value="Templo">Templo</option>
+                    <option value="Banheiro">Banheiro</option>
+                    <option value="Cozinha">Cozinha</option>
+                    <option value="Área externa">Área externa</option>
+                    <option value="Som">Som</option>
+                    <option value="Elétrica">Elétrica</option>
+                    <option value="Hidráulica">Hidráulica</option>
+                    <option value="Outro">Outro</option>
                 </select>
-                <button class="btn btn-primary" onclick="createIssue()">Salvar</button>
-                <button class="btn" onclick="this.closest('.card').remove()">Cancelar</button>
+                <label>Descrição do problema</label>
+                <textarea id="issue-desc" placeholder="Descreva o problema" rows="4"></textarea>
+                <label>Prioridade</label>
+                <select id="issue-priority">
+                    <option value="baixa">baixa</option>
+                    <option value="média" selected>média</option>
+                    <option value="alta">alta</option>
+                    <option value="urgente">urgente</option>
+                </select>
+                <button type="button" id="save-issue-btn" class="btn btn-primary">Salvar</button>
+                <button type="button" id="cancel-issue-btn" class="btn">Cancelar</button>
             </div>
         `;
-        document.getElementById('issues-list').prepend(createElementFromHTML(html));
+        list.insertAdjacentHTML('afterbegin', html);
+        document.getElementById('save-issue-btn').addEventListener('click', createIssue);
+        document.getElementById('cancel-issue-btn').addEventListener('click', () => document.getElementById('new-issue-card')?.remove());
+        document.getElementById('issue-desc').focus();
     };
     function createElementFromHTML(html) { const div = document.createElement('div'); div.innerHTML = html; return div.firstChild; }
 
     window.createIssue = async () => {
-        const title = document.getElementById('issue-title').value;
-        const desc = document.getElementById('issue-desc').value;
-        const priority = document.getElementById('issue-priority').value;
-        if (!title) return showToast('Título obrigatório');
-        if (isLocalMode()) { showToast('Modo local: pendência simulada. Configure o Supabase para salvar.'); navigateTo('issues'); return; }
+        const location = document.getElementById('issue-location')?.value || 'Outro';
+        const desc = document.getElementById('issue-desc')?.value.trim() || '';
+        const priority = document.getElementById('issue-priority')?.value || 'média';
+        if (!desc) return showToast('Descreva o problema antes de salvar');
+        const title = location + ' - ' + desc.slice(0, 45);
+        if (isLocalMode()) {
+            const localIssues = JSON.parse(localStorage.getItem('ccb_issues') || '[]');
+            localIssues.unshift({
+                id: Date.now(),
+                title,
+                description: desc,
+                priority,
+                status: 'pendente',
+                created_at: new Date().toISOString()
+            });
+            localStorage.setItem('ccb_issues', JSON.stringify(localIssues));
+            showToast('Pendência salva no modo local');
+            navigateTo('issues');
+            return;
+        }
         const filter = getVisibilityFilter();
         const { error } = await supabaseClient.from('issues').insert({
             title, description: desc, priority,
@@ -349,7 +394,7 @@
             created_by: currentUser.id,
             status: 'pendente'
         });
-        if (error) showToast('Erro: '+error.message, 'error');
+        if (error) showToast('Erro ao salvar: '+error.message, 'error');
         else { showToast('Pendência criada'); navigateTo('issues'); }
     };
 
