@@ -68,6 +68,11 @@
             background: rgba(0,0,0,0.8); color: white; padding: 8px 16px;
             border-radius: 30px; z-index: 2000; font-size: 14px;
         }
+        .error-box {
+            background: #fff3f3; color: #8a1f1f; border: 1px solid #ffd0d0;
+            border-radius: 10px; padding: 12px; margin-top: 12px; font-size: 14px;
+            white-space: pre-wrap;
+        }
         .chat-messages {
             height: 60vh; overflow-y: auto; display: flex; flex-direction: column;
             gap: 8px; padding: 8px; background: #e5ddd5; border-radius: 12px;
@@ -128,7 +133,32 @@
     const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
     const DOMAIN = '@ccbtorrinha.com.br';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let supabaseClient = null;
+    let appStarted = false;
+    let authListenerReady = false;
+
+    function showStartupError(message) {
+        const loginBox = document.querySelector('.login-box');
+        if (!loginBox) return;
+        const existing = document.getElementById('startup-error');
+        if (existing) existing.remove();
+        const div = document.createElement('div');
+        div.id = 'startup-error';
+        div.className = 'error-box';
+        div.innerText = message;
+        loginBox.appendChild(div);
+    }
+
+    function startSupabase() {
+        if (!window.supabase) {
+            showStartupError('Erro: a biblioteca Supabase não carregou. Verifique a internet, o link CDN ou rode este arquivo por um servidor local/hosting.');
+            return false;
+        }
+        if (!supabaseClient) {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+        return true;
+    }
 
     let currentUser = null;
     let currentPage = 'dashboard';
@@ -165,8 +195,9 @@
             .from('profiles')
             .select('*, cities(id, name), houses(id, name)')
             .eq('id', userId)
-            .single();
+            .maybeSingle();
         if (error) throw error;
+        if (!data) throw new Error('Login feito, mas não existe cadastro deste usuário na tabela profiles. Crie o perfil deste usuário no Supabase.');
         return data;
     }
 
@@ -226,7 +257,7 @@
             <div id="issues-list"></div>
         `;
         const listDiv = document.getElementById('issues-list');
-        if (!issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
+        if (!issues || !issues.length) { listDiv.innerHTML = '<p>Nenhuma pendência.</p>'; return; }
         listDiv.innerHTML = issues.map(issue => `
             <div class="card">
                 <strong>${issue.title}</strong><br>
@@ -290,7 +321,7 @@
         const filter = getVisibilityFilter();
         const { data: users } = await supabaseClient.from('profiles').select('id, full_name').match(filter);
         const select = document.getElementById('responsible');
-        users.forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
+        (users || []).forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
     };
 
     window.saveTask = async (issueId) => {
@@ -330,7 +361,7 @@
         const { data: tasks } = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
         container.innerHTML = `<h2>📅 Cronograma de Tarefas</h2><div id="tasks-list"></div>`;
         const listDiv = document.getElementById('tasks-list');
-        if (!tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
+        if (!tasks || !tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
         listDiv.innerHTML = tasks.map(task => `
             <div class="card">
                 <strong>${task.title}</strong>
@@ -346,7 +377,7 @@
     window.showTaskMaterials = async (taskId) => {
         const { data: mats } = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
         let html = '<div class="card"><h4>Materiais Necessários</h4><ul>';
-        mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
+        (mats || []).forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
         html += '</ul><button class="btn" onclick="this.parentElement.remove()">Fechar</button></div>';
         document.getElementById('tasks-list').prepend(createElementFromHTML(html));
     };
@@ -364,7 +395,7 @@
         const { data: stock } = await supabaseClient.from('stock_items').select('*').match(filter);
         container.innerHTML = `<h2>📦 Estoque</h2><div id="stock-list"></div>`;
         const listDiv = document.getElementById('stock-list');
-        if (!stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
+        if (!stock || !stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
         listDiv.innerHTML = stock.map(item => `
             <div class="card">
                 <strong>${item.name}</strong> - ${item.quantity} ${item.unit || ''}
@@ -414,7 +445,7 @@
         const container = document.getElementById('chat-messages');
         if (!container) return;
         container.innerHTML = '';
-        data.forEach(msg => {
+        (data || []).forEach(msg => {
             const isOwn = msg.sender_id === currentUser.id;
             const div = document.createElement('div');
             div.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
@@ -447,13 +478,14 @@
     function setupChatRealtime() {
         if (chatSubscription) chatSubscription.unsubscribe();
         const filter = getVisibilityFilter();
-        let channelFilter = {};
-        if (filter.house_id) channelFilter = { house_id: filter.house_id };
-        else if (filter.city_id) channelFilter = { city_id: filter.city_id };
+        let realtimeFilter;
+        if (filter.house_id) realtimeFilter = `house_id=eq.${filter.house_id}`;
+        else if (filter.city_id) realtimeFilter = `city_id=eq.${filter.city_id}`;
+        const baseConfig = { event: '*', schema: 'public', table: 'chat_messages' };
+        if (realtimeFilter) baseConfig.filter = realtimeFilter;
         chatSubscription = supabaseClient
             .channel('chat-room')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_messages', filter: channelFilter }, () => loadChatMessages())
+            .on('postgres_changes', baseConfig, () => loadChatMessages())
             .subscribe();
     }
 
@@ -500,9 +532,12 @@
 
     // ==================== ADMIN ====================
     async function renderAdmin(container) {
-        const { data: cities } = await supabaseClient.from('cities').select('*');
-        const { data: houses } = await supabaseClient.from('houses').select('*, cities(name)');
-        const { data: users } = await supabaseClient.from('profiles').select('*');
+        const { data: citiesData } = await supabaseClient.from('cities').select('*');
+        const { data: housesData } = await supabaseClient.from('houses').select('*, cities(name)');
+        const { data: usersData } = await supabaseClient.from('profiles').select('*');
+        const cities = citiesData || [];
+        const houses = housesData || [];
+        const users = usersData || [];
         container.innerHTML = `
             <h2>⚙️ Administração</h2>
             <div class="card">
@@ -512,8 +547,8 @@
                 <input id="new-password" type="password" placeholder="Senha">
                 <select id="new-role"><option>Usuário</option><option>Gestor da Manutenção</option><option>Administrador</option></select>
                 <select id="new-permission"><option value="house">Apenas sua casa</option><option value="city">Apenas sua cidade</option><option value="all">Todas cidades</option></select>
-                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`)}</select>
-                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name})</option>`)}</select>
+                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select>
+                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name || 'Sem cidade'})</option>`).join('')}</select>
                 <button class="btn btn-primary" onclick="createUser()">Criar Usuário</button>
             </div>
             <h3>Usuários Existentes</h3>
@@ -542,37 +577,72 @@
     };
 
     window.deleteUser = async (id) => {
-        if(confirm('Deletar usuário?')) {
-            await supabaseClient.auth.admin.deleteUser(id);
-            await supabaseClient.from('profiles').delete().eq('id', id);
-            navigateTo('admin');
+        if(confirm('Remover este usuário da lista do app? Isso apaga apenas o perfil. O usuário do Auth deve ser removido no painel do Supabase.')) {
+            const { error } = await supabaseClient.from('profiles').delete().eq('id', id);
+            if (error) showToast('Erro ao remover perfil: ' + error.message);
+            else navigateTo('admin');
         }
     };
 
     // ==================== INICIALIZAÇÃO ====================
-    async function init() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
+    async function openApp(session) {
+        try {
             currentUser = await loadUserProfile(session.user.id);
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-screen').classList.remove('hidden');
             document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
-            navigateTo('dashboard');
+            await navigateTo('dashboard');
+        } catch (err) {
+            await supabaseClient.auth.signOut();
+            document.getElementById('login-error').innerText = err.message || 'Erro ao carregar usuário.';
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('app-screen').classList.add('hidden');
         }
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            try {
-                await login(document.getElementById('username').value, document.getElementById('password').value);
-                init();
-            } catch (err) {
-                document.getElementById('login-error').innerText = 'Credenciais inválidas';
-            }
-        });
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_OUT') logout();
-            else if (session) init();
-        });
     }
+
+    async function init() {
+        if (!startSupabase()) return;
+
+        if (!appStarted) {
+            appStarted = true;
+            document.getElementById('login-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                document.getElementById('login-error').innerText = '';
+                try {
+                    const result = await login(document.getElementById('username').value, document.getElementById('password').value);
+                    if (result.session) await openApp(result.session);
+                } catch (err) {
+                    document.getElementById('login-error').innerText = 'Credenciais inválidas ou erro no Supabase: ' + (err.message || err);
+                }
+            });
+        }
+
+        if (!authListenerReady) {
+            authListenerReady = true;
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
+                if (event === 'SIGNED_OUT') {
+                    currentUser = null;
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('app-screen').classList.add('hidden');
+                    if (chatSubscription) chatSubscription.unsubscribe();
+                } else if (event === 'SIGNED_IN' && session) {
+                    await openApp(session);
+                }
+            });
+        }
+
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) await openApp(session);
+        } catch (err) {
+            showStartupError('Erro ao iniciar o app: ' + (err.message || err));
+        }
+    }
+
+    window.addEventListener('error', (event) => {
+        showStartupError('Erro no navegador: ' + event.message);
+    });
+
     init();
 </script>
 </body>
