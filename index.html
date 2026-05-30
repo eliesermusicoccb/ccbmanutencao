@@ -319,9 +319,12 @@
                 <strong>${issue.title}</strong><br>
                 <small>Prioridade: ${issue.priority} | Status: ${issue.status}</small>
                 <p>${issue.description || ''}</p>
-                ${isAdmin() ? `<button class="btn btn-small" onclick="convertToTask(${issue.id})">Criar Tarefa</button>` : ''}
+                ${isAdmin() ? `<button type="button" class="btn btn-small create-task-btn" data-issue-id="${issue.id}">Criar Tarefa</button>` : ''}
             </div>
         `).join('');
+        document.querySelectorAll('.create-task-btn').forEach(btn => {
+            btn.addEventListener('click', () => convertToTask(btn.dataset.issueId));
+        });
     }
 
     window.showNewIssueForm = () => {
@@ -455,7 +458,9 @@
     async function renderTasks(container) {
         const filter = getVisibilityFilter();
         let tasks = [];
-        if (!isLocalMode()) {
+        if (isLocalMode()) {
+            tasks = JSON.parse(localStorage.getItem('ccb_tasks') || '[]');
+        } else {
             const result = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
             tasks = result.data || [];
             if (result.error) showToast('Erro ao carregar tarefas: ' + result.error.message);
@@ -467,26 +472,53 @@
             <div class="card">
                 <strong>${task.title}</strong>
                 <p>📅 ${task.start_date || '?'} → ${task.end_date || '?'}</p>
-                <p>👤 Responsável: ${task.responsible?.full_name || 'Não definido'}</p>
-                <p>✅ Progresso: ${task.progress}%</p>
-                <button class="btn btn-small" onclick="showTaskMaterials(${task.id})">Ver Checklist</button>
-                ${isAdmin() ? `<button class="btn btn-small btn-primary" onclick="updateTaskProgress(${task.id})">Atualizar Progresso</button>` : ''}
+                <p>👤 Responsável: ${task.responsible?.full_name || task.responsible_name || 'Não definido'}</p>
+                <p>✅ Progresso: ${task.progress || 0}%</p>
+                <button type="button" class="btn btn-small task-materials-btn" data-task-id="${task.id}">Ver Checklist</button>
+                ${isAdmin() ? `<button type="button" class="btn btn-small btn-primary task-progress-btn" data-task-id="${task.id}">Atualizar Progresso</button>` : ''}
             </div>
         `).join('');
+        document.querySelectorAll('.task-materials-btn').forEach(btn => {
+            btn.addEventListener('click', () => showTaskMaterials(btn.dataset.taskId));
+        });
+        document.querySelectorAll('.task-progress-btn').forEach(btn => {
+            btn.addEventListener('click', () => updateTaskProgress(btn.dataset.taskId));
+        });
     }
 
     window.showTaskMaterials = async (taskId) => {
-        const { data: mats } = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
-        let html = '<div class="card"><h4>Materiais Necessários</h4><ul>';
-        mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed} ${m.unit} (usado: ${m.quantity_used})</li>`);
-        html += '</ul><button class="btn" onclick="this.parentElement.remove()">Fechar</button></div>';
-        document.getElementById('tasks-list').prepend(createElementFromHTML(html));
+        let mats = [];
+        if (isLocalMode()) {
+            mats = JSON.parse(localStorage.getItem('ccb_task_materials') || '[]').filter(m => String(m.task_id) === String(taskId));
+        } else {
+            const result = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
+            mats = result.data || [];
+            if (result.error) showToast('Erro ao carregar checklist: ' + result.error.message);
+        }
+        let html = '<div class="card"><h4>Materiais Necessários</h4>';
+        if (!mats.length) html += '<p>Nenhum material informado.</p>';
+        else {
+            html += '<ul>';
+            mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed || 0} ${m.unit || 'un'} (usado: ${m.quantity_used || 0})</li>`);
+            html += '</ul>';
+        }
+        html += '<button type="button" class="btn close-materials-btn">Fechar</button></div>';
+        const el = createElementFromHTML(html);
+        document.getElementById('tasks-list').prepend(el);
+        el.querySelector('.close-materials-btn').addEventListener('click', () => el.remove());
     };
 
     window.updateTaskProgress = async (taskId) => {
         const newProgress = prompt('Novo progresso (0-100):', '50');
         if (newProgress !== null) {
-            await supabaseClient.from('tasks').update({ progress: parseInt(newProgress), status: parseInt(newProgress) === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
+            const progress = Math.max(0, Math.min(100, parseInt(newProgress) || 0));
+            if (isLocalMode()) {
+                const localTasks = JSON.parse(localStorage.getItem('ccb_tasks') || '[]');
+                const updated = localTasks.map(t => String(t.id) === String(taskId) ? { ...t, progress, status: progress === 100 ? 'concluida' : 'em_andamento' } : t);
+                localStorage.setItem('ccb_tasks', JSON.stringify(updated));
+            } else {
+                await supabaseClient.from('tasks').update({ progress, status: progress === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
+            }
             navigateTo('tasks');
         }
     };
