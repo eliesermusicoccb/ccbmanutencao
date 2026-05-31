@@ -2,790 +2,140 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Manutenção CCB</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Manutenção Rápida</title>
+    <!-- Link para estilização simples e limpa -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <!-- Conexão com o Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --primary: #2c3e50;
-            --accent: #25D366;
-            --danger: #e74c3c;
-            --success: #2ecc71;
-            --bg: #f0f2f5;
-            --white: #fff;
-            --text: #111;
-            --border: #e0e0e0;
-            --radius: 12px;
-            --shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        body {
-            font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding-bottom: 70px;
-        }
-        .container { max-width: 700px; margin: 0 auto; padding: 16px; }
-        .bottom-menu {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: var(--white); display: flex; justify-content: space-around;
-            padding: 8px 0; border-top: 1px solid var(--border); z-index: 1000;
-        }
-        .menu-item {
-            display: flex; flex-direction: column; align-items: center;
-            background: none; border: none; font-size: 12px; color: #666;
-            cursor: pointer; gap: 4px;
-        }
-        .menu-item.active { color: var(--accent); font-weight: bold; }
-        .menu-item span:first-child { font-size: 24px; }
-        .card {
-            background: var(--white); border-radius: var(--radius);
-            padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow);
-        }
-        .btn {
-            position: relative;
-            z-index: 10;
-            display: inline-block; padding: 10px 20px; border: none;
-            border-radius: 30px; font-size: 14px; cursor: pointer;
-        }
-        .btn-primary { background: var(--accent); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn-outline { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
-        input, select, textarea {
-            width: 100%; padding: 12px; margin: 8px 0 16px;
-            border: 1px solid var(--border); border-radius: 8px; font-size: 16px;
-        }
-        label { font-weight: 600; display: block; margin-top: 12px; }
-        .hidden { display: none !important; }
-        #login-screen {
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; background: var(--bg);
-        }
-        .login-box {
-            background: white; padding: 32px; border-radius: var(--radius);
-            width: 100%; max-width: 380px; box-shadow: var(--shadow);
-        }
-        .toast {
-            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); color: white; padding: 8px 16px;
-            border-radius: 30px; z-index: 2000; font-size: 14px;
-        }
-        .chat-messages {
-            height: 60vh; overflow-y: auto; display: flex; flex-direction: column;
-            gap: 8px; padding: 8px; background: #e5ddd5; border-radius: 12px;
-        }
-        .message {
-            max-width: 80%; padding: 8px 12px; border-radius: 18px;
-            position: relative; word-wrap: break-word;
-        }
-        .message-sent { background: #dcf8c5; align-self: flex-end; }
-        .message-received { background: white; align-self: flex-start; }
-        .message-info {
-            font-size: 10px; color: #666; display: flex;
-            justify-content: space-between; margin-top: 4px; gap: 12px;
-        }
-        .message-media { max-width: 200px; max-height: 200px; border-radius: 12px; margin-top: 4px; }
-        .delete-msg { font-size: 10px; color: red; cursor: pointer; margin-left: 8px; }
-        .chat-input-area {
-            display: flex; gap: 8px; margin-top: 12px; align-items: center;
-            background: white; padding: 8px; border-radius: 30px;
-        }
-        .chat-input-area input { flex: 1; margin: 0; border: none; outline: none; }
-        .file-buttons { display: flex; gap: 8px; }
-        .file-buttons button { background: none; border: none; font-size: 24px; cursor: pointer; }
-        @media (max-width: 600px) { .message { max-width: 90%; } }
-    
-        .debug-box { margin-top:12px; padding:12px; background:#fff3cd; border:1px solid #ffe69c; color:#664d03; border-radius:8px; font-size:13px; line-height:1.4; white-space:pre-wrap; }
-        .btn-secondary { background:#34495e; color:white; }
-        .muted { color:#777; font-size:12px; line-height:1.4; }
-    </style>
 </head>
 <body>
+    <main class="container">
+        <h1>Gestão de Manutenção</h1>
+        
+        <!-- SEÇÃO 1: FORMULÁRIO DE ABERTURA RÁPIDA -->
+        <section id="formulario-registro">
+            <h3>Nova Pendência</h3>
+            <form id="form-manutencao">
+                <label for="local">Local / Ativo:</label>
+                <input type="text" id="local" placeholder="Ex: Linha 1, Compressor, Ar Condicionado" required>
 
-<div id="login-screen">
-    <div class="login-box">
-        <h1>🔧 Manutenção CCB</h1>
-        <form id="login-form">
-            <label>Usuário</label>
-            <input type="text" id="username" placeholder="ex: admin" autocomplete="username" required>
-            <div style="font-size:12px; color:#888;">@ccbtorrinha.com.br será adicionado</div>
-            <label>Senha</label>
-            <input type="password" id="password" autocomplete="current-password" required>
-            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:16px;">Entrar</button>
-        </form>
-        <button type="button" id="local-access-btn" class="btn btn-secondary" style="width:100%; margin-top:10px;">Entrar em modo teste/local</button>
-        <p class="muted" style="margin-top:10px;">Use o modo teste se o Supabase estiver bloqueando o login. Depois ajustamos usuário, senha, tabela profiles ou RLS.</p>
-        <p id="login-error" style="color:red; margin-top:12px;"></p>
-        <div id="debug-box" class="debug-box hidden"></div>
-    </div>
-</div>
+                <label for="descricao">Descrição do Problema:</label>
+                <textarea id="descricao" placeholder="Relate o que está acontecendo..." required></textarea>
 
-<div id="app-screen" class="hidden">
-    <div class="container" id="app-content"></div>
-    <nav class="bottom-menu" id="bottom-menu">
-        <button class="menu-item" data-page="dashboard">🏠 Início</button>
-        <button class="menu-item" data-page="issues">📋 Pendências</button>
-        <button class="menu-item" data-page="tasks">📅 Cronograma</button>
-        <button class="menu-item" data-page="stock">📦 Estoque</button>
-        <button class="menu-item" data-page="chat">💬 Chat</button>
-        <button class="menu-item admin-only hidden" data-page="admin">⚙️ Admin</button>
-    </nav>
-</div>
+                <label for="foto">Foto da Evidência:</label>
+                <input type="file" id="foto" accept="image/*">
 
-<script>
-    // ==================== CONFIG SUPABASE ====================
-    const SUPABASE_URL = 'https://ybsqrvtmhfhxjegenzgw.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlic3FydnRtaGZoeGplZ2Vuemd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3Mjk3NzAsImV4cCI6MjA5NTMwNTc3MH0.ODE4fv9OReGht0xAbl82kTg0hkMb6dQO9ZhHqWcI7u8';
-    const DOMAIN = '@ccbtorrinha.com.br';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                <button type="submit">Adicionar Pendência</button>
+            </form>
+        </section>
 
-    let currentUser = null;
-    let currentPage = 'dashboard';
-    let chatSubscription = null;
+        <hr>
 
-    // ==================== UTILITÁRIOS ====================
-    function showToast(msg, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = 'toast';
-        toast.innerText = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-    function formatDateTime(date) {
-        return new Date(date).toLocaleString('pt-BR', { hour: '2-digit', minute:'2-digit', day:'2-digit', month:'short' });
-    }
-
-    // ==================== AUTENTICAÇÃO ====================
-    const LOCAL_MODE_KEY = 'ccb_local_mode';
-
-    function showDebug(message, details = '') {
-        const box = document.getElementById('debug-box');
-        if (!box) return;
-        box.classList.remove('hidden');
-        box.textContent = details ? `${message}\n\nDetalhes técnicos:\n${details}` : message;
-    }
-
-    function buildEmail(username) {
-        const value = (username || '').trim().toLowerCase();
-        if (value.includes('@')) return value;
-        return value + DOMAIN;
-    }
-
-    function setLocalUser() {
-        currentUser = {
-            id: 'local-user',
-            username: 'teste',
-            full_name: 'Usuário Teste',
-            role: 'Administrador',
-            permission_level: 'all',
-            city_id: null,
-            house_id: null,
-            cities: { id: null, name: 'Modo local' },
-            houses: { id: null, name: 'Modo local' }
-        };
-        localStorage.setItem(LOCAL_MODE_KEY, 'true');
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-screen').classList.remove('hidden');
-        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
-        navigateTo('dashboard');
-        showToast('Entrou em modo teste/local');
-    }
-
-    async function login(username, password) {
-        if (!window.supabase || !supabaseClient) {
-            throw new Error('Biblioteca Supabase não carregou. Verifique internet, CDN ou bloqueio do navegador.');
-        }
-        const email = buildEmail(username);
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        return data;
-    }
-
-    async function logout() {
-        localStorage.removeItem(LOCAL_MODE_KEY);
-        try { await supabaseClient.auth.signOut(); } catch(e) {}
-        currentUser = null;
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-screen').classList.add('hidden');
-        if (chatSubscription) chatSubscription.unsubscribe();
-    }
-
-    async function loadUserProfile(userId) {
-        const { data, error } = await supabaseClient
-            .from('profiles')
-            .select('*, cities(id, name), houses(id, name)')
-            .eq('id', userId)
-            .maybeSingle();
-        if (error) throw error;
-        if (!data) {
-            throw new Error('Login aceito, mas não existe cadastro correspondente na tabela profiles para este usuário.');
-        }
-        return data;
-    }
-
-    // ==================== PERMISSÕES ====================
-    function getVisibilityFilter() {
-        if (!currentUser) return {};
-        if (currentUser.permission_level === 'house') return { house_id: currentUser.house_id, city_id: currentUser.city_id };
-        if (currentUser.permission_level === 'city') return { city_id: currentUser.city_id };
-        return {};
-    }
-    function isAdmin() {
-        return currentUser?.role === 'Administrador';
-    }
-
-    // ==================== RENDERIZAÇÃO ====================
-
-    function setupBottomMenu() {
-        document.querySelectorAll('#bottom-menu .menu-item').forEach(btn => {
-            btn.onclick = () => {
-                const page = btn.dataset.page;
-                if (page) navigateTo(page);
-            };
-        });
-    }
-
-    window.navigateTo = navigateTo;
-    async function navigateTo(page) {
-        currentPage = page;
-        document.querySelectorAll('.menu-item').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.page === page);
-        });
-        const container = document.getElementById('app-content');
-        container.innerHTML = '<div style="text-align:center;">Carregando...</div>';
-        switch(page) {
-            case 'dashboard': await renderDashboard(container); break;
-            case 'issues': await renderIssues(container); break;
-            case 'tasks': await renderTasks(container); break;
-            case 'stock': await renderStock(container); break;
-            case 'chat': await renderChat(container); break;
-            case 'admin': if(isAdmin()) await renderAdmin(container); else navigateTo('dashboard'); break;
-            default: await renderDashboard(container);
-        }
-    }
-
-    function isLocalMode() {
-        return currentUser?.id === 'local-user';
-    }
-
-    async function safeCount(table, filter, statusField = 'status') {
-        if (isLocalMode()) return 0;
-        const { count, error } = await supabaseClient.from(table).select('*', { count: 'exact', head: true }).match(filter).neq(statusField, 'concluida');
-        if (error) {
-            console.warn(`Erro ao contar ${table}:`, error.message);
-            return 0;
-        }
-        return count || 0;
-    }
-
-    async function renderDashboard(container) {
-        const filter = getVisibilityFilter();
-        const pendingIssues = await safeCount('issues', filter);
-        const activeTasks = await safeCount('tasks', filter);
-        container.innerHTML = `
-            <div class="card">
-                <h2>Olá, ${currentUser.full_name || currentUser.username}</h2>
-                <p>🏠 Casa: ${currentUser.houses?.name || 'N/A'}</p>
-                <p>📋 Pendências ativas: ${pendingIssues || 0}</p>
-                <p>🔄 Tarefas em andamento: ${activeTasks || 0}</p>
-                <button class="btn btn-outline" onclick="navigateTo('issues')">Ver Pendências</button>
-                <button class="btn btn-primary" onclick="navigateTo('tasks')">Cronograma</button>
-                <button class="btn btn-danger" onclick="logout()" style="margin-top:16px;">Sair</button>
+        <!-- SEÇÃO 2: LISTA DE PENDÊNCIAS -->
+        <section id="lista-pendencias">
+            <h3>Itens Pendentes</h3>
+            <div id="lista-cards">
+                <!-- Os itens do banco vão aparecer aqui dentro automaticamente -->
+                <p>Carregando pendências...</p>
             </div>
-        `;
-    }
+        </section>
+    </main>
 
-    async function renderIssues(container) {
-        const filter = getVisibilityFilter();
-        let issues = [];
-        if (isLocalMode()) {
-            issues = JSON.parse(localStorage.getItem('ccb_issues') || '[]');
-        } else {
-            const result = await supabaseClient.from('issues').select('*').match(filter).order('created_at', { ascending: false });
-            issues = result.data || [];
-            if (result.error) showToast('Erro ao carregar pendências: ' + result.error.message);
-        }
-        container.innerHTML = `
-            <h2>📋 Pendências</h2>
-            <button type="button" id="new-issue-btn" class="btn btn-primary">+ Nova Pendência</button>
-            <div id="issues-list"></div>
-        `;
-        const listDiv = document.getElementById('issues-list');
-        const newIssueBtn = document.getElementById('new-issue-btn');
-        if (newIssueBtn) newIssueBtn.addEventListener('click', showNewIssueForm);
-        if (!issues.length) { listDiv.innerHTML = '<p id="empty-issues-msg">Nenhuma pendência.</p>'; return; }
-        listDiv.innerHTML = issues.map(issue => `
-            <div class="card">
-                <strong>${issue.title}</strong><br>
-                <small>Prioridade: ${issue.priority} | Status: ${issue.status}</small>
-                <p>${issue.description || ''}</p>
-                ${isAdmin() ? `<button type="button" class="btn btn-small create-task-btn" data-issue-id="${issue.id}">Criar Tarefa</button>` : ''}
-            </div>
-        `).join('');
-        document.querySelectorAll('.create-task-btn').forEach(btn => {
-            btn.addEventListener('click', () => convertToTask(btn.dataset.issueId));
-        });
-    }
+    <script>
+        // CONFIGURAÇÃO DO SUPABASE
+        // Substitua com as credenciais do seu painel do Supabase (Project Settings > API)
+        const SUPABASE_URL = "SUA_URL_DO_SUPABASE";
+        const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY_DO_SUPABASE";
+        const supabase = @supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    window.showNewIssueForm = () => {
-        const list = document.getElementById('issues-list');
-        if (!list) return showToast('Área de pendências não encontrada');
-        const emptyMsg = document.getElementById('empty-issues-msg');
-        if (emptyMsg) emptyMsg.remove();
-        const oldForm = document.getElementById('new-issue-card');
-        if (oldForm) oldForm.remove();
-        const html = `
-            <div class="card" id="new-issue-card">
-                <h3>Nova Pendência</h3>
-                <label>Local</label>
-                <select id="issue-location">
-                    <option value="Templo">Templo</option>
-                    <option value="Banheiro">Banheiro</option>
-                    <option value="Cozinha">Cozinha</option>
-                    <option value="Área externa">Área externa</option>
-                    <option value="Som">Som</option>
-                    <option value="Elétrica">Elétrica</option>
-                    <option value="Hidráulica">Hidráulica</option>
-                    <option value="Outro">Outro</option>
-                </select>
-                <label>Descrição do problema</label>
-                <textarea id="issue-desc" placeholder="Descreva o problema" rows="4"></textarea>
-                <label>Prioridade</label>
-                <select id="issue-priority">
-                    <option value="baixa">baixa</option>
-                    <option value="média" selected>média</option>
-                    <option value="alta">alta</option>
-                    <option value="urgente">urgente</option>
-                </select>
-                <button type="button" id="save-issue-btn" class="btn btn-primary">Salvar</button>
-                <button type="button" id="cancel-issue-btn" class="btn">Cancelar</button>
-            </div>
-        `;
-        list.insertAdjacentHTML('afterbegin', html);
-        document.getElementById('save-issue-btn').addEventListener('click', createIssue);
-        document.getElementById('cancel-issue-btn').addEventListener('click', () => document.getElementById('new-issue-card')?.remove());
-        document.getElementById('issue-desc').focus();
-    };
-    function createElementFromHTML(html) { const div = document.createElement('div'); div.innerHTML = html; return div.firstChild; }
+        const form = document.getElementById('form-manutencao');
+        const listaCards = document.getElementById('lista-cards');
 
-    window.createIssue = async () => {
-        const location = document.getElementById('issue-location')?.value || 'Outro';
-        const desc = document.getElementById('issue-desc')?.value.trim() || '';
-        const priority = document.getElementById('issue-priority')?.value || 'média';
-        if (!desc) return showToast('Descreva o problema antes de salvar');
-        const title = location + ' - ' + desc.slice(0, 45);
-        if (isLocalMode()) {
-            const localIssues = JSON.parse(localStorage.getItem('ccb_issues') || '[]');
-            localIssues.unshift({
-                id: Date.now(),
-                title,
-                description: desc,
-                priority,
-                status: 'pendente',
-                created_at: new Date().toISOString()
-            });
-            localStorage.setItem('ccb_issues', JSON.stringify(localIssues));
-            showToast('Pendência salva no modo local');
-            navigateTo('issues');
-            return;
-        }
-        const filter = getVisibilityFilter();
-        const { error } = await supabaseClient.from('issues').insert({
-            title, description: desc, priority,
-            city_id: filter.city_id || currentUser.city_id,
-            house_id: filter.house_id || currentUser.house_id,
-            created_by: currentUser.id,
-            status: 'pendente'
-        });
-        if (error) showToast('Erro ao salvar: '+error.message, 'error');
-        else { showToast('Pendência criada'); navigateTo('issues'); }
-    };
+        // Função para buscar e exibir a lista de pendências
+        async function buscarPendencias() {
+            let { data: manutencoes, error } = await supabase
+                .from('manutencoes')
+                .select('*')
+                .eq('status', 'Pendente') // Mostra apenas os pendentes na lista principal
+                .order('data_abertura', { ascending: false });
 
-    window.convertToTask = async (issueId) => {
-        const { data: issue } = await supabaseClient.from('issues').select('*').eq('id', issueId).single();
-        if(!issue) return;
-        const html = `
-            <div class="card" id="task-form-card">
-                <h3>Criar Tarefa para: ${issue.title}</h3>
-                <label>Data início</label><input type="date" id="start-date">
-                <label>Data fim</label><input type="date" id="end-date">
-                <label>Responsável</label><select id="responsible"></select>
-                <label>Checklist de Materiais (um por linha, ex: "Cimento, 5 sacos")</label>
-                <textarea id="materials-list" placeholder="Cimento, 5kg\nAreia, 3m³"></textarea>
-                <button class="btn btn-primary" onclick="saveTask(${issue.id})">Criar Tarefa</button>
-                <button class="btn" onclick="document.getElementById('task-form-card').remove()">Cancelar</button>
-            </div>
-        `;
-        document.getElementById('issues-list').prepend(createElementFromHTML(html));
-        const filter = getVisibilityFilter();
-        const { data: users } = await supabaseClient.from('profiles').select('id, full_name').match(filter);
-        const select = document.getElementById('responsible');
-        users.forEach(u => select.innerHTML += `<option value="${u.id}">${u.full_name}</option>`);
-    };
-
-    window.saveTask = async (issueId) => {
-        const start = document.getElementById('start-date').value;
-        const end = document.getElementById('end-date').value;
-        const responsible = document.getElementById('responsible').value;
-        const materialsText = document.getElementById('materials-list').value;
-        const filter = getVisibilityFilter();
-        const { data: task, error } = await supabaseClient.from('tasks').insert({
-            issue_id: issueId,
-            title: `Tarefa da pendência #${issueId}`,
-            start_date: start, end_date: end,
-            responsible_id: responsible || null,
-            status: 'planejada',
-            city_id: filter.city_id || currentUser.city_id,
-            house_id: filter.house_id || currentUser.house_id
-        }).select().single();
-        if (error) return showToast('Erro: '+error.message);
-        const lines = materialsText.split('\n');
-        for (let line of lines) {
-            if (line.trim()) {
-                let [name, qty] = line.split(',');
-                await supabaseClient.from('task_materials').insert({
-                    task_id: task.id,
-                    material_name: name.trim(),
-                    quantity_needed: parseFloat(qty) || 0,
-                    unit: 'un'
-                });
+            if (error) {
+                listaCards.innerHTML = "<p>Erro ao carregar dados.</p>";
+                return;
             }
-        }
-        showToast('Tarefa criada com checklist!');
-        navigateTo('tasks');
-    };
 
-    async function renderTasks(container) {
-        const filter = getVisibilityFilter();
-        let tasks = [];
-        if (isLocalMode()) {
-            tasks = JSON.parse(localStorage.getItem('ccb_tasks') || '[]');
-        } else {
-            const result = await supabaseClient.from('tasks').select('*, responsible:responsible_id(full_name)').match(filter).order('start_date', { nullsFirst: false });
-            tasks = result.data || [];
-            if (result.error) showToast('Erro ao carregar tarefas: ' + result.error.message);
-        }
-        container.innerHTML = `<h2>📅 Cronograma de Tarefas</h2><div id="tasks-list"></div>`;
-        const listDiv = document.getElementById('tasks-list');
-        if (!tasks.length) { listDiv.innerHTML = '<p>Nenhuma tarefa planejada.</p>'; return; }
-        listDiv.innerHTML = tasks.map(task => `
-            <div class="card">
-                <strong>${task.title}</strong>
-                <p>📅 ${task.start_date || '?'} → ${task.end_date || '?'}</p>
-                <p>👤 Responsável: ${task.responsible?.full_name || task.responsible_name || 'Não definido'}</p>
-                <p>✅ Progresso: ${task.progress || 0}%</p>
-                <button type="button" class="btn btn-small task-materials-btn" data-task-id="${task.id}">Ver Checklist</button>
-                ${isAdmin() ? `<button type="button" class="btn btn-small btn-primary task-progress-btn" data-task-id="${task.id}">Atualizar Progresso</button>` : ''}
-            </div>
-        `).join('');
-        document.querySelectorAll('.task-materials-btn').forEach(btn => {
-            btn.addEventListener('click', () => showTaskMaterials(btn.dataset.taskId));
-        });
-        document.querySelectorAll('.task-progress-btn').forEach(btn => {
-            btn.addEventListener('click', () => updateTaskProgress(btn.dataset.taskId));
-        });
-    }
-
-    window.showTaskMaterials = async (taskId) => {
-        let mats = [];
-        if (isLocalMode()) {
-            mats = JSON.parse(localStorage.getItem('ccb_task_materials') || '[]').filter(m => String(m.task_id) === String(taskId));
-        } else {
-            const result = await supabaseClient.from('task_materials').select('*').eq('task_id', taskId);
-            mats = result.data || [];
-            if (result.error) showToast('Erro ao carregar checklist: ' + result.error.message);
-        }
-        let html = '<div class="card"><h4>Materiais Necessários</h4>';
-        if (!mats.length) html += '<p>Nenhum material informado.</p>';
-        else {
-            html += '<ul>';
-            mats.forEach(m => html += `<li>${m.material_name}: ${m.quantity_needed || 0} ${m.unit || 'un'} (usado: ${m.quantity_used || 0})</li>`);
-            html += '</ul>';
-        }
-        html += '<button type="button" class="btn close-materials-btn">Fechar</button></div>';
-        const el = createElementFromHTML(html);
-        document.getElementById('tasks-list').prepend(el);
-        el.querySelector('.close-materials-btn').addEventListener('click', () => el.remove());
-    };
-
-    window.updateTaskProgress = async (taskId) => {
-        const newProgress = prompt('Novo progresso (0-100):', '50');
-        if (newProgress !== null) {
-            const progress = Math.max(0, Math.min(100, parseInt(newProgress) || 0));
-            if (isLocalMode()) {
-                const localTasks = JSON.parse(localStorage.getItem('ccb_tasks') || '[]');
-                const updated = localTasks.map(t => String(t.id) === String(taskId) ? { ...t, progress, status: progress === 100 ? 'concluida' : 'em_andamento' } : t);
-                localStorage.setItem('ccb_tasks', JSON.stringify(updated));
-            } else {
-                await supabaseClient.from('tasks').update({ progress, status: progress === 100 ? 'concluida' : 'em_andamento' }).eq('id', taskId);
+            if (manutencoes.length === 0) {
+                listaCards.innerHTML = "<p>Nenhuma pendência registrada! Tudo rodando bem. 🙌</p>";
+                return;
             }
-            navigateTo('tasks');
-        }
-    };
 
-    async function renderStock(container) {
-        const filter = getVisibilityFilter();
-        let stock = [];
-        if (!isLocalMode()) {
-            const result = await supabaseClient.from('stock_items').select('*').match(filter);
-            stock = result.data || [];
-            if (result.error) showToast('Erro ao carregar estoque: ' + result.error.message);
-        }
-        container.innerHTML = `<h2>📦 Estoque</h2><div id="stock-list"></div>`;
-        const listDiv = document.getElementById('stock-list');
-        if (!stock.length) { listDiv.innerHTML = '<p>Nenhum item cadastrado.</p>'; return; }
-        listDiv.innerHTML = stock.map(item => `
-            <div class="card">
-                <strong>${item.name}</strong> - ${item.quantity} ${item.unit || ''}
-                <br><small>Mínimo: ${item.min_stock}</small>
-                ${isAdmin() ? `<button class="btn btn-small" onclick="updateStock(${item.id})">Atualizar</button>` : ''}
-            </div>
-        `).join('');
-    }
-
-    window.updateStock = async (id) => {
-        const qty = prompt('Nova quantidade:');
-        if (qty) await supabaseClient.from('stock_items').update({ quantity: parseFloat(qty), last_updated: new Date() }).eq('id', id);
-        navigateTo('stock');
-    };
-
-    // ==================== CHAT ====================
-    async function renderChat(container) {
-        container.innerHTML = `
-            <div style="display:flex; justify-content:space-between;">
-                <h2>💬 Chat</h2>
-                <select id="chat-filter" style="width:auto;"><option value="all">Todas mensagens</option></select>
-            </div>
-            <div id="chat-messages" class="chat-messages"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Digite sua mensagem...">
-                <div class="file-buttons">
-                    <button id="attach-image">📷</button>
-                    <button id="attach-video">🎥</button>
-                    <button id="attach-audio">🎤</button>
-                    <button id="attach-pdf">📄</button>
-                </div>
-                <button id="send-msg" class="btn btn-primary">➤</button>
-            </div>
-            <input type="file" id="file-input" accept="image/*,video/*,audio/*,application/pdf" style="display:none">
-        `;
-        await loadChatMessages();
-        setupChatRealtime();
-        setupChatEventListeners();
-    }
-
-    async function loadChatMessages() {
-        if (isLocalMode()) {
-            const container = document.getElementById('chat-messages');
-            if (container) container.innerHTML = '<div class="message message-received"><div><strong>Sistema</strong><br>Chat em modo local. Configure Supabase para mensagens reais.</div></div>';
-            return;
-        }
-        const filter = getVisibilityFilter();
-        let query = supabaseClient.from('chat_messages').select('*, sender:sender_id(full_name, username)').eq('is_deleted', false);
-        if (filter.house_id) query = query.eq('house_id', filter.house_id);
-        else if (filter.city_id) query = query.eq('city_id', filter.city_id);
-        const { data } = await query.order('created_at', { ascending: true });
-        const container = document.getElementById('chat-messages');
-        if (!container) return;
-        container.innerHTML = '';
-        data.forEach(msg => {
-            const isOwn = msg.sender_id === currentUser.id;
-            const div = document.createElement('div');
-            div.className = `message ${isOwn ? 'message-sent' : 'message-received'}`;
-            let mediaHtml = '';
-            if (msg.media_url && msg.media_type) {
-                if (msg.media_type === 'image') mediaHtml = `<img src="${msg.media_url}" class="message-media">`;
-                else if (msg.media_type === 'video') mediaHtml = `<video src="${msg.media_url}" controls class="message-media"></video>`;
-                else if (msg.media_type === 'audio') mediaHtml = `<audio src="${msg.media_url}" controls></audio>`;
-                else if (msg.media_type === 'pdf') mediaHtml = `<a href="${msg.media_url}" target="_blank">📄 Ver PDF</a>`;
-            }
-            div.innerHTML = `
-                <div><strong>${msg.sender?.full_name || msg.sender?.username}</strong> ${mediaHtml}<br>${msg.message || ''}</div>
-                <div class="message-info">
-                    <span>${formatDateTime(msg.created_at)}</span>
-                    ${isOwn ? `<span class="delete-msg" data-id="${msg.id}">🗑️ Apagar</span>` : ''}
-                </div>
-            `;
-            container.appendChild(div);
-        });
-        container.scrollTop = container.scrollHeight;
-        document.querySelectorAll('.delete-msg').forEach(el => {
-            el.addEventListener('click', async (e) => {
-                const id = el.dataset.id;
-                await supabaseClient.from('chat_messages').update({ is_deleted: true }).eq('id', id);
-                loadChatMessages();
+            listaCards.innerHTML = "";
+            manutencoes.forEach(item => {
+                const dataFormatada = new Date(item.data_abertura).toLocaleString('pt-BR');
+                let fotoHtml = item.foto_url ? `<p><a href="${item.foto_url}" target="_blank">🖼️ Ver Foto Anexa</a></p>` : '';
+                
+                listaCards.innerHTML += `
+                    <article style="border-left: 5px solid #e53e3e;">
+                        <header>
+                            <strong>📍 ${item.local}</strong> 
+                            <small style="float: right;">${dataFormatada}</small>
+                        </header>
+                        <p>${item.descricao}</p>
+                        ${fotoHtml}
+                        <footer>
+                            <button class="secondary" onclick="abrirOportunidade('${item.id}')">⚙️ Planejar Manutenção</button>
+                        </footer>
+                    </article>
+                `;
             });
-        });
-    }
-
-    function setupChatRealtime() {
-        if (isLocalMode()) return;
-        if (chatSubscription) chatSubscription.unsubscribe();
-        const filter = getVisibilityFilter();
-        const realtimeFilter = filter.house_id ? `house_id=eq.${filter.house_id}` : (filter.city_id ? `city_id=eq.${filter.city_id}` : undefined);
-        const insertOpts = { event: 'INSERT', schema: 'public', table: 'chat_messages' };
-        const updateOpts = { event: 'UPDATE', schema: 'public', table: 'chat_messages' };
-        if (realtimeFilter) { insertOpts.filter = realtimeFilter; updateOpts.filter = realtimeFilter; }
-        chatSubscription = supabaseClient
-            .channel('chat-room')
-            .on('postgres_changes', insertOpts, () => loadChatMessages())
-            .on('postgres_changes', updateOpts, () => loadChatMessages())
-            .subscribe();
-    }
-
-    function setupChatEventListeners() {
-        const sendBtn = document.getElementById('send-msg');
-        const input = document.getElementById('chat-input');
-        const fileInput = document.getElementById('file-input');
-        let currentMediaType = null;
-
-        const sendMessage = async (text, mediaUrl = null, mediaType = null) => {
-            if (isLocalMode()) { showToast('Modo local: mensagem não salva.'); return; }
-            const filter = getVisibilityFilter();
-            const { error } = await supabaseClient.from('chat_messages').insert({
-                sender_id: currentUser.id,
-                city_id: filter.city_id || null,
-                house_id: filter.house_id || null,
-                message: text || null,
-                media_url: mediaUrl,
-                media_type: mediaType
-            });
-            if (error) showToast('Erro ao enviar: '+error.message);
-            else input.value = '';
-        };
-        sendBtn.onclick = () => { if (input.value.trim()) sendMessage(input.value.trim()); };
-        input.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(input.value.trim()); });
-
-        const attach = (accept, type) => { fileInput.accept = accept; currentMediaType = type; fileInput.click(); };
-        document.getElementById('attach-image').onclick = () => attach('image/*', 'image');
-        document.getElementById('attach-video').onclick = () => attach('video/*', 'video');
-        document.getElementById('attach-audio').onclick = () => attach('audio/*', 'audio');
-        document.getElementById('attach-pdf').onclick = () => attach('application/pdf', 'pdf');
-
-        fileInput.onchange = async () => {
-            const file = fileInput.files[0];
-            if (!file) return;
-            const ext = file.name.split('.').pop();
-            const filePath = `chat/${currentUser.id}_${Date.now()}.${ext}`;
-            const { error: uploadError } = await supabaseClient.storage.from('chat_media').upload(filePath, file);
-            if (uploadError) return showToast('Erro upload: '+uploadError.message);
-            const { data: { publicUrl } } = supabaseClient.storage.from('chat_media').getPublicUrl(filePath);
-            sendMessage(null, publicUrl, currentMediaType);
-            fileInput.value = '';
-        };
-    }
-
-    // ==================== ADMIN ====================
-    async function renderAdmin(container) {
-        if (isLocalMode()) {
-            container.innerHTML = '<h2>⚙️ Administração</h2><div class="card"><p>Administração em modo local.</p><p>Para criar usuários reais, entre com login Supabase funcionando.</p></div>';
-            return;
-        }
-        const { data: cities } = await supabaseClient.from('cities').select('*');
-        const { data: houses } = await supabaseClient.from('houses').select('*, cities(name)');
-        const { data: users } = await supabaseClient.from('profiles').select('*');
-        container.innerHTML = `
-            <h2>⚙️ Administração</h2>
-            <div class="card">
-                <h3>Novo Usuário</h3>
-                <input id="new-username" placeholder="username">
-                <input id="new-fullname" placeholder="Nome completo">
-                <input id="new-password" type="password" placeholder="Senha">
-                <select id="new-role"><option>Usuário</option><option>Gestor da Manutenção</option><option>Administrador</option></select>
-                <select id="new-permission"><option value="house">Apenas sua casa</option><option value="city">Apenas sua cidade</option><option value="all">Todas cidades</option></select>
-                <select id="new-city"><option value="">Selecione cidade</option>${cities.map(c => `<option value="${c.id}">${c.name}</option>`)}</select>
-                <select id="new-house"><option value="">Selecione casa</option>${houses.map(h => `<option value="${h.id}">${h.name} (${h.cities?.name})</option>`)}</select>
-                <button class="btn btn-primary" onclick="createUser()">Criar Usuário</button>
-            </div>
-            <h3>Usuários Existentes</h3>
-            <div id="user-list">${users.map(u => `<div>${u.full_name} (${u.role}) - ${u.permission_level} <button onclick="deleteUser('${u.id}')">🗑️</button></div>`).join('')}</div>
-        `;
-    }
-
-    window.createUser = async () => {
-        const username = document.getElementById('new-username').value;
-        const fullname = document.getElementById('new-fullname').value;
-        const password = document.getElementById('new-password').value;
-        const role = document.getElementById('new-role').value;
-        const perm = document.getElementById('new-permission').value;
-        const cityId = document.getElementById('new-city').value ? parseInt(document.getElementById('new-city').value) : null;
-        const houseId = document.getElementById('new-house').value ? parseInt(document.getElementById('new-house').value) : null;
-        if (!username || !password) return showToast('Usuário e senha obrigatórios');
-        const email = username + DOMAIN;
-        const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
-        if (error) return showToast('Erro: '+error.message);
-        await supabaseClient.from('profiles').insert({
-            id: user.user.id, username, full_name: fullname, role, permission_level: perm,
-            city_id: cityId, house_id: houseId
-        });
-        showToast('Usuário criado');
-        navigateTo('admin');
-    };
-
-    window.deleteUser = async (id) => {
-        if(confirm('Deletar usuário?')) {
-            await supabaseClient.auth.admin.deleteUser(id);
-            await supabaseClient.from('profiles').delete().eq('id', id);
-            navigateTo('admin');
-        }
-    };
-
-    // ==================== INICIALIZAÇÃO ====================
-    let appInitialized = false;
-
-    async function enterAppWithSession(session) {
-        currentUser = await loadUserProfile(session.user.id);
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-screen').classList.remove('hidden');
-        document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isAdmin()));
-        navigateTo('dashboard');
-    }
-
-    async function init() {
-        if (appInitialized) return;
-        appInitialized = true;
-
-        document.getElementById('local-access-btn').addEventListener('click', setLocalUser);
-        setupBottomMenu();
-
-        if (localStorage.getItem(LOCAL_MODE_KEY) === 'true') {
-            setLocalUser();
-            return;
         }
 
-        try {
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
-            if (error) throw error;
-            if (session) await enterAppWithSession(session);
-        } catch (err) {
-            console.error('Erro ao iniciar sessão:', err);
-            showDebug('O app abriu, mas não conseguiu validar a sessão atual.', err.message || String(err));
-        }
-
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        // Função para salvar uma nova pendência (Abertura Rápida)
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const loginError = document.getElementById('login-error');
-            loginError.innerText = '';
-            try {
-                const result = await login(document.getElementById('username').value, document.getElementById('password').value);
-                if (!result?.session) throw new Error('Login não retornou sessão. Verifique confirmação de e-mail no Supabase.');
-                await enterAppWithSession(result.session);
-            } catch (err) {
-                console.error('Erro no login:', err);
-                loginError.innerText = 'Não entrou. Veja o motivo abaixo.';
-                showDebug('Falha no login.', err.message || String(err));
+            
+            const local = document.getElementById('local').value;
+            const descricao = document.getElementById('descricao').value;
+            const fotoFile = document.getElementById('foto').files[0];
+            let fotoUrl = null;
+
+            // Se houver foto, faz o upload para o Storage primeiro
+            if (fotoFile) {
+                const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
+                let { data, error } = await supabase.storage
+                    .from('fotos-manutencao')
+                    .upload(nomeArquivo, fotoFile);
+                
+                if (!error) {
+                    const { data: publicUrlData } = supabase.storage
+                        .from('fotos-manutencao')
+                        .getPublicUrl(nomeArquivo);
+                    fotoUrl = publicUrlData.publicUrl;
+                }
+            }
+
+            // Insere os dados básicos na tabela (A data_abertura é automática do banco)
+            const { error } = await supabase
+                .from('manutencoes')
+                .insert([{ local, descricao, foto_url: fotoUrl }]);
+
+            if (!error) {
+                form.reset();
+                buscarPendencias(); // Atualiza a lista na tela
+                alert("Pendência registrada com sucesso!");
+            } else {
+                alert("Erro ao salvar: " + error.message);
             }
         });
 
-        supabaseClient.auth.onAuthStateChange(async (event, session) => {
-            if (event === 'SIGNED_OUT') return;
-            if (event === 'SIGNED_IN' && session && !currentUser) {
-                try { await enterAppWithSession(session); }
-                catch (err) { showDebug('Login aceito, mas falhou ao carregar o perfil.', err.message || String(err)); }
-            }
-        });
-    }
-    init();
-</script>
+        // Função que será usada no futuro para abrir os detalhes da oportunidade
+        function abrirOportunidade(id) {
+            alert("Aqui vamos abrir a tela detalhada para o ID: " + id + " para adicionar responsável, datas e checklist.");
+        }
+
+        // Inicializa a lista ao abrir o app
+        buscarPendencias();
+    </script>
 </body>
 </html>
