@@ -89,7 +89,7 @@
         // CONFIGURAÇÃO DO SUPABASE
         const SUPABASE_URL = "SUA_URL_DO_SUPABASE";
         const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY_DO_SUPABASE";
-        const supabase = @supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const form = document.getElementById('form-manutencao');
         const listaCards = document.getElementById('lista-cards');
