@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Manutenção Rápida</title>
-    <!-- Link para estilização simples e limpa -->
+    <title>Gestão de Manutenção Completa</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <!-- Conexão com o Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Estilos para a janela flutuante (Modal) de Planejamento */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; overflow-y: auto; }
+        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; color: #333; }
+        .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    </style>
 </head>
 <body>
     <main class="container">
         <h1>Gestão de Manutenção</h1>
         
-        <!-- SEÇÃO 1: FORMULÁRIO DE ABERTURA RÁPIDA -->
         <section id="formulario-registro">
             <h3>Nova Pendência</h3>
             <form id="form-manutencao">
@@ -32,19 +35,58 @@
 
         <hr>
 
-        <!-- SEÇÃO 2: LISTA DE PENDÊNCIAS -->
         <section id="lista-pendencias">
-            <h3>Itens Pendentes</h3>
+            <h3>Ordens de Serviço e Pendências</h3>
             <div id="lista-cards">
-                <!-- Os itens do banco vão aparecer aqui dentro automaticamente -->
-                <p>Carregando pendências...</p>
+                <p>Carregando registros...</p>
             </div>
         </section>
     </main>
 
+    <div id="modalPlanejamento" class="modal">
+        <div class="modal-content">
+            <h2>⚙️ Planejar Manutenção</h2>
+            <p id="detalhe-origem" style="font-style: italic; color: #666;"></p>
+            
+            <form id="form-planejamento">
+                <input type="hidden" id="edit-id">
+
+                <label for="edit-responsavel">Técnico / Responsável:</label>
+                <input type="text" id="edit-responsavel" placeholder="Nome do responsável pelo serviço">
+
+                <div class="grid">
+                    <div>
+                        <label for="edit-inicio">Previsão de Início:</label>
+                        <input type="datetime-local" id="edit-inicio">
+                    </div>
+                    <div>
+                        <label for="edit-termino">Previsão de Término:</label>
+                        <input type="datetime-local" id="edit-termino">
+                    </div>
+                </div>
+
+                <label>Status do Serviço:</label>
+                <select id="edit-status">
+                    <option value="Pendente">Pendente</option>
+                    <option value="Programado">Programado</option>
+                    <option value="Em Execução">Em Execução</option>
+                    <option value="Concluído">Concluído</option>
+                </select>
+
+                <label><strong>Checklist de Tarefas:</strong></label>
+                <div id="container-checklist"></div>
+                <button type="button" class="secondary" onclick="adicionarLinhaChecklist()">+ Adicionar Item ao Checklist</button>
+
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button type="submit" style="background-color: #2b6cb0;">Salvar Planejamento</button>
+                    <button type="button" class="secondary" onclick="fecharModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // CONFIGURAÇÃO DO SUPABASE
-        // Substitua com as credenciais do seu painel do Supabase (Project Settings > API)
         const SUPABASE_URL = "SUA_URL_DO_SUPABASE";
         const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY_DO_SUPABASE";
         const supabase = @supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -52,12 +94,11 @@
         const form = document.getElementById('form-manutencao');
         const listaCards = document.getElementById('lista-cards');
 
-        // Função para buscar e exibir a lista de pendências
+        // Buscar e exibir todos os registros
         async function buscarPendencias() {
             let { data: manutencoes, error } = await supabase
                 .from('manutencoes')
                 .select('*')
-                .eq('status', 'Pendente') // Mostra apenas os pendentes na lista principal
                 .order('data_abertura', { ascending: false });
 
             if (error) {
@@ -66,7 +107,7 @@
             }
 
             if (manutencoes.length === 0) {
-                listaCards.innerHTML = "<p>Nenhuma pendência registrada! Tudo rodando bem. 🙌</p>";
+                listaCards.innerHTML = "<p>Nenhum registro encontrado.</p>";
                 return;
             }
 
@@ -75,66 +116,139 @@
                 const dataFormatada = new Date(item.data_abertura).toLocaleString('pt-BR');
                 let fotoHtml = item.foto_url ? `<p><a href="${item.foto_url}" target="_blank">🖼️ Ver Foto Anexa</a></p>` : '';
                 
+                // Muda a cor da borda lateral do card baseado no status
+                let corBorda = "#e53e3e"; // Vermelho para Pendente
+                if (item.status === 'Programado') corBorda = "#dd6b20"; // Laranja
+                if (item.status === 'Em Execução') corBorda = "#3182ce"; // Azul
+                if (item.status === 'Concluído') corBorda = "#38a169"; // Verde
+
                 listaCards.innerHTML += `
-                    <article style="border-left: 5px solid #e53e3e;">
+                    <article style="border-left: 6px solid ${corBorda}; margin-bottom: 20px;">
                         <header>
                             <strong>📍 ${item.local}</strong> 
-                            <small style="float: right;">${dataFormatada}</small>
+                            <mark style="background-color: ${corBorda}; color: white; padding: 2px 8px; border-radius: 4px; float: right; font-size: 0.8rem;">${item.status}</mark>
+                            <br><small style="color: #666;">Aberto em: ${dataFormatada}</small>
                         </header>
                         <p>${item.descricao}</p>
                         ${fotoHtml}
+                        ${item.responsavel ? `<p><strong>👷 Responsável:</strong> ${item.responsavel}</p>` : ''}
                         <footer>
-                            <button class="secondary" onclick="abrirOportunidade('${item.id}')">⚙️ Planejar Manutenção</button>
+                            <button class="outline" onclick="abrirOportunidade('${item.id}')">⚙️ Planejar / Detalhar</button>
                         </footer>
                     </article>
                 `;
             });
         }
 
-        // Função para salvar uma nova pendência (Abertura Rápida)
+        // Criar Nova Pendência (Abertura Rápida)
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const local = document.getElementById('local').value;
             const descricao = document.getElementById('descricao').value;
             const fotoFile = document.getElementById('foto').files[0];
             let fotoUrl = null;
 
-            // Se houver foto, faz o upload para o Storage primeiro
             if (fotoFile) {
                 const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
-                let { data, error } = await supabase.storage
-                    .from('fotos-manutencao')
-                    .upload(nomeArquivo, fotoFile);
-                
+                let { data, error } = await supabase.storage.from('fotos-manutencao').upload(nomeArquivo, fotoFile);
                 if (!error) {
-                    const { data: publicUrlData } = supabase.storage
-                        .from('fotos-manutencao')
-                        .getPublicUrl(nomeArquivo);
+                    const { data: publicUrlData } = supabase.storage.from('fotos-manutencao').getPublicUrl(nomeArquivo);
                     fotoUrl = publicUrlData.publicUrl;
                 }
             }
 
-            // Insere os dados básicos na tabela (A data_abertura é automática do banco)
-            const { error } = await supabase
-                .from('manutencoes')
-                .insert([{ local, descricao, foto_url: fotoUrl }]);
+            const { error } = await supabase.from('manutencoes').insert([{ local, descricao, foto_url: fotoUrl }]);
 
             if (!error) {
                 form.reset();
-                buscarPendencias(); // Atualiza a lista na tela
-                alert("Pendência registrada com sucesso!");
-            } else {
-                alert("Erro ao salvar: " + error.message);
+                buscarPendencias();
+                alert("Registrado com sucesso!");
             }
         });
 
-        // Função que será usada no futuro para abrir os detalhes da oportunidade
-        function abrirOportunidade(id) {
-            alert("Aqui vamos abrir a tela detalhada para o ID: " + id + " para adicionar responsável, datas e checklist.");
+        // ABRIR TELA DE PLANEJAMENTO (MODAL)
+        async function abrirOportunidade(id) {
+            let { data: item, error } = await supabase.from('manutencoes').select('*').eq('id', id).single();
+            
+            if (error) return alert("Erro ao buscar detalhes.");
+
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('detalhe-origem').innerText = `Local: ${item.local} | Descrição: ${item.descricao}`;
+            document.getElementById('edit-responsavel').value = item.responsavel || '';
+            document.getElementById('edit-status').value = item.status;
+            document.getElementById('edit-inicio').value = item.data_inicio ? item.data_inicio.substring(0,16) : '';
+            document.getElementById('edit-termino').value = item.data_termino ? item.data_termino.substring(0,16) : '';
+
+            // Renderizar Checklist antigo ou criar um padrão
+            const container = document.getElementById('container-checklist');
+            container.innerHTML = "";
+            let checklist = item.checklist || [];
+            
+            if (checklist.length === 0) {
+                // Adiciona uma linha em branco por padrão se estiver vazio
+                adicionarLinhaChecklist();
+            } else {
+                checklist.forEach(tarefa => adicionarLinhaChecklist(tarefa.texto, tarefa.feito));
+            }
+
+            document.getElementById('modalPlanejamento').style.display = 'block';
         }
 
-        // Inicializa a lista ao abrir o app
+        function fecharModal() {
+            document.getElementById('modalPlanejamento').style.display = 'none';
+        }
+
+        function adicionarLinhaChecklist(texto = "", feito = false) {
+            const container = document.getElementById('container-checklist');
+            const div = document.createElement('div');
+            div.className = "checklist-item";
+            div.innerHTML = `
+                <input type="checkbox" class="chk-status" ${feito ? 'checked' : ''}>
+                <input type="text" class="chk-texto" value="${texto}" placeholder="Ex: Desenergizar o painel" style="margin-bottom:0;">
+            `;
+            container.appendChild(div);
+        }
+
+        // SALVAR AS ALTERAÇÕES DO PLANEJAMENTO
+        document.getElementById('form-planejamento').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const responsavel = document.getElementById('edit-responsavel').value;
+            const status = document.getElementById('edit-status').value;
+            const data_inicio = document.getElementById('edit-inicio').value || null;
+            const data_termino = document.getElementById('edit-termino').value || null;
+
+            // Monta o JSON do checklist lendo os inputs da tela
+            const itensChecklist = [];
+            document.querySelectorAll('.checklist-item').forEach(div => {
+                const texto = div.querySelector('.chk-texto').value.trim();
+                const feito = div.querySelector('.chk-status').checked;
+                if (texto) {
+                    itensChecklist.push({ texto, feito });
+                }
+            });
+
+            const { error } = await supabase
+                .from('manutencoes')
+                .update({
+                    responsavel,
+                    status,
+                    data_inicio,
+                    data_termino,
+                    checklist: itensChecklist
+                })
+                .eq('id', id);
+
+            if (!error) {
+                fecharModal();
+                buscarPendencias();
+                alert("Planejamento atualizado com sucesso!");
+            } else {
+                alert("Erro ao salvar planejamento: " + error.message);
+            }
+        });
+
+        // Carrega a lista ao abrir a página
         buscarPendencias();
     </script>
 </body>
