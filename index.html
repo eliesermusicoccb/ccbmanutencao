@@ -1,255 +1,263 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Manutenção Completa</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        /* Estilos para a janela flutuante (Modal) de Planejamento */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; overflow-y: auto; }
-        .modal-content { background: white; margin: 5% auto; padding: 20px; width: 90%; max-width: 600px; border-radius: 8px; color: #333; }
-        .checklist-item { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sistema Predial Profissional</title>
+
+<style>
+body { font-family: Arial; background:#f4f6f8; padding:15px; }
+h1 { color:#333; }
+.nav button { margin:5px; padding:8px; border:none; border-radius:5px; cursor:pointer; }
+
+.section { display:none; }
+.active { display:block; }
+
+.card {
+  background:white;
+  padding:10px;
+  margin-top:10px;
+  border-radius:5px;
+  border-left:5px solid #2e7d32;
+}
+
+input, textarea {
+  width:100%;
+  margin:5px 0;
+  padding:8px;
+}
+
+.alert { color:red; font-weight:bold; }
+.ok { color:green; }
+</style>
 </head>
+
 <body>
-    <main class="container">
-        <h1>Gestão de Manutenção</h1>
-        
-        <section id="formulario-registro">
-            <h3>Nova Pendência</h3>
-            <form id="form-manutencao">
-                <label for="local">Local / Ativo:</label>
-                <input type="text" id="local" placeholder="Ex: Linha 1, Compressor, Ar Condicionado" required>
 
-                <label for="descricao">Descrição do Problema:</label>
-                <textarea id="descricao" placeholder="Relate o que está acontecendo..." required></textarea>
+<h1>🏠 Sistema Predial Profissional</h1>
 
-                <label for="foto">Foto da Evidência:</label>
-                <input type="file" id="foto" accept="image/*">
+<div class="nav">
+<button onclick="show('manut')">🔧 Manutenção</button>
+<button onclick="show('estoque')">📦 Estoque</button>
+<button onclick="show('tarefas')">📋 Kanban</button>
+<button onclick="show('compras')">🛒 Compras</button>
+<button onclick="show('chat')">💬 Chat</button>
+</div>
 
-                <button type="submit">Adicionar Pendência</button>
-            </form>
-        </section>
+<!-- MANUTENÇÃO -->
+<div id="manut" class="section active">
+<h2>Manutenção</h2>
 
-        <hr>
+<input id="local" placeholder="Local">
+<input id="desc" placeholder="Descrição">
+<input id="mat" placeholder="Materiais (separar por vírgula)">
 
-        <section id="lista-pendencias">
-            <h3>Ordens de Serviço e Pendências</h3>
-            <div id="lista-cards">
-                <p>Carregando registros...</p>
-            </div>
-        </section>
-    </main>
+<button onclick="addManut()">Adicionar</button>
 
-    <div id="modalPlanejamento" class="modal">
-        <div class="modal-content">
-            <h2>⚙️ Planejar Manutenção</h2>
-            <p id="detalhe-origem" style="font-style: italic; color: #666;"></p>
-            
-            <form id="form-planejamento">
-                <input type="hidden" id="edit-id">
+<div id="listaManut"></div>
+</div>
 
-                <label for="edit-responsavel">Técnico / Responsável:</label>
-                <input type="text" id="edit-responsavel" placeholder="Nome do responsável pelo serviço">
+<!-- ESTOQUE -->
+<div id="estoque" class="section">
+<h2>Estoque</h2>
 
-                <div class="grid">
-                    <div>
-                        <label for="edit-inicio">Previsão de Início:</label>
-                        <input type="datetime-local" id="edit-inicio">
-                    </div>
-                    <div>
-                        <label for="edit-termino">Previsão de Término:</label>
-                        <input type="datetime-local" id="edit-termino">
-                    </div>
-                </div>
+<input id="eNome" placeholder="Item">
+<input id="eQtd" type="number" placeholder="Quantidade">
 
-                <label>Status do Serviço:</label>
-                <select id="edit-status">
-                    <option value="Pendente">Pendente</option>
-                    <option value="Programado">Programado</option>
-                    <option value="Em Execução">Em Execução</option>
-                    <option value="Concluído">Concluído</option>
-                </select>
+<button onclick="addEstoque()">Adicionar</button>
 
-                <label><strong>Checklist de Tarefas:</strong></label>
-                <div id="container-checklist"></div>
-                <button type="button" class="secondary" onclick="adicionarLinhaChecklist()">+ Adicionar Item ao Checklist</button>
+<div id="listaEstoque"></div>
+</div>
 
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button type="submit" style="background-color: #2b6cb0;">Salvar Planejamento</button>
-                    <button type="button" class="secondary" onclick="fecharModal()">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
+<!-- KANBAN -->
+<div id="tarefas" class="section">
+<h2>Tarefas Preventivas</h2>
 
-    <script>
-        // CONFIGURAÇÃO DO SUPABASE
-        const SUPABASE_URL = "SUA_URL_DO_SUPABASE";
-        const SUPABASE_KEY = "SUA_CHAVE_ANON_KEY_DO_SUPABASE";
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<input id="tDesc" placeholder="Descrição">
+<input id="tProd" placeholder="Produto">
+<input id="tEst" type="number" placeholder="Estoque atual">
+<input id="tMin" type="number" placeholder="Mínimo">
+<input id="tCons" type="number" placeholder="Consumo/mês">
 
-        const form = document.getElementById('form-manutencao');
-        const listaCards = document.getElementById('lista-cards');
+<button onclick="addTarefa()">Adicionar</button>
 
-        // Buscar e exibir todos os registros
-        async function buscarPendencias() {
-            let { data: manutencoes, error } = await supabase
-                .from('manutencoes')
-                .select('*')
-                .order('data_abertura', { ascending: false });
+<div id="listaTarefas"></div>
+</div>
 
-            if (error) {
-                listaCards.innerHTML = "<p>Erro ao carregar dados.</p>";
-                return;
-            }
+<!-- COMPRAS -->
+<div id="compras" class="section">
+<h2>🛒 Lista de Compras</h2>
+<div id="listaCompras"></div>
+</div>
 
-            if (manutencoes.length === 0) {
-                listaCards.innerHTML = "<p>Nenhum registro encontrado.</p>";
-                return;
-            }
+<!-- CHAT -->
+<div id="chat" class="section">
+<h2>Chat</h2>
 
-            listaCards.innerHTML = "";
-            manutencoes.forEach(item => {
-                const dataFormatada = new Date(item.data_abertura).toLocaleString('pt-BR');
-                let fotoHtml = item.foto_url ? `<p><a href="${item.foto_url}" target="_blank">🖼️ Ver Foto Anexa</a></p>` : '';
-                
-                // Muda a cor da borda lateral do card baseado no status
-                let corBorda = "#e53e3e"; // Vermelho para Pendente
-                if (item.status === 'Programado') corBorda = "#dd6b20"; // Laranja
-                if (item.status === 'Em Execução') corBorda = "#3182ce"; // Azul
-                if (item.status === 'Concluído') corBorda = "#38a169"; // Verde
+<div id="chatBox" style="height:250px;overflow:auto;background:#fff;padding:5px;border-radius:5px;"></div>
 
-                listaCards.innerHTML += `
-                    <article style="border-left: 6px solid ${corBorda}; margin-bottom: 20px;">
-                        <header>
-                            <strong>📍 ${item.local}</strong> 
-                            <mark style="background-color: ${corBorda}; color: white; padding: 2px 8px; border-radius: 4px; float: right; font-size: 0.8rem;">${item.status}</mark>
-                            <br><small style="color: #666;">Aberto em: ${dataFormatada}</small>
-                        </header>
-                        <p>${item.descricao}</p>
-                        ${fotoHtml}
-                        ${item.responsavel ? `<p><strong>👷 Responsável:</strong> ${item.responsavel}</p>` : ''}
-                        <footer>
-                            <button class="outline" onclick="abrirOportunidade('${item.id}')">⚙️ Planejar / Detalhar</button>
-                        </footer>
-                    </article>
-                `;
-            });
-        }
+<input id="msg" placeholder="Digite mensagem">
+<input type="file" id="file">
 
-        // Criar Nova Pendência (Abertura Rápida)
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const local = document.getElementById('local').value;
-            const descricao = document.getElementById('descricao').value;
-            const fotoFile = document.getElementById('foto').files[0];
-            let fotoUrl = null;
+<button onclick="enviar()">Enviar</button>
+</div>
 
-            if (fotoFile) {
-                const nomeArquivo = `${Date.now()}_${fotoFile.name}`;
-                let { data, error } = await supabase.storage.from('fotos-manutencao').upload(nomeArquivo, fotoFile);
-                if (!error) {
-                    const { data: publicUrlData } = supabase.storage.from('fotos-manutencao').getPublicUrl(nomeArquivo);
-                    fotoUrl = publicUrlData.publicUrl;
-                }
-            }
+<script>
 
-            const { error } = await supabase.from('manutencoes').insert([{ local, descricao, foto_url: fotoUrl }]);
+// ===== DADOS =====
+let manut = JSON.parse(localStorage.getItem("manut")) || [];
+let estoque = JSON.parse(localStorage.getItem("estoque")) || [];
+let tarefas = JSON.parse(localStorage.getItem("tarefas")) || [];
+let chat = JSON.parse(localStorage.getItem("chat")) || [];
+let compras = JSON.parse(localStorage.getItem("compras")) || [];
 
-            if (!error) {
-                form.reset();
-                buscarPendencias();
-                alert("Registrado com sucesso!");
-            }
-        });
+// ===== NAVEGAÇÃO =====
+function show(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
 
-        // ABRIR TELA DE PLANEJAMENTO (MODAL)
-        async function abrirOportunidade(id) {
-            let { data: item, error } = await supabase.from('manutencoes').select('*').eq('id', id).single();
-            
-            if (error) return alert("Erro ao buscar detalhes.");
+// ===== MANUTENÇÃO INTEGRADA =====
+function addManut() {
 
-            document.getElementById('edit-id').value = item.id;
-            document.getElementById('detalhe-origem').innerText = `Local: ${item.local} | Descrição: ${item.descricao}`;
-            document.getElementById('edit-responsavel').value = item.responsavel || '';
-            document.getElementById('edit-status').value = item.status;
-            document.getElementById('edit-inicio').value = item.data_inicio ? item.data_inicio.substring(0,16) : '';
-            document.getElementById('edit-termino').value = item.data_termino ? item.data_termino.substring(0,16) : '';
+  let materiais = document.getElementById("mat").value.split(",");
+  let falta = [];
 
-            // Renderizar Checklist antigo ou criar um padrão
-            const container = document.getElementById('container-checklist');
-            container.innerHTML = "";
-            let checklist = item.checklist || [];
-            
-            if (checklist.length === 0) {
-                // Adiciona uma linha em branco por padrão se estiver vazio
-                adicionarLinhaChecklist();
-            } else {
-                checklist.forEach(tarefa => adicionarLinhaChecklist(tarefa.texto, tarefa.feito));
-            }
+  materiais.forEach(m => {
+    m = m.trim();
+    if (!m) return;
 
-            document.getElementById('modalPlanejamento').style.display = 'block';
-        }
+    let item = estoque.find(e => e.nome.toLowerCase() === m.toLowerCase());
 
-        function fecharModal() {
-            document.getElementById('modalPlanejamento').style.display = 'none';
-        }
+    if (!item || item.qtd <= 0) {
+      falta.push(m);
+    } else {
+      item.qtd--; // baixa no estoque
+    }
+  });
 
-        function adicionarLinhaChecklist(texto = "", feito = false) {
-            const container = document.getElementById('container-checklist');
-            const div = document.createElement('div');
-            div.className = "checklist-item";
-            div.innerHTML = `
-                <input type="checkbox" class="chk-status" ${feito ? 'checked' : ''}>
-                <input type="text" class="chk-texto" value="${texto}" placeholder="Ex: Desenergizar o painel" style="margin-bottom:0;">
-            `;
-            container.appendChild(div);
-        }
+  compras = [...compras, ...falta];
 
-        // SALVAR AS ALTERAÇÕES DO PLANEJAMENTO
-        document.getElementById('form-planejamento').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const id = document.getElementById('edit-id').value;
-            const responsavel = document.getElementById('edit-responsavel').value;
-            const status = document.getElementById('edit-status').value;
-            const data_inicio = document.getElementById('edit-inicio').value || null;
-            const data_termino = document.getElementById('edit-termino').value || null;
+  manut.push({
+    local: local.value,
+    desc: desc.value,
+    materiais
+  });
 
-            // Monta o JSON do checklist lendo os inputs da tela
-            const itensChecklist = [];
-            document.querySelectorAll('.checklist-item').forEach(div => {
-                const texto = div.querySelector('.chk-texto').value.trim();
-                const feito = div.querySelector('.chk-status').checked;
-                if (texto) {
-                    itensChecklist.push({ texto, feito });
-                }
-            });
+  salvarTudo();
+}
 
-            const { error } = await supabase
-                .from('manutencoes')
-                .update({
-                    responsavel,
-                    status,
-                    data_inicio,
-                    data_termino,
-                    checklist: itensChecklist
-                })
-                .eq('id', id);
+// ===== ESTOQUE =====
+function addEstoque() {
+  estoque.push({ nome:eNome.value, qtd:parseInt(eQtd.value) || 0 });
+  salvarTudo();
+}
 
-            if (!error) {
-                fecharModal();
-                buscarPendencias();
-                alert("Planejamento atualizado com sucesso!");
-            } else {
-                alert("Erro ao salvar planejamento: " + error.message);
-            }
-        });
+// ===== KANBAN =====
+function addTarefa() {
 
-        // Carrega a lista ao abrir a página
-        buscarPendencias();
-    </script>
+  tarefas.push({
+    desc:tDesc.value,
+    prod:tProd.value,
+    est:parseInt(tEst.value) || 0,
+    min:parseInt(tMin.value) || 0,
+    cons:parseInt(tCons.value) || 0
+  });
+
+  salvarTudo();
+}
+
+// ===== CHAT =====
+function enviar() {
+  let texto = msg.value;
+  let file = document.getElementById("file").files[0];
+
+  if (file) {
+    let reader = new FileReader();
+
+    reader.onload = function(e){
+      chat.push({tipo:"file",conteudo:e.target.result});
+      salvarTudo();
+    }
+
+    reader.readAsDataURL(file);
+
+  } else if(texto){
+    chat.push({tipo:"txt",conteudo:texto});
+    salvarTudo();
+  }
+}
+
+function apagar(i){
+  if(confirm("Excluir mensagem?")){
+    chat.splice(i,1);
+    salvarTudo();
+  }
+}
+
+// ===== ATUALIZAR =====
+function atualizar() {
+
+  // MANUT
+  listaManut.innerHTML = manut.map(m =>
+    `<div class="card">
+      <b>${m.local}</b><br>
+      ${m.desc}<br>
+      Materiais: ${m.materiais.join(", ")}
+    </div>`
+  ).join("");
+
+  // ESTOQUE
+  listaEstoque.innerHTML = estoque.map(e =>
+    `<div class="card">${e.nome} (${e.qtd})</div>`
+  ).join("");
+
+  // KANBAN
+  listaTarefas.innerHTML = tarefas.map(t => {
+
+    let status = "🟢 OK";
+    if (t.est <= t.min) status = "🔴 Comprar urgente";
+
+    return `<div class="card">
+      <b>${t.desc}</b><br>
+      Produto: ${t.prod}<br>
+      Estoque: ${t.est} / Min: ${t.min}<br>
+      Consumo/mês: ${t.cons}<br>
+      <b>${status}</b>
+    </div>`;
+    
+  }).join("");
+
+  // COMPRAS
+  listaCompras.innerHTML = compras.map(c =>
+    `<div class="card alert">${c}</div>`
+  ).join("");
+
+  // CHAT
+  chatBox.innerHTML = chat.map((c,i) =>
+    `<div class="card">
+      ${c.tipo==="txt" ? c.conteudo : `<{c.conteudo}📎 Arquivo</a>`}
+      <br>
+      <button onclick="apagar(${i})">Excluir</button>
+    </div>`
+  ).join("");
+}
+
+// ===== SALVAR =====
+function salvarTudo() {
+  localStorage.setItem("manut", JSON.stringify(manut));
+  localStorage.setItem("estoque", JSON.stringify(estoque));
+  localStorage.setItem("tarefas", JSON.stringify(tarefas));
+  localStorage.setItem("chat", JSON.stringify(chat));
+  localStorage.setItem("compras", JSON.stringify(compras));
+
+  atualizar();
+}
+
+// INIT
+atualizar();
+
+</script>
+
 </body>
 </html>
